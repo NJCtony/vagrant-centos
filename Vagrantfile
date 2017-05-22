@@ -30,7 +30,7 @@ Vagrant.configure("2") do |config|
   # the path on the host to the actual folder. The second argument is
   # the path on the guest to mount the folder. And the optional third
   # argument is a set of non-required options.
-  config.vm.synced_folder "src/mysite/", "/srv/website"
+  config.vm.synced_folder "src/", "/srv/website"
 
   # Using VBoxManage to make modifications to VirtualBox VMs
   config.vm.provider "virtualbox" do |v|
