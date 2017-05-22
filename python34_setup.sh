@@ -18,7 +18,11 @@ sudo easy_install-3.4 pip
 echo "Installing virtualenv"
 sudo pip install virtualenv
 
-echo "Creating Virtual Environment..."
+echo "Creating virtual environment..."
 cd /srv
 virtualenv venv
 sudo chmod -R 777 venv
+
+echo "Installing required packages within virtual environment and making database migrations..."
+cd /srv/website
+make install
