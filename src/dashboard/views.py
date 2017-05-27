@@ -3,4 +3,7 @@ from django.shortcuts import render
 
 
 def index(request):
-    return HttpResponse("Hello, World!")
+    context={}
+    # if not request.user.is_authenticated:
+    #     return redirect('mainapp:login')
+    return render(request, 'dashboard/index.html', context)
