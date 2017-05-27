@@ -56,3 +56,7 @@ pip-delete-this-directory.txt
 *.log
 *.pot
 *.sqlite3
+
+# Data Analytics
+*.csv
+src/analytics/*.py
