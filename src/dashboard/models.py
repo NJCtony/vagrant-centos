@@ -1,7 +1,7 @@
 from django.db import models
 
 # Create your models here.
-class OrderDifference(models.Model):
+class NeedOneRecord(models.Model):
     clm_code = models.CharField(max_length=16, default=None)
     soldtoname = models.CharField(max_length=64, default=None)
     salesname = models.CharField(max_length=32, default=None)
@@ -18,8 +18,19 @@ class OrderDifference(models.Model):
     alert_type = models.CharField(max_length=16, default=None)
     alert_description = models.CharField(max_length=64, default=None)
 
+class NeedThreeRecord(models.Model):
+    soldtoname = models.CharField(max_length=64, default=None)
+    salesname = models.CharField(max_length=32, default=None)
+    monat = models.CharField(max_length=16, default=None)
+    wtpcs_amt = models.IntegerField(default=0)
+    average = models.FloatField(default=0)
+    alert_type = models.CharField(max_length=16, default=None)
+    alert_description = models.CharField(max_length=64, default=None)
+
+
 class BusinessPerformance(models.Model):
     clm_code = models.CharField(max_length=16, default=None)
+    alert_type = models.CharField(max_length=16, default=None)
     soldtoname = models.CharField(max_length=64, default=None)
     bp = models.FloatField(default=0)
     monat = models.CharField(max_length=32, default=None)
