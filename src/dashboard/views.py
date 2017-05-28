@@ -1,4 +1,4 @@
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 import operator
 
@@ -69,3 +69,42 @@ def need_one(request):
         'records': records,
         'alerts': alerts
     })
+
+# JSON API Endpoints
+def api_need_one_records(request):
+    records = NeedOneRecord.objects.all()
+    return JsonResponse({'data' : records}, safe=False)
+
+def api_need_one_alerts(request):
+    alert_labels = ('Sold to name', 'Sales name', 'MONAT', 'Description')
+    alert_fields = ('soldtoname','salesname','monat','alert_description') # Define field to be be shown
+
+    num_decline_alerts = 2
+    num_increase_alerts = 3
+    decline_alert_count = 0
+    increase_alert_count = 0
+
+    alerts = []
+
+    # values() limits the number of fields that is to be converted to list
+    alerts_query = NeedOneRecord.objects.values(*alert_fields).filter(alert_type="Need 1").order_by('diff_umwteuro')
+
+    for alert in alerts_query:
+        if alert.diff_umwteuro < 0 and decline_alert_count < num_decline_alerts:
+            alerts.append(alert)
+            decline_alert_count += 1
+
+    alerts_query_sorted = sorted(alerts_query, key=operator.attrgetter('sc_diff_umwteuro_percent'), reverse=True)
+
+    for alert in alerts_query_sorted:
+        if alert.sc_diff_umwteuro_percent != 100 and increase_alert_count < num_increase_alerts:
+            alerts.append(alert)
+            increase_alert_count += 1
+
+    for alert in alerts:
+        alerts_query_sorted.remove(alert)
+
+    for alert in alerts_query_sorted:
+        alerts.append(alert)
+
+    return JsonResponse({'data' : list(alerts), 'labels' : alert_labels}, safe=False)
