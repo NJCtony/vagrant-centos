@@ -1,0 +1,54 @@
+/* Base */
+html,body { height: 100%; margin: 0px; padding: 0px; }
+
+.content {
+  padding-top: 20px;
+  padding-bottom: 20px;
+}
+
+/* Global */
+.fill {
+  min-height: 100%;
+  height: 100%;
+}
+
+/* Navigation Bar */
+.navbar-header {
+  height: 50px;
+}
+.navbar-brand {
+  transform: translateX(-50%);
+  left: 50%;
+  position: absolute;
+  height:
+}
+.brand {
+  width: 60px;
+}
+
+/* Left Panels */
+.panel-no-bottom {
+  margin-bottom: 0;
+}
+
+.bp-panel {
+  height: 250px;
+  min-height: 250px;
+}
+
+.alert-panel {
+  height: 470px;
+  min-height: 470px;
+}
+
+.alert-table-container {
+  height: 430px;
+  overflow: auto; /* Table to be within fixed size scrollabel container*/
+}
+
+/* Right Panels */
+
+.sc-panel {
+  height: 738px;
+  min-height: 738px;
+}

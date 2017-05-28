@@ -1,30 +1,240 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="utf-8">
-    {% load static %}
-    <title>Hello There!</title>
-    <link rel="stylesheet" href="{% static 'dashboard/css/bootstrap.min.css' %}" crossorigin="anonymous">
-    <!-- Optional theme -->
-    <link rel="stylesheet" href="{% static 'dashboard/css/bootstrap-theme.min.css' %}" crossorigin="anonymous">
-    <!-- Left Navbar -->
-    <link rel="stylesheet" href="{% static 'dashboard/css/navbar-fixed-side.css' %}" crossorigin="anonymous">
-    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-    <script src="{% static 'dashboard/js/jquery.min.js' %}"></script>
-    <script src="{% static 'dashboard/js/bootstrap.min.js' %}"></script>
-  </head>
-  <body>
-    <div class="container-fluid">
-  <div class="row">
-    <div class="col-sm-3 col-lg-2">
-      <nav class="navbar navbar-default navbar-fixed-side">
-        <!-- normal collapsible navbar markup -->
-      </nav>
-    </div>
-    <div class="col-sm-9 col-lg-10">
-      Hello World
+
+<head>
+  <meta charset="utf-8"> {% load static %}
+  <title>Hello There!</title>
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="{% static 'dashboard/css/bootstrap.min.css' %}" crossorigin="anonymous">
+  <!-- Optional Theme -->
+  <link rel="stylesheet" href="{% static 'dashboard/css/bootstrap-theme.min.css' %}" crossorigin="anonymous">
+  <!-- Left Navbar -->
+  <link rel="stylesheet" href="{% static 'dashboard/css/navbar-fixed-side.css' %}" crossorigin="anonymous">
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="{% static 'dashboard/css/style.css' %}" crossorigin="anonymous">
+  <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+  <script src="{% static 'dashboard/js/jquery.min.js' %}"></script>
+  <!-- Bootstrap JavaScript -->
+  <script src="{% static 'dashboard/js/bootstrap.min.js' %}"></script>
+  <!-- D3 -->
+  <script src="{% static 'dashboard/js/d3.v4.min.js' %}"></script>
+  <!-- ChartJS -->
+  <script src="{% static 'dashboard/js/Chart.bundle.min.js' %}"></script>
+</head>
+
+<body>
+  <div class="container-fluid fill">
+    <div class="row fill">
+
+      <div class="col-sm-3 col-lg-2">  <!-- Navigation -->
+        <nav class="navbar navbar-inverse navbar-fixed-side">
+          <!-- normal collapsible navbar markup -->
+
+          <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>c
+            </button>
+            <a class="navbar-brand" href="#">
+              <img class="brand" src="{% static 'dashboard/img/logo.png' %}" alt="CLM Dashboard">
+            </a>
+          </div>
+
+          <!-- Collect the nav links, forms, and other content for toggling -->
+          <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+            <ul class="nav navbar-nav">
+              <li><a href="#"><span class="glyphicon glyphicon-home" aria-hidden="true"></span> Home</a></li>
+              <li><a href="#">Need 1</a></li>
+              <li><a href="#">Need 2</a></li>
+              <li><a href="#">Need 3</a></li>
+              <li><a href="#"><span class="glyphicon glyphicon-wrench" aria-hidden="true"></span> Settings</a></li>
+              <li><a href="#"><span class="glyphicon glyphicon-log-out" aria-hidden="true"></span> Logout</a></li>
+            </ul>
+          </div>
+          <!-- /.navbar-collapse -->
+        </nav>
+      </div>
+
+      <div class="col-sm-9 col-lg-10 fill">  <!-- Content -->
+        <div class="container-fluid fill">
+          <div class="row fill content">
+
+            <div class="col-md-5 fill"> <!-- Left Column -->
+              <div class="row fill">
+                <div class="panel panel-default bp-panel">
+                  <div class="panel-body">
+                    <div id="bp_chart"></div>
+                  </div>
+                </div>
+
+                <div class="panel panel-default alert-panel panel-no-bottom">
+                  <div class="panel-body">
+                    <div class="alert-table-container">
+                      <table id='alert-table' class="table table-condensed">
+                        <thead>
+                          <th>Company Name</th>
+                          <th>Sales Name</th>
+                          <th>MONAT</th>
+                          <th>Description</th>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+            <div class="col-md-7">
+              <div class="panel panel-default panel-no-bottom">
+                <div class="panel-body sc-panel">
+                  <canvas id="sc_chart"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
-</div>
-  </body>
+
+  <script type="text/javascript">
+  // Business Performance (D3 Circles)
+    // BP: Acquire Data
+    var bpColor = "red"
+    var bpValue = "50%"
+    var bpCompany = "Dabo Corporation Ptd Ltd"
+
+    // BP: Render
+    var bp_svgContainer = d3.select("#bp_chart")
+      .attr("align", "center")
+      .append("svg")
+      .attr("width", 220)
+      .attr("height", 220)
+      .attr("align", "center");
+    var outterCircle = bp_svgContainer.append("circle")
+      .attr("cx", 110)
+      .attr("cy", 110)
+      .attr("r", 85)
+      .attr("fill", bpColor);
+    var innerCircle = bp_svgContainer.append("circle")
+      .attr("cx", 110)
+      .attr("cy", 110)
+      .attr("r", 70)
+      .attr("fill", "white");
+    var bp_value = bp_svgContainer.append("text")
+      .attr("text-anchor", "middle")
+      .attr("x", 110)
+      .attr("y", 120)
+      .text(bpValue)
+      .attr("font-family", "sans-serif")
+      .attr("font-size", "30px");
+    var bp_company = bp_svgContainer.append("text")
+      .attr("text-anchor", "middle")
+      .attr("x", 110)
+      .attr("y", 20)
+      .text(bpCompany)
+      .attr("font-family", "sans-serif")
+      .attr("font-size", "15px");
+
+  // Alert Listing (Table)
+    // Alert Listing: Acquire Data
+    var alert_dataset = [];
+    var alert_monat = ["M", "M+1", "M+2"];
+    var pseudo_alert_company = ['Dorp Corporation Pte Ltd', "Plonk Oggle", "Apple Incorporation"];
+    var psuedo_alert_salesname = ["JORK99FOR3VA", "ETF11222O", "JKAp12311", "SK820342AC"];
+    var pseudo_alert_description = ["Increase by ", "Decrease by "];
+    for (var i = 0; i < 10; i ++) {
+      var alert_entry = {};
+      alert_entry.company = pseudo_alert_company[Math.floor(Math.random() * pseudo_alert_company.length)];
+      alert_entry.salesname = psuedo_alert_salesname[Math.floor(Math.random() * psuedo_alert_salesname.length)];
+      alert_entry.monat = alert_monat[Math.floor(Math.random() * alert_monat.length)];
+      alert_entry.description = pseudo_alert_description[Math.floor(Math.random() * pseudo_alert_description.length)] + parseFloat(Math.random()*200).toFixed(2).toString() + "%"
+      alert_dataset.push(alert_entry);
+    }
+
+    // Alert Listing: Render
+    var alertTable = document.getElementById('alert-table')
+    for (var entry in alert_dataset) {
+      var alertRow = alertTable.tBodies[0].insertRow(alertTable.tBodies[0].rows.length)
+      for (var i = 0; i < 4; i++) {
+        alertRow.insertCell(0);
+      }
+      alertRow.cells[0].innerText = alert_dataset[entry].company;
+      alertRow.cells[1].innerText = alert_dataset[entry].salesname;
+      alertRow.cells[2].innerText = alert_dataset[entry].monat;
+      alertRow.cells[3].innerText = alert_dataset[entry].description;
+    }
+
+  // Structural Changes (ChartJS LineChart)
+
+    // SC: Acquire Data
+    var sc_dataset = [];
+    var sc_monat = ["M", "M+1", "M+2"];
+    var psuedo_sc_salesname = ["JORK99FOR3VA", "ETF11222O", "JKAp12311", "SK820342AC"]
+    for (var i = 0; i < 5; i++) {
+      var sc_entry = {};
+      sc_entry.label = psuedo_sc_salesname[Math.floor(Math.random() * psuedo_sc_salesname.length)];
+      sc_entry.data = [parseFloat(-2+Math.random()*4).toFixed(2), parseFloat(-2+Math.random()*4).toFixed(2), parseFloat(-2+Math.random()*4).toFixed(2)];
+      sc_entry.fill = false;
+      sc_entry.showLine = false;
+      var c0 = Math.abs(sc_entry.data[0]/2);
+      var c1 = Math.abs(sc_entry.data[1]/2);
+      var c2 = Math.abs(sc_entry.data[2]/2);
+      sc_entry.pointBackgroundColor = ['rgba(255,0,0,'+ c0.toString() +')', 'rgba(255,0,0,'+ c1.toString() +')', 'rgba(255,0,0,'+ c2.toString() +')'];
+      sc_dataset.push(sc_entry);
+    }
+
+    // SC: Render
+    Chart.defaults.global.elements.point.radius = 8;
+    Chart.defaults.global.elements.point.hoverRadius = 8;
+    Chart.defaults.global.elements.point.hitRadius = 0;
+
+    var sc_LineChart = new Chart('sc_chart', {
+      type: 'line',
+      data: {
+        // Each entry
+        datasets: sc_dataset,
+        labels: sc_monat,
+      },
+      options: {
+        legend: {
+          display: false,
+        },
+        maintainAspectRatio: false,   // To allow specifed size : http://www.chartjs.org/docs/latest/general/responsive.html
+        animation: {
+          duration: 0, // general animation time
+        },
+        hover: {
+          animationDuration: 0, // duration of animations when hovering an item
+        },
+        scales: {
+          yAxes: [{
+            ticks: {
+              min: -2,
+              max: 2,
+              stepSize: 0.5
+            },
+            scaleLabel : {
+              display: true,
+              labelString: "Structural Change %"
+            }
+          }],
+          xAxes: [{
+            scaleLabel : {
+              display: true,
+              labelString: "MONAT"
+            }
+          }]
+        }
+      }
+    });
+  </script>
+</body>
+
 </html>
