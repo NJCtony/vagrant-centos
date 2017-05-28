@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8"> {% load static %}
+    <title>Hello There!</title>
+    <link rel="stylesheet" href="{% static 'dashboard/css/bootstrap.min.css' %}" crossorigin="anonymous">
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="{% static 'dashboard/css/bootstrap-theme.min.css' %}" crossorigin="anonymous">
+    <!-- Left Navbar -->
+    <link rel="stylesheet" href="{% static 'dashboard/css/navbar-fixed-side.css' %}" crossorigin="anonymous">
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="{% static 'dashboard/js/jquery.min.js' %}"></script>
+    <script src="{% static 'dashboard/js/bootstrap.min.js' %}"></script>
+</head>
+
+<body>
+    <div class="container">
+
+        {% for alert in alerts %}
+        <div class="row">
+            <div class="col-sm-4 panel panel-default">
+                <h4>{{ forloop.counter }}</h4>
+                <p>{{ alert.soldtoname }}</p>
+                <p>{{ alert.salesname}}</p>
+                <p>{{ alert.monat }}</p>
+                <p> {{ alert.alert_description }}</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</body>
+
+</html>
