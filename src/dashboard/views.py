@@ -104,6 +104,7 @@ def api_need_one_records(request):
         for i in range(len(salesname_sc)):
             if sc_mean[i] > 0:
                 sc_mean[i] /= sc_count[i]
+            sc_mean[i] = round(sc_mean[i], 1)
 
         soldtoname_summary['mean'] = sc_mean
         summary.append(soldtoname_summary)

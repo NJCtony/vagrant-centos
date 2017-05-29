@@ -31,17 +31,24 @@
   </div>
 
   <script type="text/javascript">
-  function sc_rgb_colormap(value, max_value) {
-    var base1 = [0, 197, 229];
-    var base2 = [148, 86, 76];
+
+  function rgbToString(value_list, opacity) {
+    return 'rgba(' + value_list[0].toString() + ',' + value_list[1].toString() + ',' + value_list[2].toString() + ',' + opacity.toString() + ')';
+  }
+
+  function sc_rgb_colormap(value) {
+    var base1 = [0, 162, 189];
+    var base2 = [255, 162, 189];
+    // var base2 = [246, 85, 160];
+    // var base1 = [227, 247, 73];
     var diff = [base2[0]-base1[0], base2[1]-base1[1], base2[2]-base1[2]];
     var result = [];
 
     for(var v in diff) {
-      result.push(base1[v] + value/max_value*diff[v]);
+      result.push(Math.round(base1[v] + Math.abs(value)/200.0*diff[v]));
     }
 
-    return 'rgb(' + result[0].toString() + ',' + result[1].toString() + ',' + result[2].toString() + ')';
+    return rgbToString(result, 1);
   }
 
   // Business Performance (D3 Circles)
@@ -226,6 +233,27 @@
       var sc_dataset = [];
       var sc_monat = jsonData.data.label;
 
+      var mean_entry = {};
+
+      // Defination of mean dataset
+      mean_entry.label = 'mean';
+      mean_entry.data = jsonData.data.summary[0].mean;
+      mean_entry.fill = false;
+      mean_entry.showLine = false;
+      mean_entry.pointStyle = 'triangle';
+
+      // Color mapping for mean
+      var black = rgbToString([10,10,10], 1);
+      var blackList = [black,black,black];
+      var meanColor = rgbToString([227,243,53], 1);
+      var colorList = [meanColor,meanColor,meanColor];
+      mean_entry.pointBackgroundColor = colorList;
+      mean_entry.pointBorderColor = blackList;
+      mean_entry.pointHoverBackgroundColor = colorList;
+      mean_entry.pointHoverBorderColor = blackList;
+
+      sc_dataset.push(mean_entry);
+
       for (var i in jsonData.data.summary[0].salesname_sc) {
         var sc_entry = {};
         var salesname_data = jsonData.data.summary[0].salesname_sc[i];
@@ -235,20 +263,27 @@
         sc_entry.data = salesname_data.sc;
         sc_entry.fill = false;
         sc_entry.showLine = false;
+        sc_entry.pointStyle = 'circle';
 
         // Color mapping
-        var rgb0 = sc_rgb_colormap(sc_entry.data[0], 200);
-        var rgb1 = sc_rgb_colormap(sc_entry.data[1], 200);
-        var rgb2 = sc_rgb_colormap(sc_entry.data[2], 200);
+        var rgb0 = sc_rgb_colormap(sc_entry.data[0]);
+        var rgb1 = sc_rgb_colormap(sc_entry.data[1]);
+        var rgb2 = sc_rgb_colormap(sc_entry.data[2]);
         sc_entry.pointBackgroundColor = [rgb0, rgb1, rgb2];
+        sc_entry.pointBorderColor = blackList;
+        sc_entry.pointHoverBackgroundColor = [rgb0, rgb1, rgb2];
+        sc_entry.pointHoverBorderColor = blackList;
 
         sc_dataset.push(sc_entry);
       }
+
+      // sc_entry
 
       // SC: Render
       Chart.defaults.global.elements.point.radius = 8;
       Chart.defaults.global.elements.point.hoverRadius = 8;
       Chart.defaults.global.elements.point.hitRadius = 0;
+      // Chart.defaults.global.tooltips.displayColors = false; // turn off color box within tooltips
 
       var sc_LineChart = new Chart('sc_chart', {
         type: 'line',
@@ -261,6 +296,24 @@
           legend: {
             display: false,
           },
+          tooltips: {
+            displayColors : false,
+            callbacks: {
+              title: function([tooltipItem], data) {
+                return data.datasets[tooltipItem.datasetIndex].label;
+              },
+            },
+            custom: function(tooltip) {
+              function getBody(bodyItem) {
+                return bodyItem.lines;
+              }
+              if (tooltip.body) {
+        				var bodyLines = tooltip.body.map(getBody);
+                bodyLines[0][0] = 'SC % :' + bodyLines[0][0].split(':')[1];
+                // console.log(data);
+              }
+            },
+          },
           maintainAspectRatio: false,   // To allow specifed size : http://www.chartjs.org/docs/latest/general/responsive.html
           animation: {
             duration: 0, // general animation time
@@ -268,6 +321,7 @@
           hover: {
             animationDuration: 0, // duration of animations when hovering an item
           },
+          responsiveAnimationDuration: 0, // animation duration after a resize
           scales: {
             yAxes: [{
               ticks: {
