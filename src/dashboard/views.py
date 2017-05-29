@@ -1,5 +1,6 @@
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
+from django.template import loader
 import operator
 
 # Security
@@ -108,3 +109,7 @@ def api_need_one_alerts(request):
         alerts.append(alert)
 
     return JsonResponse({'data' : list(alerts), 'labels' : alert_labels}, safe=False)
+
+def template_need_one(request):
+    template = loader.get_template('dashboard/template_need1.html')
+    return HttpResponse(template.render({}, request))
