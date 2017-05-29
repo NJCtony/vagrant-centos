@@ -73,9 +73,42 @@ def need_one(request):
 
 # JSON API Endpoints
 def api_need_one_records(request):
-    alert_fields = ('soldtoname','salesname','monat','alert_description')
-    records = NeedOneRecord.objects.all().values(*alert_fields)
-    return JsonResponse({'data' : list(records)}, safe=False)
+    monat_list = [temp_dict['monat'] for temp_dict in NeedOneRecord.objects.values('monat').distinct()]
+    soldtoname_list = [temp_dict['soldtoname'] for temp_dict in NeedOneRecord.objects.values('soldtoname').distinct()]
+    #TODO: Narrow down soldtoname_list based on CLM's access
+
+    summary = []
+    for soldtoname_item in soldtoname_list:
+        soldtoname_summary = {}
+        sc_mean = [0.0,0.0,0.0]
+        sc_count = [0,0,0]
+
+        soldtoname_summary['soldtoname'] = soldtoname_item
+        soldtoname_summary['salesname_sc'] = []
+        salesname_list = [temp_dict['salesname'] for temp_dict in NeedOneRecord.objects.filter(soldtoname = soldtoname_item).values('salesname').distinct()]
+        for salesname_item in salesname_list:
+            salesname_sc = [] # set of structural-change-% for each sales-name
+            for monat_item in monat_list:
+                if NeedOneRecord.objects.filter(salesname=salesname_item, monat=monat_item).exists():
+                    salesname_sc.append(NeedOneRecord.objects.filter(salesname=salesname_item, monat=monat_item) \
+                    .values('sc_diff_umwteuro_percent')[0]['sc_diff_umwteuro_percent'])
+                else:
+                    salesname_sc.append(0.0)
+
+            for i in range(len(salesname_sc)):
+                if salesname_sc[i] != 0:
+                    sc_mean[i] += salesname_sc[i]
+                    sc_count[i] += 1
+
+            soldtoname_summary['salesname_sc'].append({'salesname': salesname_item, 'sc': salesname_sc})
+        for i in range(len(salesname_sc)):
+            if sc_mean[i] > 0:
+                sc_mean[i] /= sc_count[i]
+
+        soldtoname_summary['mean'] = sc_mean
+        summary.append(soldtoname_summary)
+
+    return JsonResponse({'data' : {'summary': summary, 'label': monat_list}})
 
 def api_need_one_alerts(request):
     alert_labels = ('Sold to name', 'Sales name', 'MONAT', 'Description')

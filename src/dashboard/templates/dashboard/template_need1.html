@@ -31,6 +31,19 @@
   </div>
 
   <script type="text/javascript">
+  function sc_rgb_colormap(value, max_value) {
+    var base1 = [0, 197, 229];
+    var base2 = [148, 86, 76];
+    var diff = [base2[0]-base1[0], base2[1]-base1[1], base2[2]-base1[2]];
+    var result = [];
+
+    for(var v in diff) {
+      result.push(base1[v] + value/max_value*diff[v]);
+    }
+
+    return 'rgb(' + result[0].toString() + ',' + result[1].toString() + ',' + result[2].toString() + ')';
+  }
+
   // Business Performance (D3 Circles)
     // BP: Acquire Data
     var bpColor = "red"
@@ -135,66 +148,158 @@
 
   // Structural Changes (ChartJS LineChart)
 
-    // SC: Acquire Data
-    var sc_dataset = [];
-    var sc_monat = ["M", "M+1", "M+2"];
-    var psuedo_sc_salesname = ["JORK99FOR3VA", "ETF11222O", "JKAp12311", "SK820342AC"]
-    for (var i = 0; i < 5; i++) {
-      var sc_entry = {};
-      sc_entry.label = psuedo_sc_salesname[Math.floor(Math.random() * psuedo_sc_salesname.length)];
-      sc_entry.data = [parseFloat(-2+Math.random()*4).toFixed(2), parseFloat(-2+Math.random()*4).toFixed(2), parseFloat(-2+Math.random()*4).toFixed(2)];
-      sc_entry.fill = false;
-      sc_entry.showLine = false;
-      var c0 = Math.abs(sc_entry.data[0]/2);
-      var c1 = Math.abs(sc_entry.data[1]/2);
-      var c2 = Math.abs(sc_entry.data[2]/2);
-      sc_entry.pointBackgroundColor = ['rgba(255,0,0,'+ c0.toString() +')', 'rgba(255,0,0,'+ c1.toString() +')', 'rgba(255,0,0,'+ c2.toString() +')'];
-      sc_dataset.push(sc_entry);
-    }
+    // // SC: Acquire Data
+    // var sc_dataset = [];
+    // var sc_monat = ["M", "M+1", "M+2"];
+    // var psuedo_sc_salesname = ["JORK99FOR3VA", "ETF11222O", "JKAp12311", "SK820342AC"]
+    // for (var i = 0; i < 5; i++) {
+    //   var sc_entry = {};
+    //   sc_entry.label = psuedo_sc_salesname[Math.floor(Math.random() * psuedo_sc_salesname.length)];
+    //   sc_entry.data = [parseFloat(-2+Math.random()*4).toFixed(2), parseFloat(-2+Math.random()*4).toFixed(2), parseFloat(-2+Math.random()*4).toFixed(2)];
+    //   sc_entry.fill = false;
+    //   sc_entry.showLine = false;
+    //   var c0 = Math.abs(sc_entry.data[0]/2);
+    //   var c1 = Math.abs(sc_entry.data[1]/2);
+    //   var c2 = Math.abs(sc_entry.data[2]/2);
+    //   sc_entry.pointBackgroundColor = ['rgba(255,0,0,'+ c0.toString() +')', 'rgba(255,0,0,'+ c1.toString() +')', 'rgba(255,0,0,'+ c2.toString() +')'];
+    //   sc_dataset.push(sc_entry);
+    // }
+    //
+    // // SC: Render
+    // Chart.defaults.global.elements.point.radius = 8;
+    // Chart.defaults.global.elements.point.hoverRadius = 8;
+    // Chart.defaults.global.elements.point.hitRadius = 0;
+    //
+    // var sc_LineChart = new Chart('sc_chart', {
+    //   type: 'line',
+    //   data: {
+    //     // Each entry
+    //     datasets: sc_dataset,
+    //     labels: sc_monat,
+    //   },
+    //   options: {
+    //     legend: {
+    //       display: false,
+    //     },
+    //     maintainAspectRatio: false,   // To allow specifed size : http://www.chartjs.org/docs/latest/general/responsive.html
+    //     animation: {
+    //       duration: 0, // general animation time
+    //     },
+    //     hover: {
+    //       animationDuration: 0, // duration of animations when hovering an item
+    //     },
+    //     scales: {
+    //       yAxes: [{
+    //         ticks: {
+    //           min: -2,
+    //           max: 2,
+    //           stepSize: 0.5
+    //         },
+    //         scaleLabel : {
+    //           display: true,
+    //           labelString: "Structural Change %"
+    //         },
+    //         gridLines : {
+    //           // display: false,
+    //           drawBorder: false,
+    //           // drawOnChartArea: true,
+    //         }
+    //       }],
+    //       xAxes: [{
+    //         scaleLabel : {
+    //           display: true,
+    //           labelString: "MONAT"
+    //         },
+    //         gridLines : {
+    //           // display: false,
+    //           drawBorder: false,
+    //           // lineWidth: [0,1,0],
+    //           drawOnChartArea: true,
+    //         }
+    //       }]
+    //     }
+    //   }
+    // });
 
-    // SC: Render
-    Chart.defaults.global.elements.point.radius = 8;
-    Chart.defaults.global.elements.point.hoverRadius = 8;
-    Chart.defaults.global.elements.point.hitRadius = 0;
+    d3.json("{% url 'dashboard:api_needone_records' %}", function(error, jsonData) {
+      // SC: Acquire Data
+      var sc_dataset = [];
+      var sc_monat = jsonData.data.label;
 
-    var sc_LineChart = new Chart('sc_chart', {
-      type: 'line',
-      data: {
-        // Each entry
-        datasets: sc_dataset,
-        labels: sc_monat,
-      },
-      options: {
-        legend: {
-          display: false,
-        },
-        maintainAspectRatio: false,   // To allow specifed size : http://www.chartjs.org/docs/latest/general/responsive.html
-        animation: {
-          duration: 0, // general animation time
-        },
-        hover: {
-          animationDuration: 0, // duration of animations when hovering an item
-        },
-        scales: {
-          yAxes: [{
-            ticks: {
-              min: -2,
-              max: 2,
-              stepSize: 0.5
-            },
-            scaleLabel : {
-              display: true,
-              labelString: "Structural Change %"
-            }
-          }],
-          xAxes: [{
-            scaleLabel : {
-              display: true,
-              labelString: "MONAT"
-            }
-          }]
-        }
+      for (var i in jsonData.data.summary[0].salesname_sc) {
+        var sc_entry = {};
+        var salesname_data = jsonData.data.summary[0].salesname_sc[i];
+
+        // Defination of each dataset
+        sc_entry.label = salesname_data.salesname;
+        sc_entry.data = salesname_data.sc;
+        sc_entry.fill = false;
+        sc_entry.showLine = false;
+
+        // Color mapping
+        var rgb0 = sc_rgb_colormap(sc_entry.data[0], 200);
+        var rgb1 = sc_rgb_colormap(sc_entry.data[1], 200);
+        var rgb2 = sc_rgb_colormap(sc_entry.data[2], 200);
+        sc_entry.pointBackgroundColor = [rgb0, rgb1, rgb2];
+
+        sc_dataset.push(sc_entry);
       }
+
+      // SC: Render
+      Chart.defaults.global.elements.point.radius = 8;
+      Chart.defaults.global.elements.point.hoverRadius = 8;
+      Chart.defaults.global.elements.point.hitRadius = 0;
+
+      var sc_LineChart = new Chart('sc_chart', {
+        type: 'line',
+        data: {
+          // Each entry
+          datasets: sc_dataset,
+          labels: sc_monat,
+        },
+        options: {
+          legend: {
+            display: false,
+          },
+          maintainAspectRatio: false,   // To allow specifed size : http://www.chartjs.org/docs/latest/general/responsive.html
+          animation: {
+            duration: 0, // general animation time
+          },
+          hover: {
+            animationDuration: 0, // duration of animations when hovering an item
+          },
+          scales: {
+            yAxes: [{
+              ticks: {
+                min: -200,
+                max: 200,
+                stepSize: 50
+              },
+              scaleLabel : {
+                display: true,
+                labelString: "Structural Change %"
+              },
+              gridLines : {
+                // display: false,
+                drawBorder: false,
+                // drawOnChartArea: true,
+              }
+            }],
+            xAxes: [{
+              scaleLabel : {
+                display: true,
+                labelString: "MONAT"
+              },
+              gridLines : {
+                // display: false,
+                drawBorder: false,
+                // lineWidth: [0,1,0],
+                drawOnChartArea: true,
+              }
+            }]
+          }
+        }
+      });
     });
   </script>
 {% endblock %}
