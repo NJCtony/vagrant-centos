@@ -73,12 +73,13 @@ def need_one(request):
 
 # JSON API Endpoints
 def api_need_one_records(request):
-    records = NeedOneRecord.objects.all()
-    return JsonResponse({'data' : records}, safe=False)
+    alert_fields = ('soldtoname','salesname','monat','alert_description')
+    records = NeedOneRecord.objects.all().values(*alert_fields)
+    return JsonResponse({'data' : list(records)}, safe=False)
 
 def api_need_one_alerts(request):
     alert_labels = ('Sold to name', 'Sales name', 'MONAT', 'Description')
-    alert_fields = ('soldtoname','salesname','monat','alert_description') # Define field to be be shown
+    alert_fields = ('soldtoname','salesname','monat','alert_description', 'diff_umwteuro', 'sc_diff_umwteuro_percent') # Define field to be be shown
 
     num_decline_alerts = 2
     num_increase_alerts = 3
@@ -88,17 +89,18 @@ def api_need_one_alerts(request):
     alerts = []
 
     # values() limits the number of fields that is to be converted to list
+    # alerts_query = NeedOneRecord.objects.filter(alert_type="Need 1").order_by('diff_umwteuro')
     alerts_query = NeedOneRecord.objects.values(*alert_fields).filter(alert_type="Need 1").order_by('diff_umwteuro')
 
     for alert in alerts_query:
-        if alert.diff_umwteuro < 0 and decline_alert_count < num_decline_alerts:
+        if alert['diff_umwteuro'] < 0 and decline_alert_count < num_decline_alerts:
             alerts.append(alert)
             decline_alert_count += 1
 
-    alerts_query_sorted = sorted(alerts_query, key=operator.attrgetter('sc_diff_umwteuro_percent'), reverse=True)
+    alerts_query_sorted = sorted(alerts_query, key=lambda k: k['sc_diff_umwteuro_percent'], reverse=True)
 
     for alert in alerts_query_sorted:
-        if alert.sc_diff_umwteuro_percent != 100 and increase_alert_count < num_increase_alerts:
+        if alert['sc_diff_umwteuro_percent'] != 100 and increase_alert_count < num_increase_alerts:
             alerts.append(alert)
             increase_alert_count += 1
 
@@ -108,7 +110,7 @@ def api_need_one_alerts(request):
     for alert in alerts_query_sorted:
         alerts.append(alert)
 
-    return JsonResponse({'data' : list(alerts), 'labels' : alert_labels}, safe=False)
+    return JsonResponse({'data' : list(alerts), 'labels' : alert_labels})
 
 def template_need_one(request):
     template = loader.get_template('dashboard/template_need1.html')
