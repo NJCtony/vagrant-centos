@@ -23,8 +23,8 @@
 </head>
 
 <body>
-  <div class="container-fluid fill">
-    <div class="row fill">
+  <div class="container-fluid">
+    <div class="row">
 
       <div class="col-sm-3 col-lg-2">  <!-- Navigation -->
         <nav class="navbar navbar-inverse navbar-fixed-side">
@@ -57,41 +57,39 @@
         </nav>
       </div>
 
-      <div class="col-sm-9 col-lg-10 fill">  <!-- Content -->
-        <div class="container-fluid fill">
-          <div class="row fill content">
+      <div class="col-sm-9 col-lg-10">  <!-- Content -->
+        <div class="container-fluid">
+          <div class="content">
 
-            <div class="col-md-5 fill"> <!-- Left Column -->
-              <div class="row fill">
-                <div class="panel panel-default bp-panel">
-                  <div class="panel-body">
-                    <div id="bp_chart"></div>
+            <div class="col-md-5"> <!-- Left Column -->
+              <div class="panel panel-default bp-panel">
+                <div class="panel-body">
+                  <div id="bp_chart"></div>
+                </div>
+              </div>
+
+              <div class="panel panel-default alert-panel">
+                <div class="panel-body">
+                  <div class="alert-table-container">
+                    <table id='alert-table' class="table table-condensed">
+                      <thead>
+                      </thead>
+                      <tbody>
+                      </tbody>
+                    </table>
                   </div>
                 </div>
-
-                <div class="panel panel-default alert-panel panel-no-bottom">
-                  <div class="panel-body">
-                    <div class="alert-table-container">
-                      <table id='alert-table' class="table table-condensed">
-                        <thead>
-                        </thead>
-                        <tbody>
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                </div>
-
               </div>
             </div>
 
-            <div class="col-md-7">
-              <div class="panel panel-default panel-no-bottom">
+            <div class="col-md-7"> <!-- Right Column -->
+              <div class="panel panel-default">
                 <div class="panel-body sc-panel">
                   <canvas id="sc_chart"></canvas>
                 </div>
               </div>
             </div>
+
           </div>
         </div>
       </div>
