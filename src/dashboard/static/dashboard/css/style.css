@@ -14,11 +14,15 @@ html,body { height: 100%; margin: 0px; padding: 0px }
 .navbar-header {
   height: 50px;
 }
+.navbar-toggle {
+  height: 34px;
+}
+
 .navbar-brand {
   transform: translateX(-50%);
   left: 50%;
   position: absolute;
-  height:
+  /*height:*/
 }
 .brand {
   width: 60px;
