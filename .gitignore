@@ -59,4 +59,3 @@ pip-delete-this-directory.txt
 
 # Data Analytics
 *.csv
-src/analytics/*.py

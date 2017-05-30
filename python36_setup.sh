@@ -18,4 +18,6 @@ sudo yum -y install python36u-devel
 echo "Creating Virtual Environment..."
 cd /srv
 sudo python3.6 -m venv venv
-sudo chmod -R 777 venv
+# sudo chmod -R 777 venv
+sudo chown vagrant venv/
+sudo chmod -R ug+rwx venv/
