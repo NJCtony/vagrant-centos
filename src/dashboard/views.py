@@ -191,6 +191,6 @@ def api_need_one_businessPerformance(request):
     return JsonResponse({'data' : {'listing': consolidatedBP}})
 
 
-def template_need_one(request):
-    template = loader.get_template('dashboard/template_need1.html')
+def demand_change(request):
+    template = loader.get_template('dashboard/demand_change.html')
     return HttpResponse(template.render({}, request))
