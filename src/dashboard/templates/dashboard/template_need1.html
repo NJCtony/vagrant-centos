@@ -1,7 +1,7 @@
 {% extends 'dashboard/_base.html' %}
 
 {% block content %}
-  <div class="col-md-5"> <!-- Left Column -->
+  <div class="col-md-5 min-panel-width"> <!-- Left Column -->
     <div class="panel panel-default bp-panel">
       <div class="panel-body">
         <div id="bp_chart"></div>
@@ -10,19 +10,49 @@
 
     <div class="panel panel-default alert-panel">
       <div class="panel-body">
-        <div class="alert-table-container">
-          <table id='alert-table' class="table table-condensed">
-            <thead>
-            </thead>
-            <tbody>
-            </tbody>
-          </table>
+        <div class="container-fluid alert-container">
+
+          <div id="alert-increase" class="col-md-6 col-sm-6 alert-col-left">
+            <div class="card">
+              <div class="card-container">
+                <div>
+                  <h5 class="sc-text"><b class="sc-text">TLE4266-2G</b></h5>
+                </div>
+                <div>
+                  <h5 class="sc-text inline">201705</h5>
+                  <div class="inline right">
+                    <h3 class="sc-text inline">67%</h3>
+                    <div class="arrow-up inline"></div>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="alert-decrease" class="col-md-6 col-sm-6 alert-col-right">
+            <div class="card">
+              <div class="card-container">
+                <div>
+                    <h5 class="sc-text"><b class="sc-text">PXAC201602FC V1 R250</b></h5>
+                </div>
+                <div>
+                  <h5 class="sc-text inline sc-monat">201705</h5>
+                  <div class="inline right">
+                    <h3 class="sc-text inline">67%</h3>
+                    <div class="arrow-down inline"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
+
       </div>
     </div>
   </div>
 
-  <div class="col-md-7"> <!-- Right Column -->
+  <div class="col-md-7 min-panel-width"> <!-- Right Column -->
     <div class="panel panel-default">
       <div class="panel-body sc-panel">
         <canvas id="sc_chart"></canvas>
@@ -52,72 +82,132 @@
       return rgbToString(result, 1);
     }
 
-  // Business Performance (D3 Circles)
-    d3.json("{% url 'dashboard:api_needone_businessPerformance' %}", function(error, jsonData) {
-      // BP: Acquire Data
-      var bpColor = "red"
-      var bpValue = jsonData.data.listing[0].bp.toString()+"%";
-      var bpCompany = jsonData.data.listing[0].soldtoname;
-
-      // BP: Render
-      var bp_svgContainer = d3.select("#bp_chart")
-        .attr("align", "center")
-        .append("svg")
-        .attr("width", 220)
-        .attr("height", 220)
-        .attr("align", "center");
-      var outterCircle = bp_svgContainer.append("circle")
-        .attr("cx", 110)
-        .attr("cy", 110)
-        .attr("r", 85)
-        .attr("fill", bpColor);
-      var innerCircle = bp_svgContainer.append("circle")
-        .attr("cx", 110)
-        .attr("cy", 110)
-        .attr("r", 70)
-        .attr("fill", "white");
-      var bp_value = bp_svgContainer.append("text")
-        .attr("text-anchor", "middle")
-        .attr("x", 110)
-        .attr("y", 120)
-        .text(bpValue)
-        .attr("font-family", "sans-serif")
-        .attr("font-size", "30px");
-      var bp_company = bp_svgContainer.append("text")
-        .attr("text-anchor", "middle")
-        .attr("x", 110)
-        .attr("y", 20)
-        .text(bpCompany)
-        .attr("font-family", "sans-serif")
-        .attr("font-size", "15px");
-    });
-
   // Alert Listing (Table)
     // Alert Listing : Acquire Data + Render.
     d3.json("{% url 'dashboard:api_needone_alerts' %}", function(error, jsonData) {
-      var alerts = jsonData.data.listing[0].alerts;
-      var labels = jsonData.data.labels;
+      // var alerts = jsonData.data.listing[0].alerts;
+      // var labels = jsonData.data.labels;
+      //
+      // var alertTable = document.getElementById('alert-table');
+      // var headerRow = alertTable.insertRow();
+      // for (var label in labels) {
+      //   // table headers
+      //   var tableLabel = document.createElement('th');
+      //   tableLabel.innerText = labels[label];
+      //   headerRow.appendChild(tableLabel);
+      // }
+      //
+      // for (var i in alerts) {
+      //   // table entries
+      //   var alertRow = alertTable.tBodies[0].insertRow(alertTable.tBodies[0].rows.length);
+      //   for (var label in labels) {
+      //     alertRow.insertCell(0);
+      //   }
+      //   alertRow.cells[0].innerText = alerts[i].salesname;
+      //   alertRow.cells[1].innerText = alerts[i].monat;
+      //   alertRow.cells[2].innerText = alerts[i].alert_description;
+      // }
 
-      var alertTable = document.getElementById('alert-table');
-      var headerRow = alertTable.insertRow();
-      for (var label in labels) {
-        // table headers
-        var tableLabel = document.createElement('th');
-        tableLabel.innerText = labels[label];
-        headerRow.appendChild(tableLabel);
-      }
+      var alerts = jsonData.data.listing[0].alerts;
+      var alertContainer = document.getElementsByClassName('alert-container')[0]
+      var leftColumn = alertContainer.children[0]
+      var rightColumn = alertContainer.children[1]
 
       for (var i in alerts) {
-        // table entries
-        var alertRow = alertTable.tBodies[0].insertRow(alertTable.tBodies[0].rows.length);
-        for (var label in labels) {
-          alertRow.insertCell(0);
+        var alertDescriptionSplit = alerts[i].alert_description.split(' ')
+        var isIncrease = (alertDescriptionSplit[0] == 'Increase')
+        var alertCard = document.createElement('div')
+        alertCard.className = "card"
+        var cardContainer = document.createElement('div')
+        cardContainer.className = "card-container"
+
+        var cardContainerTop = document.createElement('div')
+        var salesName = document.createElement('h5')
+        salesName.className = "sc-text"
+        var salesName2 = document.createElement('b')
+        salesName2.className = "sc-text"
+        salesName2.innerText = alerts[i].salesname;
+
+        salesName.appendChild(salesName2)
+        cardContainerTop.appendChild(salesName)
+
+        var cardContainerBottom = document.createElement('div')
+        var monat = document.createElement('h5')
+        monat.className = "sc-text inline"
+        monat.innerText = alerts[i].monat
+        var cardContainerBottom2 = document.createElement('div')
+        cardContainerBottom2.className = "inner right"
+        var alertPercentage = document.createElement('h3')
+        alertPercentage.className = "sc-text inline"
+        var alertValue = Math.round(parseFloat(alertDescriptionSplit[2])).toString() + "%"
+        alertPercentage.innerText = alertValue
+        var alertDirection = document.createElement('div')
+        if (isIncrease) {
+          alertDirection.className = "arrow-up inline"
         }
-        alertRow.cells[0].innerText = alerts[i].salesname;
-        alertRow.cells[1].innerText = alerts[i].monat;
-        alertRow.cells[2].innerText = alerts[i].alert_description;
+        else {
+          alertDirection.className = "arrow-down inline"
+        }
+
+        cardContainerBottom2.appendChild(alertPercentage)
+        cardContainerBottom2.appendChild(alertDirection)
+        cardContainerBottom.appendChild(monat)
+        cardContainerBottom.appendChild(cardContainerBottom2)
+
+        cardContainer.appendChild(cardContainerTop)
+        cardContainer.appendChild(cardContainerBottom)
+        alertCard.appendChild(cardContainer)
+
+        if (isIncrease) {
+          leftColumn.appendChild(alertCard)
+        }
+        else {
+          rightColumn.appendChild(alertCard)
+        }
       }
+
     });
+
+    // Business Performance (D3 Circles)
+      d3.json("{% url 'dashboard:api_needone_businessPerformance' %}", function(error, jsonData) {
+        // BP: Acquire Data
+        var bpColor = "red"
+        var bpValue = jsonData.data.listing[0].bp.toString()+"%";
+        var bpCompany = jsonData.data.listing[0].soldtoname;
+
+        // BP: Render
+        var bp_svgContainer = d3.select("#bp_chart")
+          .attr("align", "center")
+          .append("svg")
+          .attr("width", 220)
+          .attr("height", 220)
+          .attr("align", "center");
+        var outterCircle = bp_svgContainer.append("circle")
+          .attr("cx", 110)
+          .attr("cy", 110)
+          .attr("r", 85)
+          .attr("fill", bpColor);
+        var innerCircle = bp_svgContainer.append("circle")
+          .attr("cx", 110)
+          .attr("cy", 110)
+          .attr("r", 70)
+          .attr("fill", "white");
+        var bp_value = bp_svgContainer.append("text")
+          .attr("text-anchor", "middle")
+          .attr("x", 110)
+          .attr("y", 120)
+          .text(bpValue)
+          .attr("font-family", "sans-serif")
+          .attr("font-size", "30px");
+        var bp_company = bp_svgContainer.append("text")
+          .attr("text-anchor", "middle")
+          .attr("x", 110)
+          .attr("y", 20)
+          .text(bpCompany)
+          .attr("font-family", "sans-serif")
+          .attr("font-size", "15px");
+      });
+
 
   // Structural Changes (ChartJS LineChart)
     d3.json("{% url 'dashboard:api_needone_records' %}", function(error, jsonData) {

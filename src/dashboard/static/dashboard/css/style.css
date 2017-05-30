@@ -1,13 +1,24 @@
 /* Base */
 html,body { height: 100%; margin: 0px; padding: 0px }
+td{
+  vertical-align: bottom;
+}
 
 .content {
   padding-top: 20px;
   padding-bottom: 20px;
 }
-
+.inline {
+  display: inline-block;
+}
+.right {
+  float:right;
+}
 .panel-default {
   background-color: #04040404;
+}
+.min-panel-width {
+  /*min-width: 330px;*/
 }
 
 /* Navigation Bar */
@@ -48,9 +59,58 @@ html,body { height: 100%; margin: 0px; padding: 0px }
   font-size: 14px;
 }
 
+.alert-container {
+  padding: 0;
+  height: 410px;
+  overflow: auto;
+}
+.alert-col-left {
+  padding-left: 8px;
+  padding-right: 4px;
+  min-width: 165px;
+}
+.alert-col-right {
+  padding-left: 4px;
+  padding-right: 8px;
+  min-width: 165px;
+}
+
 /* Right Panels */
 
 .sc-panel {
   height: 718px;
   min-height: 718px;
+}
+
+.card {
+    border-style: solid;
+    border-width: 0 0 thin 0;
+    border-color: rgba(0,0,0,0.2);
+    padding-bottom: 5px;
+}
+.card:hover {
+    /*border-bottom: 1px solid rgba(0,0,0,0.8);*/
+    padding-bottom: 5px;
+}
+
+.card-container {
+    padding: 10px 5px;
+}
+.sc-text {
+  margin: 0;
+}
+
+.arrow-up {
+  width: 0;
+  height: 0;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-bottom: 21px solid green;
+}
+.arrow-down {
+  width: 0;
+  height: 0;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-top: 21px solid #f00
 }
