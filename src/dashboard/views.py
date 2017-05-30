@@ -194,3 +194,7 @@ def api_need_one_businessPerformance(request):
 def demand_change(request):
     template = loader.get_template('dashboard/demand_change.html')
     return HttpResponse(template.render({}, request))
+
+def overview(request):
+    template = loader.get_template('dashboard/overview.html')
+    return HttpResponse(template.render({}, request))

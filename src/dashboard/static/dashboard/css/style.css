@@ -17,8 +17,8 @@ td{
 .panel-default {
   background-color: #04040404;
 }
-.min-panel-width {
-  /*min-width: 330px;*/
+.no-bottom {
+  margin-bottom: 0;
 }
 
 /* Navigation Bar */
@@ -43,6 +43,28 @@ td{
   color: #9d9d9d;
   text-align: center;
   margin: 4px;
+}
+
+/* OVERVIEW */
+.overview-panel {
+  padding-top: 5px;
+}
+.overview-heading {
+  margin: 0 0 5px 15px;
+}
+.overview-alert-heading {
+  text-align: center;
+  text-transform: capitalize;
+}
+.overview-alert-heading-text {
+  margin: 0;
+  line-height: 0;
+}
+.overview-alert-content:not(:last-child) {
+  margin-bottom: 8px;
+}
+.overview-card-container {
+    padding: 2px 5px;
 }
 
 /* Left Panels */
@@ -100,7 +122,7 @@ td{
 }
 
 .card-container {
-    padding: 10px 5px;
+    padding: 5px 5px;
 }
 .sc-text {
   margin: 0;
@@ -111,12 +133,12 @@ td{
   height: 0;
   border-left: 10px solid transparent;
   border-right: 10px solid transparent;
-  border-bottom: 21px solid green;
+  border-bottom: 19px solid green;
 }
 .arrow-down {
   width: 0;
   height: 0;
   border-left: 10px solid transparent;
   border-right: 10px solid transparent;
-  border-top: 21px solid #f00
+  border-top: 19px solid #f00
 }
