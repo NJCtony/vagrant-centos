@@ -38,6 +38,12 @@ td{
 .brand {
   width: 60px;
 }
+#id_clm {
+  background: transparent;
+  color: #9d9d9d;
+  text-align: center;
+  margin: 4px;
+}
 
 /* Left Panels */
 .bp-panel {
