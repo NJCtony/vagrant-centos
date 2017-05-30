@@ -10,7 +10,7 @@ from django.contrib.auth import logout as auth_logout
 from django.shortcuts import redirect
 
 # Models
-from .models import NeedOneRecord
+from .models import NeedOneRecord, BusinessPerformance
 
 def index(request):
     context={}
@@ -157,6 +157,32 @@ def api_need_one_alerts(request):
 
         consolidatedAlerts.append({'soldtoname': soldtonameChoice, 'alerts': alerts})
     return JsonResponse({'data' : {'listing': consolidatedAlerts, 'labels' : alert_labels}})
+
+def api_need_one_businessPerformance(request):
+
+    bp_fields = ('bp',)
+
+    # TODO: Soldtoname available should be restricted to CLM's access
+    soldtoname_available = [temp_dict['soldtoname'] for temp_dict in BusinessPerformance.objects.values('soldtoname').distinct()]
+    soldtoname_choices = soldtoname_available
+
+    consolidatedBP = []
+
+    for soldtonameChoice in soldtoname_choices:
+        if soldtonameChoice in soldtoname_available:
+            bp_entry = {}
+
+            bp_filtered = BusinessPerformance.objects.filter(alert_type="Need 1", soldtoname = soldtonameChoice)
+            bp_query = bp_filtered.values(*bp_fields)
+
+            bp_entry['soldtoname'] = soldtonameChoice
+            if bp_query.exists():
+                bp_entry['bp'] = bp_query[0]['bp']
+                if len(bp_query[0]) > 0:
+                    print ("ERROR: api_need_one_businessPerformance")
+            consolidatedBP.append(bp_entry)
+    return JsonResponse({'data' : {'listing': consolidatedBP}})
+
 
 def template_need_one(request):
     template = loader.get_template('dashboard/template_need1.html')

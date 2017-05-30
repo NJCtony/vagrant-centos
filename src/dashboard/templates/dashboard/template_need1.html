@@ -52,42 +52,81 @@
   }
 
   // Business Performance (D3 Circles)
-    // BP: Acquire Data
-    var bpColor = "red"
-    var bpValue = "50%"
-    var bpCompany = "Dabo Corporation Ptd Ltd"
+    // // BP: Acquire Data
+    // var bpColor = "red"
+    // var bpValue = "50%"
+    // var bpCompany = "Dabo Corporation Ptd Ltd"
+    //
+    // // BP: Render
+    // var bp_svgContainer = d3.select("#bp_chart")
+    //   .attr("align", "center")
+    //   .append("svg")
+    //   .attr("width", 220)
+    //   .attr("height", 220)
+    //   .attr("align", "center");
+    // var outterCircle = bp_svgContainer.append("circle")
+    //   .attr("cx", 110)
+    //   .attr("cy", 110)
+    //   .attr("r", 85)
+    //   .attr("fill", bpColor);
+    // var innerCircle = bp_svgContainer.append("circle")
+    //   .attr("cx", 110)
+    //   .attr("cy", 110)
+    //   .attr("r", 70)
+    //   .attr("fill", "white");
+    // var bp_value = bp_svgContainer.append("text")
+    //   .attr("text-anchor", "middle")
+    //   .attr("x", 110)
+    //   .attr("y", 120)
+    //   .text(bpValue)
+    //   .attr("font-family", "sans-serif")
+    //   .attr("font-size", "30px");
+    // var bp_company = bp_svgContainer.append("text")
+    //   .attr("text-anchor", "middle")
+    //   .attr("x", 110)
+    //   .attr("y", 20)
+    //   .text(bpCompany)
+    //   .attr("font-family", "sans-serif")
+    //   .attr("font-size", "15px");
 
-    // BP: Render
-    var bp_svgContainer = d3.select("#bp_chart")
-      .attr("align", "center")
-      .append("svg")
-      .attr("width", 220)
-      .attr("height", 220)
-      .attr("align", "center");
-    var outterCircle = bp_svgContainer.append("circle")
-      .attr("cx", 110)
-      .attr("cy", 110)
-      .attr("r", 85)
-      .attr("fill", bpColor);
-    var innerCircle = bp_svgContainer.append("circle")
-      .attr("cx", 110)
-      .attr("cy", 110)
-      .attr("r", 70)
-      .attr("fill", "white");
-    var bp_value = bp_svgContainer.append("text")
-      .attr("text-anchor", "middle")
-      .attr("x", 110)
-      .attr("y", 120)
-      .text(bpValue)
-      .attr("font-family", "sans-serif")
-      .attr("font-size", "30px");
-    var bp_company = bp_svgContainer.append("text")
-      .attr("text-anchor", "middle")
-      .attr("x", 110)
-      .attr("y", 20)
-      .text(bpCompany)
-      .attr("font-family", "sans-serif")
-      .attr("font-size", "15px");
+    d3.json("{% url 'dashboard:api_needone_businessPerformance' %}", function(error, jsonData) {
+      // BP: Acquire Data
+      var bpColor = "red"
+      var bpValue = jsonData.data.listing[0].bp.toString()+"%";
+      var bpCompany = jsonData.data.listing[0].soldtoname;
+
+      // BP: Render
+      var bp_svgContainer = d3.select("#bp_chart")
+        .attr("align", "center")
+        .append("svg")
+        .attr("width", 220)
+        .attr("height", 220)
+        .attr("align", "center");
+      var outterCircle = bp_svgContainer.append("circle")
+        .attr("cx", 110)
+        .attr("cy", 110)
+        .attr("r", 85)
+        .attr("fill", bpColor);
+      var innerCircle = bp_svgContainer.append("circle")
+        .attr("cx", 110)
+        .attr("cy", 110)
+        .attr("r", 70)
+        .attr("fill", "white");
+      var bp_value = bp_svgContainer.append("text")
+        .attr("text-anchor", "middle")
+        .attr("x", 110)
+        .attr("y", 120)
+        .text(bpValue)
+        .attr("font-family", "sans-serif")
+        .attr("font-size", "30px");
+      var bp_company = bp_svgContainer.append("text")
+        .attr("text-anchor", "middle")
+        .attr("x", 110)
+        .attr("y", 20)
+        .text(bpCompany)
+        .attr("font-family", "sans-serif")
+        .attr("font-size", "15px");
+    });
 
   // Alert Listing (Table)
     // // Alert Listing: Acquire Data
