@@ -72,6 +72,14 @@ def need_one(request):
     })
 
 # JSON API Endpoints
+def api_clm_summary(request): # For a specific CLM
+    requested_clm_code = 'K03'
+
+    soldtoname_filtered = BusinessPerformance.objects.filter(clm_code = requested_clm_code)
+    soldtonames_byCLM = [temp_dict['soldtoname'] for temp_dict in soldtoname_filtered.values('soldtoname').distinct()]
+
+    return JsonResponse({'data' : {'clm_code': requested_clm_code, 'listing': soldtonames_byCLM}})
+
 def api_need_one_records(request):
     monat_list = [temp_dict['monat'] for temp_dict in NeedOneRecord.objects.values('monat').distinct()]
     soldtoname_available = [temp_dict['soldtoname'] for temp_dict in NeedOneRecord.objects.values('soldtoname').distinct()]
@@ -159,7 +167,6 @@ def api_need_one_alerts(request):
     return JsonResponse({'data' : {'listing': consolidatedAlerts, 'labels' : alert_labels}})
 
 def api_need_one_businessPerformance(request):
-
     bp_fields = ('bp',)
 
     # TODO: Soldtoname available should be restricted to CLM's access
