@@ -32,63 +32,27 @@
 
   <script type="text/javascript">
 
-  function rgbToString(value_list, opacity) {
-    return 'rgba(' + value_list[0].toString() + ',' + value_list[1].toString() + ',' + value_list[2].toString() + ',' + opacity.toString() + ')';
-  }
-
-  function sc_rgb_colormap(value) {
-    var base1 = [0, 162, 189];
-    var base2 = [255, 162, 189];
-    // var base2 = [246, 85, 160];
-    // var base1 = [227, 247, 73];
-    var diff = [base2[0]-base1[0], base2[1]-base1[1], base2[2]-base1[2]];
-    var result = [];
-
-    for(var v in diff) {
-      result.push(Math.round(base1[v] + Math.abs(value)/200.0*diff[v]));
+  // Helper Functions
+    function rgbToString(value_list, opacity) {
+      return 'rgba(' + value_list[0].toString() + ',' + value_list[1].toString() + ',' + value_list[2].toString() + ',' + opacity.toString() + ')';
     }
 
-    return rgbToString(result, 1);
-  }
+    function sc_rgb_colormap(value) {
+      var base1 = [0, 162, 189];
+      var base2 = [255, 162, 189];
+      // var base2 = [246, 85, 160];
+      // var base1 = [227, 247, 73];
+      var diff = [base2[0]-base1[0], base2[1]-base1[1], base2[2]-base1[2]];
+      var result = [];
+
+      for(var v in diff) {
+        result.push(Math.round(base1[v] + Math.abs(value)/200.0*diff[v]));
+      }
+
+      return rgbToString(result, 1);
+    }
 
   // Business Performance (D3 Circles)
-    // // BP: Acquire Data
-    // var bpColor = "red"
-    // var bpValue = "50%"
-    // var bpCompany = "Dabo Corporation Ptd Ltd"
-    //
-    // // BP: Render
-    // var bp_svgContainer = d3.select("#bp_chart")
-    //   .attr("align", "center")
-    //   .append("svg")
-    //   .attr("width", 220)
-    //   .attr("height", 220)
-    //   .attr("align", "center");
-    // var outterCircle = bp_svgContainer.append("circle")
-    //   .attr("cx", 110)
-    //   .attr("cy", 110)
-    //   .attr("r", 85)
-    //   .attr("fill", bpColor);
-    // var innerCircle = bp_svgContainer.append("circle")
-    //   .attr("cx", 110)
-    //   .attr("cy", 110)
-    //   .attr("r", 70)
-    //   .attr("fill", "white");
-    // var bp_value = bp_svgContainer.append("text")
-    //   .attr("text-anchor", "middle")
-    //   .attr("x", 110)
-    //   .attr("y", 120)
-    //   .text(bpValue)
-    //   .attr("font-family", "sans-serif")
-    //   .attr("font-size", "30px");
-    // var bp_company = bp_svgContainer.append("text")
-    //   .attr("text-anchor", "middle")
-    //   .attr("x", 110)
-    //   .attr("y", 20)
-    //   .text(bpCompany)
-    //   .attr("font-family", "sans-serif")
-    //   .attr("font-size", "15px");
-
     d3.json("{% url 'dashboard:api_needone_businessPerformance' %}", function(error, jsonData) {
       // BP: Acquire Data
       var bpColor = "red"
@@ -129,42 +93,6 @@
     });
 
   // Alert Listing (Table)
-    // // Alert Listing: Acquire Data
-    // var alert_dataset = [];
-    // var alert_monat = ["M", "M+1", "M+2"];
-    // var pseudo_alert_labels = ['Sold to name', 'Sales name', 'MONAT', 'Description']
-    // var pseudo_alert_soldtoname = ['Dorp Corporation Pte Ltd', "Plonk Oggle", "Apple Incorporation"];
-    // var psuedo_alert_salesname = ["JORK99FOR3VA", "ETF11222O", "JKAp12311", "SK820342AC"];
-    // var pseudo_alert_description = ["Increase by ", "Decrease by "];
-    // for (var i = 0; i < 10; i ++) {
-    //   var alert_entry = {};
-    //   alert_entry.soldtoname = pseudo_alert_soldtoname[Math.floor(Math.random() * pseudo_alert_soldtoname.length)];
-    //   alert_entry.salesname = psuedo_alert_salesname[Math.floor(Math.random() * psuedo_alert_salesname.length)];
-    //   alert_entry.monat = alert_monat[Math.floor(Math.random() * alert_monat.length)];
-    //   alert_entry.description = pseudo_alert_description[Math.floor(Math.random() * pseudo_alert_description.length)] + parseFloat(Math.random()*200).toFixed(2).toString() + "%"
-    //   alert_dataset.push(alert_entry);
-    // }
-    //
-    // // Alert Listing: Render
-    // var alertTable = document.getElementById('alert-table')
-    // var headerRow = alertTable.insertRow();
-    // for (var label in pseudo_alert_labels) {
-    //   var tableLabel = document.createElement('th');
-    //   tableLabel.innerText = pseudo_alert_labels[label];
-    //   headerRow.appendChild(tableLabel);
-    // }
-    //
-    // for (var entry in alert_dataset) {
-    //   var alertRow = alertTable.tBodies[0].insertRow(alertTable.tBodies[0].rows.length)
-    //   for (var i = 0; i < 4; i++) {
-    //     alertRow.insertCell(0);
-    //   }
-    //   alertRow.cells[0].innerText = alert_dataset[entry].soldtoname;
-    //   alertRow.cells[1].innerText = alert_dataset[entry].salesname;
-    //   alertRow.cells[2].innerText = alert_dataset[entry].monat;
-    //   alertRow.cells[3].innerText = alert_dataset[entry].description;
-    // }
-
     // Alert Listing : Acquire Data + Render.
     d3.json("{% url 'dashboard:api_needone_alerts' %}", function(error, jsonData) {
       var alerts = jsonData.data.listing[0].alerts;
@@ -192,80 +120,6 @@
     });
 
   // Structural Changes (ChartJS LineChart)
-
-    // // SC: Acquire Data
-    // var sc_dataset = [];
-    // var sc_monat = ["M", "M+1", "M+2"];
-    // var psuedo_sc_salesname = ["JORK99FOR3VA", "ETF11222O", "JKAp12311", "SK820342AC"]
-    // for (var i = 0; i < 5; i++) {
-    //   var sc_entry = {};
-    //   sc_entry.label = psuedo_sc_salesname[Math.floor(Math.random() * psuedo_sc_salesname.length)];
-    //   sc_entry.data = [parseFloat(-2+Math.random()*4).toFixed(2), parseFloat(-2+Math.random()*4).toFixed(2), parseFloat(-2+Math.random()*4).toFixed(2)];
-    //   sc_entry.fill = false;
-    //   sc_entry.showLine = false;
-    //   var c0 = Math.abs(sc_entry.data[0]/2);
-    //   var c1 = Math.abs(sc_entry.data[1]/2);
-    //   var c2 = Math.abs(sc_entry.data[2]/2);
-    //   sc_entry.pointBackgroundColor = ['rgba(255,0,0,'+ c0.toString() +')', 'rgba(255,0,0,'+ c1.toString() +')', 'rgba(255,0,0,'+ c2.toString() +')'];
-    //   sc_dataset.push(sc_entry);
-    // }
-    //
-    // // SC: Render
-    // Chart.defaults.global.elements.point.radius = 8;
-    // Chart.defaults.global.elements.point.hoverRadius = 8;
-    // Chart.defaults.global.elements.point.hitRadius = 0;
-    //
-    // var sc_LineChart = new Chart('sc_chart', {
-    //   type: 'line',
-    //   data: {
-    //     // Each entry
-    //     datasets: sc_dataset,
-    //     labels: sc_monat,
-    //   },
-    //   options: {
-    //     legend: {
-    //       display: false,
-    //     },
-    //     maintainAspectRatio: false,   // To allow specifed size : http://www.chartjs.org/docs/latest/general/responsive.html
-    //     animation: {
-    //       duration: 0, // general animation time
-    //     },
-    //     hover: {
-    //       animationDuration: 0, // duration of animations when hovering an item
-    //     },
-    //     scales: {
-    //       yAxes: [{
-    //         ticks: {
-    //           min: -2,
-    //           max: 2,
-    //           stepSize: 0.5
-    //         },
-    //         scaleLabel : {
-    //           display: true,
-    //           labelString: "Structural Change %"
-    //         },
-    //         gridLines : {
-    //           // display: false,
-    //           drawBorder: false,
-    //           // drawOnChartArea: true,
-    //         }
-    //       }],
-    //       xAxes: [{
-    //         scaleLabel : {
-    //           display: true,
-    //           labelString: "MONAT"
-    //         },
-    //         gridLines : {
-    //           // display: false,
-    //           drawBorder: false,
-    //           // lineWidth: [0,1,0],
-    //           drawOnChartArea: true,
-    //         }
-    //       }]
-    //     }
-    //   }
-    // });
-
     d3.json("{% url 'dashboard:api_needone_records' %}", function(error, jsonData) {
       // SC: Acquire Data
       var sc_dataset = [];
@@ -314,8 +168,6 @@
 
         sc_dataset.push(sc_entry);
       }
-
-      // sc_entry
 
       // SC: Render
       Chart.defaults.global.elements.point.radius = 8;
