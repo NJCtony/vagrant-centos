@@ -76,7 +76,7 @@
       var result = [];
 
       for(var v in diff) {
-        result.push(Math.round(base1[v] + Math.abs(value)/200.0*diff[v]));
+        result.push(Math.round(base1[v] + Math.abs(value)/100.0*diff[v]));
       }
 
       return rgbToString(result, 1);
@@ -311,9 +311,9 @@
           scales: {
             yAxes: [{
               ticks: {
-                min: -200,
-                max: 200,
-                stepSize: 50
+                min: -100,
+                max: 100,
+                stepSize: 25
               },
               scaleLabel : {
                 display: true,
