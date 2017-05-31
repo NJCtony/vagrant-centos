@@ -171,9 +171,12 @@
     // Business Performance (D3 Circles)
       d3.json("{% url 'dashboard:api_needone_businessPerformance' %}", function(error, jsonData) {
         // BP: Acquire Data
-        var bpColor = "red"
         var bpValue = jsonData.data.listing[0].bp.toString()+"%";
         var bpCompany = jsonData.data.listing[0].soldtoname;
+        var bpColor = "green"
+        if (jsonData.data.listing[0].bp > 100) {
+          var bpColor = "red"
+        }
 
         // BP: Render
         var bp_svgContainer = d3.select("#bp_chart")
@@ -233,6 +236,9 @@
       mean_entry.pointBorderColor = blackList;
       mean_entry.pointHoverBackgroundColor = colorList;
       mean_entry.pointHoverBorderColor = blackList;
+      mean_entry.pointRadius = 12;
+      mean_entry.pointHoverRadius = 12;
+      mean_entry.pointHitRadius = 0;
 
       sc_dataset.push(mean_entry);
 
@@ -246,6 +252,9 @@
         sc_entry.fill = false;
         sc_entry.showLine = false;
         sc_entry.pointStyle = 'circle';
+        sc_entry.pointRadius = 8;
+        sc_entry.pointHoverRadius = 8;
+        sc_entry.pointHitRadius = 0;
 
         // Color mapping
         var rgb0 = sc_rgb_colormap(sc_entry.data[0]);
@@ -260,9 +269,6 @@
       }
 
       // SC: Render
-      Chart.defaults.global.elements.point.radius = 8;
-      Chart.defaults.global.elements.point.hoverRadius = 8;
-      Chart.defaults.global.elements.point.hitRadius = 0;
       // Chart.defaults.global.tooltips.displayColors = false; // turn off color box within tooltips
 
       var sc_LineChart = new Chart('sc_chart', {
