@@ -4,6 +4,7 @@ echo "Updating yum..."
 sudo yum -y update
 
 echo "Installing Python 3.4..."
+sudo yum -y install epel-release
 sudo yum -y install python34 python34-devel python34-setuptools
 
 echo "Installing pip..."

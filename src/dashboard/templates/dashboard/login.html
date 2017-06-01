@@ -4,25 +4,41 @@
   <head>
     <meta charset="utf-8">
     <link rel="stylesheet" href="{% static 'dashboard/css/login_style.css' %}">
-    <title>Infineon CLM Dashboard : Login Page</title>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="{% static 'dashboard/css/bootstrap.min.css' %}" crossorigin="anonymous">
+    <title>Dashboard Login</title>
   </head>
   <body background="{% static 'dashboard/img/loginBackground.png' %}">
-    <div class="login-panel">
-      {% if status %}
-        <p> {{ status }} </p>
-      {% endif %}
-      <!-- <h1>Login Details</h1> -->
-      <form action="{% url 'dashboard:login' %}" method="post">
-      {% csrf_token %}
+    <div class="container">
+      <div class="row vertical-align">
+        <div class="col-lg-4 col-lg-offset-4 col-md-6 col-md-offset-3 col-sm-8 col-sm-offset-2 col-xs-12">
+          <div class="panel panel-default login-panel">
+            <div class="panel-body">
+              <div class="row">
+                <div class="col-xs-12">
+                  <h4>Log in to your account</h4>
 
-      <p>Login</p>
-      <input type="text" name="username" value="" />
-      <br>
-      <p>Password</p>
-      <input type="password" name="password" value="">
+                  {% if error_message %}
+                  <h5 class="text-danger">{{ error_message }}</h5>
+                  {% endif %}
 
-      <input type="submit" value="Log In" />
-      </form>
+                  <form class="form-horizontal" role="form" action="" method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    {% include 'dashboard/_form-template.html' %}
+                    <div class="form-group">
+                      <div class="col-xs-4">
+                        <button type="submit" class="btn btn-default col-xs-12">Submit</button>
+                      </div>
+                    </div>
+                  </form>
+                </div>
+              </div>
+
+
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </body>
 </html>

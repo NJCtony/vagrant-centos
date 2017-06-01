@@ -1,4 +1,7 @@
 from django.db import models
+from django.contrib.auth.models import User
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 # Create your models here.
 class NeedOneRecord(models.Model):
@@ -27,10 +30,26 @@ class NeedThreeRecord(models.Model):
     alert_type = models.CharField(max_length=16, default=None)
     alert_description = models.CharField(max_length=64, default=None)
 
-
 class BusinessPerformance(models.Model):
     clm_code = models.CharField(max_length=16, default=None)
     alert_type = models.CharField(max_length=16, default=None)
     soldtoname = models.CharField(max_length=64, default=None)
     bp = models.FloatField(default=0)
     monat = models.CharField(max_length=32, default=None)
+
+class Profile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    clm_code = models.CharField(max_length=16, default='')
+    demand_up_threshold = models.FloatField(default=10)
+    demand_down_threshold = models.FloatField(default=50000)
+    supply_down_threshold = models.FloatField(default=93)
+
+@receiver(post_save, sender=User)
+def create_user_profile(sender, instance, created, **kwargs):
+    if created:
+        Profile.objects.create(user=instance)
+
+@receiver(post_save, sender=User)
+def save_user_profile(sender, instance, created, **kwargs):
+    if created:
+        instance.profile.save()

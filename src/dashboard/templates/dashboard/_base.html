@@ -5,11 +5,9 @@
 <head>
   <meta charset="utf-8">
   {% load static %}
-  <title>CLM Dashboard</title>
+  <title>{% block title %}CLM Dashboard{% endblock %}</title>
   <!-- Bootstrap CSS -->
   <link rel="stylesheet" href="{% static 'dashboard/css/bootstrap.min.css' %}" crossorigin="anonymous">
-  <!-- Optional Theme -->
-  <link rel="stylesheet" href="{% static 'dashboard/css/bootstrap-theme.min.css' %}" crossorigin="anonymous">
   <!-- Left Navbar -->
   <link rel="stylesheet" href="{% static 'dashboard/css/navbar-fixed-side.css' %}" crossorigin="anonymous">
   <!-- Custom CSS -->

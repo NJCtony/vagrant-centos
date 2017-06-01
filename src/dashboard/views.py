@@ -1,6 +1,8 @@
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.template import loader
+from django.views import generic
+from django.views.generic import View
 import operator, json
 
 # Security
@@ -8,15 +10,44 @@ from django.contrib.auth import authenticate
 from django.contrib.auth import login as auth_login
 from django.contrib.auth import logout as auth_logout
 from django.shortcuts import redirect
+from django.contrib.auth.decorators import login_required
 
 # Models
 from .models import NeedOneRecord, BusinessPerformance
 
-def index(request):
-    context={}
-    # if not request.user.is_authenticated:
-    #     return redirect('dashboard:login')
-    return render(request, 'dashboard/index.html', context)
+# Forms
+from .forms import LoginForm
+
+class LoginView(View):
+    form_class = LoginForm
+    template_name = 'dashboard/login.html'
+
+    # display blank form
+    def get(self, request):
+        form = self.form_class(None)
+        auth_logout(request)
+        try:
+            del request.session['userid']
+        except KeyError:
+            pass
+        return render(request, self.template_name, {'form': form})
+
+    # process form data
+    def post(self, request):
+        form = self.form_class(request.POST)
+        username = request.POST['username']
+        password = request.POST['password']
+        # returns User object if credentials are correct
+        user = authenticate(username=username, password=password)
+
+        if user is not None:
+            auth_login(request, user)
+            return redirect('dashboard:overview')
+
+        return render(request, self.template_name, {
+            'form': form,
+            'error_message': 'The username and password provided do not match.'
+        })
 
 def login(request):
     context = {}
@@ -33,7 +64,7 @@ def login(request):
         if user is not None:
             auth_login(request, user)
             request.session['userid'] = username
-            return redirect('dashboard:index')
+            return redirect('dashboard:overview')
     return render(request, 'dashboard/login.html', context)
 
 
@@ -258,6 +289,7 @@ def demand_change(request):
     template = loader.get_template('dashboard/demand_change.html')
     return HttpResponse(template.render({}, request))
 
+@login_required
 def overview(request):
     template = loader.get_template('dashboard/overview.html')
     return HttpResponse(template.render({}, request))
