@@ -1,0 +1,34 @@
+[
+  {
+    "model": "dashboard.clmsoldtopair",
+    "pk": 1,
+    "fields": {
+      "clm_code": "K03",
+      "soldtoname": "DABO CORPORATION PTE LTD"
+    }
+  },
+  {
+    "model": "dashboard.clmsoldtopair",
+    "pk": 2,
+    "fields": {
+      "clm_code": "K03",
+      "soldtoname": "HYUNDAI MOBIS CO., LTD."
+    }
+  },
+  {
+    "model": "dashboard.clmsoldtopair",
+    "pk": 3,
+    "fields": {
+      "clm_code": "K03",
+      "soldtoname": "JIANG SU MOBIS AUTOMOTIVE"
+    }
+  },
+  {
+    "model": "dashboard.clmsoldtopair",
+    "pk": 4,
+    "fields": {
+      "clm_code": "K03",
+      "soldtoname": "ROBERT BOSCH KOREA LIMITED COMPANY"
+    }
+  }
+]

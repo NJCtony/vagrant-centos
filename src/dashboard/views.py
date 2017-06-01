@@ -9,11 +9,12 @@ import operator, json
 from django.contrib.auth import authenticate
 from django.contrib.auth import login as auth_login
 from django.contrib.auth import logout as auth_logout
-from django.shortcuts import redirect
+from django.shortcuts import redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 
 # Models
-from .models import NeedOneRecord, BusinessPerformance
+from .models import NeedOneRecord, BusinessPerformance, Profile, ClmSoldtoPair
+
 
 # Forms
 from .forms import LoginForm
@@ -103,13 +104,23 @@ def need_one(request):
     })
 
 # JSON API Endpoints
-def api_clm_summary(request): # For a specific CLM
-    requested_clm_code = 'K03'
+def api_clm_summary(request, clm_code): # For a specific CLM
 
-    soldtoname_filtered = BusinessPerformance.objects.filter(clm_code = requested_clm_code)
-    soldtonames_byCLM = [temp_dict['soldtoname'] for temp_dict in soldtoname_filtered.values('soldtoname').distinct()]
+    settings = {}
+    try:
+        profile = Profile.objects.get(clm_code=clm_code)
+        settings['demand_up_threshold'] = profile.demand_up_threshold
+        settings['demand_down_threshold'] = profile.demand_down_threshold
+        settings['supply_down_threshold'] = profile.supply_down_threshold
+    except:
+        pass
 
-    return JsonResponse({'data' : {'clm_code': requested_clm_code, 'listing': soldtonames_byCLM}})
+    soldtonames = []
+    pair_query = ClmSoldtoPair.objects.filter(clm_code=clm_code).order_by('soldtoname')
+    for pair in pair_query:
+        soldtonames.append(pair.soldtoname)
+
+    return JsonResponse({'data' : {'clm_code': clm_code, 'settings': settings, 'soldtonames': soldtonames}})
 
 def api_need_one_records(request):
     monat_list = [temp_dict['monat'] for temp_dict in NeedOneRecord.objects.values('monat').distinct()]

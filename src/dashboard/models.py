@@ -37,12 +37,22 @@ class BusinessPerformance(models.Model):
     bp = models.FloatField(default=0)
     monat = models.CharField(max_length=32, default=None)
 
+class ClmSoldtoPair(models.Model):
+    clm_code = models.CharField(max_length=16, default='')
+    soldtoname = models.CharField(max_length=64, default=None)
+
+    class Meta:
+        unique_together = ("clm_code", "soldtoname")
+
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    clm_code = models.CharField(max_length=16, default='')
+    clm_code = models.CharField(max_length=16, default='', unique=True)
     demand_up_threshold = models.FloatField(default=10)
     demand_down_threshold = models.FloatField(default=50000)
     supply_down_threshold = models.FloatField(default=93)
+
+    def __str__(self):
+        return '%s %s %s %s' %(self.clm_code, self.demand_up_threshold, self.demand_down_threshold, self.supply_down_threshold)
 
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
