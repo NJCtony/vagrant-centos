@@ -3,7 +3,11 @@
 {% block content %}
 
 <div class="col-md-9 min-panel-width"> <!-- Left Column -->
+  {% if not user.is_anonymous %}
+  <h3>Hello, {{ user }}!</h3>
+  {% endif %}
 
+  
   <h3 class="overview-heading">Demand Changes</h3>
   <div class="panel panel-default">
     <div class="panel-body overview-panel">
