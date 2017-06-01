@@ -221,9 +221,12 @@ def api_records_demand(request):
             for salesname_item in salesname_list: # iterate ea salesname
                 salesname_sc = [] # set of structural-change-% for each sales-name
                 for monat_item in monat_list:
-                    if NeedOneRecord.objects.filter(salesname=salesname_item, monat=monat_item).exists():
-                        salesname_sc.append(NeedOneRecord.objects.filter(salesname=salesname_item, monat=monat_item) \
+                    if NeedOneRecord.objects.filter(clm_code=query_id, soldtoname=soldtoname_choice, salesname=salesname_item, monat=monat_item).values('sc_diff_umwteuro_percent').exists():
+                        salesname_sc.append(NeedOneRecord.objects.filter(clm_code=query_id, soldtoname=soldtoname_choice,salesname=salesname_item, monat=monat_item) \
                         .values('sc_diff_umwteuro_percent')[0]['sc_diff_umwteuro_percent'])
+                        if len(NeedOneRecord.objects.filter(clm_code=query_id, soldtoname=soldtoname_choice,salesname=salesname_item, monat=monat_item) \
+                        .values('sc_diff_umwteuro_percent')) > 1:
+                            print("Error(api_records_demand) : Multiple entries for", salesname_item, monat_item)
                     else:
                         salesname_sc.append(0.0) # fix: fill up missing values
 
