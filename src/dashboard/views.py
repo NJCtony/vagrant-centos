@@ -252,9 +252,12 @@ def api_records_demand(request):
             for salesname_item in salesname_list: # iterate ea salesname
                 salesname_sc = [] # set of structural-change-% for each sales-name
                 for monat_item in monat_list:
-                    if NeedOneRecord.objects.filter(salesname=salesname_item, monat=monat_item).exists():
-                        salesname_sc.append(NeedOneRecord.objects.filter(salesname=salesname_item, monat=monat_item) \
+                    if NeedOneRecord.objects.filter(clm_code=query_id, soldtoname=soldtoname_choice, salesname=salesname_item, monat=monat_item).values('sc_diff_umwteuro_percent').exists():
+                        salesname_sc.append(NeedOneRecord.objects.filter(clm_code=query_id, soldtoname=soldtoname_choice,salesname=salesname_item, monat=monat_item) \
                         .values('sc_diff_umwteuro_percent')[0]['sc_diff_umwteuro_percent'])
+                        if len(NeedOneRecord.objects.filter(clm_code=query_id, soldtoname=soldtoname_choice,salesname=salesname_item, monat=monat_item) \
+                        .values('sc_diff_umwteuro_percent')) > 1:
+                            print("Error(api_records_demand) : Multiple entries for", salesname_item, monat_item)
                     else:
                         salesname_sc.append(0.0) # fix: fill up missing values
 
@@ -276,6 +279,45 @@ def api_records_demand(request):
             if oneEntry:
                 break
     # return HttpResponse(soldtoname_available)
+    return JsonResponse({'data' : data})
+
+def api_alerts_demand(request):
+    alert_fields = ('salesname','monat','alert_description', 'diff_umwteuro', 'sc_diff_umwteuro_percent') # Define field to be be shown
+
+    query_id = request.GET.get('id')
+    query_soldtoindex = request.GET.get('soldtoindex')
+
+    data = []
+    if query_id:
+        soldtoname_list = [temp_dict['soldtoname'] for temp_dict in NeedOneRecord.objects.filter(clm_code=query_id).values('soldtoname').distinct()]
+
+        for soldtoname_choice in soldtoname_list: # iterate ea soldtoname
+            oneSoldtoname = False
+            # Validate and verify soldtoindex
+            if isInt(query_soldtoindex):
+                query_soldtoindex = int(query_soldtoindex)
+                print(query_soldtoindex)
+                if query_soldtoindex < len(soldtoname_list):
+                    soldtoname_choice = soldtoname_list[query_soldtoindex]
+                    oneSoldtoname = True
+
+            num_decline_alerts = 2
+            num_increase_alerts = 3
+            decline_alert_count = 0
+            increase_alert_count = 0
+
+            soldtoname_data = {} # Each soldtoname is an entry into data
+            soldtoname_data['soldtoname'] = soldtoname_choice
+
+            alerts_query = NeedOneRecord.objects.filter(soldtoname = soldtoname_choice, alert_type="Need 1").values(*alert_fields)
+            alerts_increase = alerts_query.filter(sc_diff_umwteuro_percent__gt = 0, sc_diff_umwteuro_percent__lt = 100).order_by('sc_diff_umwteuro_percent').reverse()
+            alerts_decrease = alerts_query.filter(diff_umwteuro__lt = 0).order_by('diff_umwteuro')
+
+            soldtoname_data['alerts'] = {'increase': list(alerts_increase), 'decrease': list(alerts_decrease)}
+            data.append(soldtoname_data)
+
+            if oneSoldtoname:
+                break
     return JsonResponse({'data' : data})
 
 def isInt(value):
