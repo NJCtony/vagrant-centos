@@ -190,6 +190,72 @@ def api_need_one_businessPerformance(request):
             consolidatedBP.append(bp_entry)
     return JsonResponse({'data' : {'listing': consolidatedBP}})
 
+def api_records_demand(request):
+    query_id = request.GET.get('id')
+    query_soldtoindex = request.GET.get('soldtoindex')
+
+    print(query_id)
+    print(query_soldtoindex)
+
+    data = []
+    if query_id:
+        soldtoname_list = [temp_dict['soldtoname'] for temp_dict in NeedOneRecord.objects.filter(clm_code=query_id).values('soldtoname').distinct()]
+
+        for soldtoname_choice in soldtoname_list: # iterate ea soldtoname
+            oneEntry = False
+            # Validate and verify soldtoindex
+            if isInt(query_soldtoindex):
+                query_soldtoindex = int(query_soldtoindex)
+                print(query_soldtoindex)
+                if query_soldtoindex < len(soldtoname_list):
+                    soldtoname_choice = soldtoname_list[query_soldtoindex]
+                    oneEntry = True
+
+            # Each soldtoname is an entry into data
+            soldtoname_data = {}
+            sc_mean = [0.0, 0.0, 0.0]
+            sc_count = [0, 0, 0]
+
+            soldtoname_data['soldtoname'] = soldtoname_choice
+            monat_list = [temp_dict['monat'] for temp_dict in NeedOneRecord.objects.values('monat').distinct()]
+            soldtoname_data['labels'] = monat_list
+            soldtoname_data['salesnames'] = []
+            salesname_list = [temp_dict['salesname'] for temp_dict in NeedOneRecord.objects.filter(clm_code=query_id, soldtoname=soldtoname_choice).values('salesname').distinct()]
+            for salesname_item in salesname_list: # iterate ea salesname
+                salesname_sc = [] # set of structural-change-% for each sales-name
+                for monat_item in monat_list:
+                    if NeedOneRecord.objects.filter(salesname=salesname_item, monat=monat_item).exists():
+                        salesname_sc.append(NeedOneRecord.objects.filter(salesname=salesname_item, monat=monat_item) \
+                        .values('sc_diff_umwteuro_percent')[0]['sc_diff_umwteuro_percent'])
+                    else:
+                        salesname_sc.append(0.0) # fix: fill up missing values
+
+                for i in range(len(salesname_sc)):
+                    if salesname_sc[i] != 0:
+                        sc_mean[i] += salesname_sc[i]
+                        sc_count[i] += 1
+
+                soldtoname_data['salesnames'].append({'salesname': salesname_item, 'sc': salesname_sc})
+
+            for i in range(len(sc_mean)):
+                if sc_mean[i] > 0:
+                    sc_mean[i] /= sc_count[i]
+                sc_mean[i] = round(sc_mean[i], 1)
+
+            soldtoname_data['means'] = sc_mean
+            data.append(soldtoname_data)
+
+            if oneEntry:
+                break
+    # return HttpResponse(soldtoname_available)
+    return JsonResponse({'data' : data})
+
+def isInt(value):
+    try:
+        value = int(value)
+        return True
+    except:
+        return False
 
 def demand_change(request):
     template = loader.get_template('dashboard/demand_change.html')
