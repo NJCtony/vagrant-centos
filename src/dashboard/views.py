@@ -194,9 +194,6 @@ def api_records_demand(request):
     query_id = request.GET.get('id')
     query_soldtoindex = request.GET.get('soldtoindex')
 
-    print(query_id)
-    print(query_soldtoindex)
-
     data = []
     if query_id:
         soldtoname_list = [temp_dict['soldtoname'] for temp_dict in NeedOneRecord.objects.filter(clm_code=query_id).values('soldtoname').distinct()]
