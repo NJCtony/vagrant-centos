@@ -128,6 +128,7 @@ def api_records_supply(request):
 def api_records(request, alert_type):
     query_id = request.GET.get('id')
     query_soldtoindex = request.GET.get('soldtoindex')
+    query_image = request.GET.get('image')
 
     data = []
     if query_id:
@@ -185,6 +186,14 @@ def api_records(request, alert_type):
                 sc_mean[i] = round(sc_mean[i], 1)
 
             soldtoname_data['means'] = sc_mean
+
+            if query_image and oneEntry:
+                soldtoname_data['image'] = True
+                soldtoname_data['salesnames'] = []
+
+            else:
+                soldtoname_data['image'] = False
+
             data.append(soldtoname_data)
 
             if oneEntry:
@@ -193,6 +202,11 @@ def api_records(request, alert_type):
         print(alert_type, '- Time taken <api_records>:', time_end)
     # return HttpResponse(soldtoname_available)
     return JsonResponse({'data' : data})
+
+def api_records_demand_chart(request):
+    records_demand_json = api_records_demand(request).content.decode('utf-8')
+    context = {'records_demand': records_demand_json}
+    return render(request, 'dashboard/demand_change_chart.html', context)
 
 def api_alerts_demand(request):
     return api_alerts(request, 'Need 1')

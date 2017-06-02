@@ -11,6 +11,7 @@ urlpatterns = [
 
     # API Endpoints
     url(r'^api/clm/(?P<clm_code>[A-Z0-9]+)', views.api_clm_summary, name='api_clm_summary'),
+    url(r'^api/records/demand/chart', views.api_records_demand_chart, name='api_records_demand_chart'),
     url(r'^api/records/demand/', views.api_records_demand, name='api_records_demand'),
     url(r'^api/records/supply/', views.api_records_supply, name='api_records_supply'),
     url(r'^api/alerts/demand/', views.api_alerts_demand, name='api_alerts_demand'),

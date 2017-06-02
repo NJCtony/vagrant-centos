@@ -1,0 +1,182 @@
+{% load static %}
+<!-- ChartJS -->
+<script src="{% static 'dashboard/js/Chart.bundle.min.js' %}"></script>
+<div class="chart-container" style="position: relative; height:100%;">
+    <canvas id="sc_chart"></canvas>
+</div>
+<script type="text/javascript">
+  function rgbToString(value_list, opacity) {
+    return 'rgba(' + value_list[0].toString() + ',' + value_list[1].toString() + ',' + value_list[2].toString() + ',' + opacity.toString() + ')';
+  }
+
+  function sc_rgb_colormap(value) {
+    var base1 = [0, 162, 189];
+    var base2 = [255, 162, 189];
+    // var base2 = [246, 85, 160];
+    // var base1 = [227, 247, 73];
+    var diff = [base2[0]-base1[0], base2[1]-base1[1], base2[2]-base1[2]];
+    var result = [];
+
+    for(var v in diff) {
+      result.push(Math.round(base1[v] + Math.abs(value)/100.0*diff[v]));
+    }
+
+    return rgbToString(result, 1);
+  }
+  function drawRecords(jsonData) {
+    // SC: Acquire Data
+    var sc_dataset = [];
+    var sc_monat = jsonData.data[0].labels;
+    var mean_entry = {};
+
+    var show_labels = true;
+    var step_size = 25;
+    var font_size = 15;
+
+    if (jsonData.data[0].image) {
+      var chart = document.getElementById('sc_chart');
+      chart.parentNode.style.height = '170px';
+      chart.parentNode.style.width = '200px';
+      show_labels = false;
+      step_size = 50;
+      font_size = 10;
+    }
+
+    // Defination of mean dataset
+    mean_entry.label = 'Mean';
+    mean_entry.data = jsonData.data[0].means;
+    mean_entry.fill = false;
+    mean_entry.showLine = false;
+    mean_entry.pointStyle = 'triangle';
+
+    // Color mapping for mean
+    var black = rgbToString([10,10,10], 1);
+    var blackList = [black,black,black];
+    var meanColor = rgbToString([227,243,53], 1);
+    var colorList = [meanColor,meanColor,meanColor];
+    mean_entry.pointBackgroundColor = colorList;
+    mean_entry.pointBorderColor = blackList;
+    mean_entry.pointHoverBackgroundColor = colorList;
+    mean_entry.pointHoverBorderColor = blackList;
+    mean_entry.pointRadius = 12;
+    mean_entry.pointHoverRadius = 12;
+    mean_entry.pointHitRadius = 0;
+
+    sc_dataset.push(mean_entry);
+
+    for (var i in jsonData.data[0].salesnames) {
+      var sc_entry = {};
+      var salesname_data = jsonData.data[0].salesnames[i];
+
+      // Defination of each dataset
+      sc_entry.label = salesname_data.salesname;
+      sc_entry.data = salesname_data.sc;
+      sc_entry.fill = false;
+      sc_entry.showLine = false;
+      sc_entry.pointStyle = 'circle';
+      sc_entry.pointRadius = 8;
+      sc_entry.pointHoverRadius = 8;
+      sc_entry.pointHitRadius = 0;
+
+      // Color mapping
+      var rgb0 = sc_rgb_colormap(sc_entry.data[0]);
+      var rgb1 = sc_rgb_colormap(sc_entry.data[1]);
+      var rgb2 = sc_rgb_colormap(sc_entry.data[2]);
+      sc_entry.pointBackgroundColor = [rgb0, rgb1, rgb2];
+      sc_entry.pointBorderColor = blackList;
+      sc_entry.pointHoverBackgroundColor = [rgb0, rgb1, rgb2];
+      sc_entry.pointHoverBorderColor = blackList;
+
+      sc_dataset.push(sc_entry);
+    }
+
+    // SC: Render
+    // Chart.defaults.global.tooltips.displayColors = false; // turn off color box within tooltips
+
+    var sc_LineChart = new Chart('sc_chart', {
+      type: 'line',
+      data: {
+        // Each entry
+        datasets: sc_dataset,
+        labels: sc_monat,
+      },
+      options: {
+        layout: {
+          padding: {
+            top: 10,
+          }
+        },
+        legend: {
+          display: false,
+        },
+        tooltips: {
+          displayColors : false,
+          callbacks: {
+            title: function([tooltipItem], data) {
+              return data.datasets[tooltipItem.datasetIndex].label;
+            },
+          },
+          custom: function(tooltip) {
+            function getBody(bodyItem) {
+              return bodyItem.lines;
+            }
+            if (tooltip.body) {
+              var bodyLines = tooltip.body.map(getBody);
+              bodyLines[0][0] = 'SC % :' + bodyLines[0][0].split(':')[1];
+              // console.log(data);
+            }
+          },
+        },
+        maintainAspectRatio: false,   // To allow specifed size : http://www.chartjs.org/docs/latest/general/responsive.html
+        animation: {
+          duration: 0, // general animation time,
+        },
+        hover: {
+          animationDuration: 0, // duration of animations when hovering an item
+        },
+        responsiveAnimationDuration: 0, // animation duration after a resize
+        scales: {
+          yAxes: [{
+            ticks: {
+              min: -100,
+              max: 100,
+              stepSize: step_size,
+              fontSize: font_size
+            },
+            scaleLabel : {
+              display: show_labels,
+              labelString: "Structural Change %",
+              fontSize: font_size
+            },
+            gridLines : {
+              // display: false,
+              drawBorder: false,
+              // drawOnChartArea: true,
+            }
+          }],
+          xAxes: [{
+            ticks: {
+              fontSize: font_size
+            },
+            scaleLabel : {
+              display: show_labels,
+              labelString: "MONAT",
+              fontSize: font_size
+            },
+            gridLines : {
+              // display: false,
+              drawBorder: false,
+              // lineWidth: [0,1,0],
+              // drawOnChartArea: true,
+            }
+          }]
+        }
+      }
+    });
+
+    return sc_LineChart;
+  };
+  var records_demand = JSON.parse('{{ records_demand|safe }}');
+  var records_chart = drawRecords(records_demand);
+  // var chart_image = records_chart.toBase64Image();
+</script>
