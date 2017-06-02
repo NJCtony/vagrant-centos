@@ -303,7 +303,7 @@ def api_records(request, alert_type):
             if oneEntry:
                 break
         time_end = time.time() - time_now
-        print('Time taken <api_records_demand>:', time_end)
+        print(alert_type, '- Time taken <api_records>:', time_end)
     # return HttpResponse(soldtoname_available)
     return JsonResponse({'data' : data})
 
@@ -362,10 +362,16 @@ def api_alerts(request, alert_type):
             if oneSoldtoname:
                 break
         time_end = time.time() - time_now
-        print('Time taken <api_alerts_demand>:', time_end)
+        print(alert_type, '- Time taken <api_alerts>:', time_end)
     return JsonResponse({'data' : data})
 
+
 def api_bp_demand(request):
+    return api_bp(request, 'Need 1')
+def api_bp_supply(request):
+    return api_bp(request, 'Need 2')
+
+def api_bp(request, alert_type):
     query_id = request.GET.get('id')
     query_soldtoindex = request.GET.get('soldtoindex')
 
@@ -391,18 +397,19 @@ def api_bp_demand(request):
             soldtoname_data = {} # Each soldtoname is an entry into data
             soldtoname_data['soldtoname'] = soldtoname_choice
 
-            bp_query = BusinessPerformance.objects.filter(clm_code=query_id, soldtoname=soldtoname_choice, alert_type="Need 1").values('bp')
+            bp_query = BusinessPerformance.objects.filter(clm_code=query_id, soldtoname=soldtoname_choice, alert_type=alert_type).values('bp')
+
             if len(bp_query) == 1:
                 soldtoname_data['bp'] = bp_query.get()['bp']
             else:
-                print("api_bp_demand: Missing BP")
+                print("api_bp: Missing BP")
 
             data.append(soldtoname_data)
 
             if oneSoldtoname:
                 break
         time_end = time.time() - time_now
-        print('Time taken <api_bp_demand>:', time_end)
+        print(alert_type, '- Time taken <api_bp>:', time_end)
     return JsonResponse({'data' : data})
 
 
