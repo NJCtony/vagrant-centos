@@ -233,6 +233,11 @@ def api_need_one_businessPerformance(request):
     return JsonResponse({'data' : {'listing': consolidatedBP}})
 
 def api_records_demand(request):
+    return api_records(request, 'Need 1')
+def api_records_supply(request):
+    return api_records(request, 'Need 2')
+
+def api_records(request, alert_type):
     query_id = request.GET.get('id')
     query_soldtoindex = request.GET.get('soldtoindex')
 
@@ -268,14 +273,17 @@ def api_records_demand(request):
 
                 salesname_sc = [] # set of structural-change-% for each sales-name
                 for monat_item in monat_list:
-                    if NeedOneRecord.objects.filter(clm_code=query_id, soldtoname=soldtoname_choice, salesname=salesname_item, monat=monat_item).values('sc_diff_umwteuro_percent').exists():
-                        salesname_sc.append(NeedOneRecord.objects.filter(clm_code=query_id, soldtoname=soldtoname_choice,salesname=salesname_item, monat=monat_item) \
-                        .values('sc_diff_umwteuro_percent')[0]['sc_diff_umwteuro_percent'])
-                        # if len(NeedOneRecord.objects.filter(clm_code=query_id, soldtoname=soldtoname_choice,salesname=salesname_item, monat=monat_item) \
-                        # .values('sc_diff_umwteuro_percent')) > 1:
-                        #     print("Error(api_records_demand) : Multiple entries for", salesname_item, monat_item)
-                    else:
-                        salesname_sc.append(0.0) # fix: fill up missing values
+                    if alert_type == 'Need 1':
+                        if NeedOneRecord.objects.filter(clm_code=query_id, soldtoname=soldtoname_choice, salesname=salesname_item, monat=monat_item).values('sc_diff_umwteuro_percent').exists():
+                            salesname_sc.append(NeedOneRecord.objects.filter(clm_code=query_id, soldtoname=soldtoname_choice,salesname=salesname_item, monat=monat_item) \
+                            .values('sc_diff_umwteuro_percent')[0]['sc_diff_umwteuro_percent'])
+                            # if len(NeedOneRecord.objects.filter(clm_code=query_id, soldtoname=soldtoname_choice,salesname=salesname_item, monat=monat_item) \
+                            # .values('sc_diff_umwteuro_percent')) > 1:
+                            #     print("Error(api_records_demand) : Multiple entries for", salesname_item, monat_item)
+                        else:
+                            salesname_sc.append(0.0) # fix: fill up missing values
+                    elif alert_type == 'Need 2':
+                        salesname_sc.append(50.0)
 
                 for i in range(len(salesname_sc)):
                     if salesname_sc[i] != 0:
