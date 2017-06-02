@@ -65,7 +65,6 @@ def demand_change(request):
     alerts_demand_models = json.loads(alerts_demand_json)
     bp_demand_json = api_bp_demand(request).content.decode('utf-8')
 
-    print(type(alerts_demand_models))
     context = {'records_demand': records_demand_json, 'alerts_demand': alerts_demand_models, 'bp_demand': bp_demand_json}
     return render(request, 'dashboard/demand_change.html', context)
 def need_one(request):
@@ -143,7 +142,6 @@ def api_records(request, alert_type):
             # Validate and verify soldtoindex
             if isInt(query_soldtoindex):
                 query_soldtoindex = int(query_soldtoindex)
-                print(query_soldtoindex)
                 if query_soldtoindex < len(soldtoname_list):
                     soldtoname_choice = soldtoname_list[query_soldtoindex]
                     oneEntry = True
@@ -206,6 +204,8 @@ def api_alerts(request, alert_type):
 
     query_id = request.GET.get('id')
     query_soldtoindex = request.GET.get('soldtoindex')
+    query_limit = request.GET.get('limit')
+    query_aggregate = request.GET.get('aggregate')
 
     data = []
     if query_id:
@@ -218,26 +218,37 @@ def api_alerts(request, alert_type):
 
         for soldtoname_choice in soldtoname_list: # iterate ea soldtoname
             oneSoldtoname = False
+
             # Validate and verify soldtoindex
             if isInt(query_soldtoindex):
                 query_soldtoindex = int(query_soldtoindex)
-                print(query_soldtoindex)
-                if query_soldtoindex < len(soldtoname_list):
+                if query_soldtoindex < len(soldtoname_list) and query_soldtoindex >= 0:
                     soldtoname_choice = soldtoname_list[query_soldtoindex]
                     oneSoldtoname = True
+                else:
+                    print("api_alerts: Invalid soldtoindex")
+                    break
 
-            num_decline_alerts = 2
-            num_increase_alerts = 3
-            decline_alert_count = 0
-            increase_alert_count = 0
+            # Validate and verify query_limit
+            if isInt(query_limit):
+                query_limit = int(query_limit)
+                if query_limit < 0:
+                    print("api_alerts: Invalid query_limit")
+                    break
 
             soldtoname_data = {} # Each soldtoname is an entry into data
-            soldtoname_data['soldtoname'] = soldtoname_choice
 
-            alerts_query = NeedOneRecord.objects.filter(soldtoname = soldtoname_choice, alert_type=alert_type).values(*demand_values)
+            if query_aggregate and not oneSoldtoname:
+                alerts_query = NeedOneRecord.objects.filter(alert_type=alert_type).values(*demand_values)
+            else:
+                alerts_query = NeedOneRecord.objects.filter(soldtoname = soldtoname_choice, alert_type=alert_type).values(*demand_values)
+
             if alert_type == 'Need 1':
                 alerts_increase = alerts_query.filter(sc_diff_umwteuro_percent__gt = 0, sc_diff_umwteuro_percent__lt = 100).order_by('sc_diff_umwteuro_percent').reverse()
                 alerts_decrease = alerts_query.filter(diff_umwteuro__lt = 0).order_by('diff_umwteuro')
+                if query_limit:
+                    alerts_increase = alerts_increase[:query_limit]
+                    alerts_decrease = alerts_decrease[:query_limit]
                 soldtoname_data['alerts'] = {'increase': list(alerts_increase), 'decrease': list(alerts_decrease)}
 
             elif alert_type == 'Need 2':
