@@ -345,6 +345,48 @@ def api_alerts_demand(request):
         print(time_end)
     return JsonResponse({'data' : data})
 
+def api_bp_demand(request):
+    query_id = request.GET.get('id')
+    query_soldtoindex = request.GET.get('soldtoindex')
+
+    data = []
+    if query_id:
+        time_now = time.time()
+
+        #TODO: Check validity of query_id
+        clm_summary_json = api_clm_summary(request, query_id).content.decode('utf-8')
+        clm_summary_dict = json.loads(clm_summary_json)
+        soldtoname_list = clm_summary_dict['data']['soldtonames']
+
+        for soldtoname_choice in soldtoname_list: # iterate ea soldtoname
+            oneSoldtoname = False
+            # Validate and verify soldtoindex
+            if isInt(query_soldtoindex):
+                query_soldtoindex = int(query_soldtoindex)
+                print(query_soldtoindex)
+                if query_soldtoindex < len(soldtoname_list):
+                    soldtoname_choice = soldtoname_list[query_soldtoindex]
+                    oneSoldtoname = True
+
+            soldtoname_data = {} # Each soldtoname is an entry into data
+            soldtoname_data['soldtoname'] = soldtoname_choice
+
+            bp_query = BusinessPerformance.objects.filter(clm_code=query_id, soldtoname=soldtoname_choice, alert_type="Need 1").values('bp')
+            if len(bp_query) == 1:
+                soldtoname_data['bp'] = bp_query.get()['bp']
+            else:
+                print("api_bp_demand: Missing BP")
+
+            data.append(soldtoname_data)
+
+            if oneSoldtoname:
+                break
+        time_end = time.time() - time_now
+        print('Time taken <api_bp_demand>:', time_end)
+    return JsonResponse({'data' : data})
+
+
+
 def isInt(value):
     try:
         value = int(value)
