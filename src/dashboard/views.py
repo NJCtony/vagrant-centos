@@ -295,7 +295,7 @@ def api_records_demand(request):
             if oneEntry:
                 break
         time_end = time.time() - time_now
-        print(time_end)
+        print('Time taken <api_records_demand>:', time_end)
     # return HttpResponse(soldtoname_available)
     return JsonResponse({'data' : data})
 
@@ -342,7 +342,7 @@ def api_alerts_demand(request):
             if oneSoldtoname:
                 break
         time_end = time.time() - time_now
-        print(time_end)
+        print('Time taken <api_alerts_demand>:', time_end)
     return JsonResponse({'data' : data})
 
 def api_bp_demand(request):
