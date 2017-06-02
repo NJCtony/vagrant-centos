@@ -3,6 +3,7 @@ from django.shortcuts import render
 from django.template import loader
 from django.views import generic
 from django.views.generic import View
+from django.core import serializers
 import operator, json, time
 
 # Security
@@ -19,6 +20,7 @@ from .models import NeedOneRecord, BusinessPerformance, Profile, ClmSoldtoPair
 # Forms
 from .forms import LoginForm
 
+## Endpoints
 class LoginView(View):
     form_class = LoginForm
     template_name = 'dashboard/login.html'
@@ -50,25 +52,22 @@ class LoginView(View):
             'error_message': 'The username and password provided do not match.'
         })
 
-def login(request):
-    context = {}
-    auth_logout(request)
-    try:
-        del request.session['userid']
-    except KeyError:
-        pass
+@login_required
+def overview(request):
+    template = loader.get_template('dashboard/overview.html')
+    return HttpResponse(template.render({}, request))
 
-    if request.POST:
-        username = request.POST['username']
-        password = request.POST['password']
-        user = authenticate(username=username, password=password)
-        if user is not None:
-            auth_login(request, user)
-            request.session['userid'] = username
-            return redirect('dashboard:overview')
-    return render(request, 'dashboard/login.html', context)
+def demand_change(request):
+    # template = loader.get_template('dashboard/demand_change.html')
 
+    records_demand_json = api_records_demand(request).content.decode('utf-8')
+    alerts_demand_json = api_alerts_demand(request).content.decode('utf-8')
+    alerts_demand_models = json.loads(alerts_demand_json)
+    bp_demand_json = api_bp_demand(request).content.decode('utf-8')
 
+    print(type(alerts_demand_models))
+    context = {'records_demand': records_demand_json, 'alerts_demand': alerts_demand_models, 'bp_demand': bp_demand_json}
+    return render(request, 'dashboard/demand_change.html', context)
 def need_one(request):
     num_decline_alerts = 2
     num_increase_alerts = 3
@@ -103,7 +102,7 @@ def need_one(request):
         'alerts': alerts
     })
 
-# JSON API Endpoints
+## JSON API Endpoints
 def api_clm_summary(request, clm_code): # For a specific CLM
 
     settings = {}
@@ -121,116 +120,6 @@ def api_clm_summary(request, clm_code): # For a specific CLM
         soldtonames.append(pair.soldtoname)
 
     return JsonResponse({'data' : {'clm_code': clm_code, 'settings': settings, 'soldtonames': soldtonames}})
-
-def api_need_one_records(request):
-    monat_list = [temp_dict['monat'] for temp_dict in NeedOneRecord.objects.values('monat').distinct()]
-    soldtoname_available = [temp_dict['soldtoname'] for temp_dict in NeedOneRecord.objects.values('soldtoname').distinct()]
-    soldtoname_choices = soldtoname_available
-
-    summary = []
-    for soldtoname_choice in soldtoname_choices:
-        if soldtoname_choice in soldtoname_available:
-            soldtoname_summary = {}
-            sc_mean = [0.0,0.0,0.0]
-            sc_count = [0,0,0]
-
-            soldtoname_summary['soldtoname'] = soldtoname_choice
-            soldtoname_summary['salesname_sc'] = []
-            salesname_list = [temp_dict['salesname'] for temp_dict in NeedOneRecord.objects.filter(soldtoname = soldtoname_choice).values('salesname').distinct()]
-            for salesname_item in salesname_list:
-                salesname_sc = [] # set of structural-change-% for each sales-name
-                for monat_item in monat_list:
-                    if NeedOneRecord.objects.filter(salesname=salesname_item, monat=monat_item).exists():
-                        salesname_sc.append(NeedOneRecord.objects.filter(salesname=salesname_item, monat=monat_item) \
-                        .values('sc_diff_umwteuro_percent')[0]['sc_diff_umwteuro_percent'])
-                    else:
-                        salesname_sc.append(0.0)
-
-                for i in range(len(salesname_sc)):
-                    if salesname_sc[i] != 0:
-                        sc_mean[i] += salesname_sc[i]
-                        sc_count[i] += 1
-
-                soldtoname_summary['salesname_sc'].append({'salesname': salesname_item, 'sc': salesname_sc})
-            for i in range(len(salesname_sc)):
-                if sc_mean[i] > 0:
-                    sc_mean[i] /= sc_count[i]
-                sc_mean[i] = round(sc_mean[i], 1)
-
-            soldtoname_summary['mean'] = sc_mean
-            summary.append(soldtoname_summary)
-
-    return JsonResponse({'data' : {'summary': summary, 'label': monat_list}})
-
-def api_need_one_alerts(request):
-    alert_labels = ('Sales name', 'MONAT', 'Description')
-    alert_fields = ('salesname','monat','alert_description', 'diff_umwteuro', 'sc_diff_umwteuro_percent') # Define field to be be shown
-
-    soldtoname_available = [temp_dict['soldtoname'] for temp_dict in NeedOneRecord.objects.values('soldtoname').distinct()]
-    soldtoname_choices = soldtoname_available
-
-    consolidatedAlerts = []
-
-    for soldtonameChoice in soldtoname_choices:
-        if soldtonameChoice in soldtoname_available:
-
-            records_filtered = NeedOneRecord.objects.filter(soldtoname = soldtonameChoice)
-
-            num_decline_alerts = 2
-            num_increase_alerts = 3
-            decline_alert_count = 0
-            increase_alert_count = 0
-
-            alerts = []
-
-            # values() limits the number of fields that is to be converted to list
-            # alerts_query = NeedOneRecord.objects.filter(alert_type="Need 1").order_by('diff_umwteuro')
-            alerts_query = records_filtered.values(*alert_fields).filter(alert_type="Need 1").order_by('diff_umwteuro')
-
-            for alert in alerts_query:
-                if alert['diff_umwteuro'] < 0 and decline_alert_count < num_decline_alerts:
-                    alerts.append(alert)
-                    decline_alert_count += 1
-
-            alerts_query_sorted = sorted(alerts_query, key=lambda k: k['sc_diff_umwteuro_percent'], reverse=True)
-
-            for alert in alerts_query_sorted:
-                if alert['sc_diff_umwteuro_percent'] != 100 and increase_alert_count < num_increase_alerts:
-                    alerts.append(alert)
-                    increase_alert_count += 1
-
-            for alert in alerts:
-                alerts_query_sorted.remove(alert)
-
-            for alert in alerts_query_sorted:
-                alerts.append(alert)
-
-        consolidatedAlerts.append({'soldtoname': soldtonameChoice, 'alerts': alerts})
-    return JsonResponse({'data' : {'listing': consolidatedAlerts, 'labels' : alert_labels}})
-
-def api_need_one_businessPerformance(request):
-    bp_fields = ('bp',)
-
-    # TODO: Soldtoname available should be restricted to CLM's access
-    soldtoname_available = [temp_dict['soldtoname'] for temp_dict in BusinessPerformance.objects.values('soldtoname').distinct()]
-    soldtoname_choices = soldtoname_available
-
-    consolidatedBP = []
-
-    for soldtonameChoice in soldtoname_choices:
-        if soldtonameChoice in soldtoname_available:
-            bp_entry = {}
-
-            bp_filtered = BusinessPerformance.objects.filter(alert_type="Need 1", soldtoname = soldtonameChoice)
-            bp_query = bp_filtered.values(*bp_fields)
-
-            bp_entry['soldtoname'] = soldtonameChoice
-            if bp_query.exists():
-                bp_entry['bp'] = bp_query[0]['bp']
-                if len(bp_query[0]) > 0:
-                    print ("ERROR: api_need_one_businessPerformance")
-            consolidatedBP.append(bp_entry)
-    return JsonResponse({'data' : {'listing': consolidatedBP}})
 
 def api_records_demand(request):
     return api_records(request, 'Need 1')
@@ -313,8 +202,7 @@ def api_alerts_supply(request):
     return api_alerts(request, 'Need 2')
 
 def api_alerts(request, alert_type):
-    demand_fields = ('salesname', 'diff_umwteuro', 'sc_diff_umwteuro_percent') # Define field to be be shown
-    supply_fields = ('salesname', 'diff_umwtpcs_percent') # Define field to be be shown
+    demand_values = ('soldtoname', 'salesname', 'monat', 'diff_umwteuro', 'sc_diff_umwteuro_percent', 'diff_umwtpcs_percent') # Define field to be be shown
 
     query_id = request.GET.get('id')
     query_soldtoindex = request.GET.get('soldtoindex')
@@ -346,7 +234,7 @@ def api_alerts(request, alert_type):
             soldtoname_data = {} # Each soldtoname is an entry into data
             soldtoname_data['soldtoname'] = soldtoname_choice
 
-            alerts_query = NeedOneRecord.objects.filter(soldtoname = soldtoname_choice, alert_type=alert_type).values('salesname', 'diff_umwteuro', 'sc_diff_umwteuro_percent')
+            alerts_query = NeedOneRecord.objects.filter(soldtoname = soldtoname_choice, alert_type=alert_type).values(*demand_values)
             if alert_type == 'Need 1':
                 alerts_increase = alerts_query.filter(sc_diff_umwteuro_percent__gt = 0, sc_diff_umwteuro_percent__lt = 100).order_by('sc_diff_umwteuro_percent').reverse()
                 alerts_decrease = alerts_query.filter(diff_umwteuro__lt = 0).order_by('diff_umwteuro')
@@ -412,20 +300,10 @@ def api_bp(request, alert_type):
         print(alert_type, '- Time taken <api_bp>:', time_end)
     return JsonResponse({'data' : data})
 
-
-
+## Helper Functions
 def isInt(value):
     try:
         value = int(value)
         return True
     except:
         return False
-
-def demand_change(request):
-    template = loader.get_template('dashboard/demand_change.html')
-    return HttpResponse(template.render({}, request))
-
-@login_required
-def overview(request):
-    template = loader.get_template('dashboard/overview.html')
-    return HttpResponse(template.render({}, request))

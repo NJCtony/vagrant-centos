@@ -11,47 +11,51 @@
     <div class="panel panel-default alert-panel">
       <div class="panel-body">
         <div class="container-fluid alert-container">
-
+          {% if alerts_demand %}
           <div id="alert-increase" class="col-md-6 col-sm-6 alert-col-left">
+            {% for alert in alerts_demand.data.0.alerts.increase %}
             <div class="card">
               <div class="card-container">
                 <div>
-                  <h5 class="sc-text"><b class="sc-text">TLE4266-2G</b></h5>
+                  <h5 class="sc-text"><b class="sc-text">{{ alert.salesname }}</b></h5>
                 </div>
                 <div>
-                  <h5 class="sc-text inline">201705</h5>
+                  <h5 class="sc-text inline">{{ alert.monat }}</h5>
                   <div class="inline right">
-                    <h3 class="sc-text inline">67%</h3>
+                    <h3 class="sc-text inline">{{ alert.sc_diff_umwteuro_percent }}&euro;%</h3>
                     <div class="arrow-up inline"></div>
                   </div>
 
                 </div>
               </div>
             </div>
+            {% endfor %}
           </div>
 
           <div id="alert-decrease" class="col-md-6 col-sm-6 alert-col-right">
+            {% for alert in alerts_demand.data.0.alerts.increase %}
             <div class="card">
               <div class="card-container">
                 <div>
-                    <h5 class="sc-text"><b class="sc-text">PXAC201602FC V1 R250</b></h5>
+                    <h5 class="sc-text"><b class="sc-text">{{ alert.salesname }}</b></h5>
                 </div>
                 <div>
-                  <h5 class="sc-text inline sc-monat">201705</h5>
+                  <h5 class="sc-text inline sc-monat">{{ alert.monat }}</h5>
                   <div class="inline right">
-                    <h3 class="sc-text inline">67%</h3>
+                    <h3 class="sc-text inline">{{ alert.diff_umwteuro }}&euro;</h3>
                     <div class="arrow-down inline"></div>
                   </div>
                 </div>
               </div>
             </div>
+            {% endfor %}
           </div>
         </div>
+        {% endif %}
 
       </div>
     </div>
   </div>
-
   <div class="col-md-7 min-panel-width"> <!-- Right Column -->
     <div class="panel panel-default">
       <div class="panel-body sc-panel">
@@ -61,6 +65,8 @@
   </div>
 
   <script type="text/javascript">
+    var records_demand = JSON.parse('{{ records_demand|safe }}');
+    var bp_demand = JSON.parse('{{ bp_demand|safe }}');
 
   // Helper Functions
     function rgbToString(value_list, opacity) {
@@ -82,147 +88,61 @@
       return rgbToString(result, 1);
     }
 
-  // Alert Listing (Table)
-    // Alert Listing : Acquire Data + Render.
-    d3.json("{% url 'dashboard:api_needone_alerts' %}", function(error, jsonData) {
-      // var alerts = jsonData.data.listing[0].alerts;
-      // var labels = jsonData.data.labels;
-      //
-      // var alertTable = document.getElementById('alert-table');
-      // var headerRow = alertTable.insertRow();
-      // for (var label in labels) {
-      //   // table headers
-      //   var tableLabel = document.createElement('th');
-      //   tableLabel.innerText = labels[label];
-      //   headerRow.appendChild(tableLabel);
-      // }
-      //
-      // for (var i in alerts) {
-      //   // table entries
-      //   var alertRow = alertTable.tBodies[0].insertRow(alertTable.tBodies[0].rows.length);
-      //   for (var label in labels) {
-      //     alertRow.insertCell(0);
-      //   }
-      //   alertRow.cells[0].innerText = alerts[i].salesname;
-      //   alertRow.cells[1].innerText = alerts[i].monat;
-      //   alertRow.cells[2].innerText = alerts[i].alert_description;
-      // }
-
-      var alerts = jsonData.data.listing[0].alerts;
-      var alertContainer = document.getElementsByClassName('alert-container')[0]
-      var leftColumn = alertContainer.children[0]
-      var rightColumn = alertContainer.children[1]
-
-      for (var i in alerts) {
-        var alertDescriptionSplit = alerts[i].alert_description.split(' ')
-        var isIncrease = (alertDescriptionSplit[0] == 'Increase')
-        var alertCard = document.createElement('div')
-        alertCard.className = "card"
-        var cardContainer = document.createElement('div')
-        cardContainer.className = "card-container"
-
-        var cardContainerTop = document.createElement('div')
-        var salesName = document.createElement('h5')
-        salesName.className = "sc-text"
-        var salesName2 = document.createElement('b')
-        salesName2.className = "sc-text"
-        salesName2.innerText = alerts[i].salesname;
-
-        salesName.appendChild(salesName2)
-        cardContainerTop.appendChild(salesName)
-
-        var cardContainerBottom = document.createElement('div')
-        var monat = document.createElement('h5')
-        monat.className = "sc-text inline"
-        monat.innerText = alerts[i].monat
-        var cardContainerBottom2 = document.createElement('div')
-        cardContainerBottom2.className = "inner right"
-        var alertPercentage = document.createElement('h3')
-        alertPercentage.className = "sc-text inline"
-        var alertValue = Math.round(parseFloat(alertDescriptionSplit[2])).toString() + "%"
-        alertPercentage.innerText = alertValue
-        var alertDirection = document.createElement('div')
-        if (isIncrease) {
-          alertDirection.className = "arrow-up inline"
-        }
-        else {
-          alertDirection.className = "arrow-down inline"
-        }
-
-        cardContainerBottom2.appendChild(alertPercentage)
-        cardContainerBottom2.appendChild(alertDirection)
-        cardContainerBottom.appendChild(monat)
-        cardContainerBottom.appendChild(cardContainerBottom2)
-
-        cardContainer.appendChild(cardContainerTop)
-        cardContainer.appendChild(cardContainerBottom)
-        alertCard.appendChild(cardContainer)
-
-        if (isIncrease) {
-          leftColumn.appendChild(alertCard)
-        }
-        else {
-          rightColumn.appendChild(alertCard)
-        }
+    // Business Performance (D3 Circles)
+    function drawBP(jsonData) {
+      // BP: Acquire Data
+      var bpValue = jsonData.data[0].bp.toString()+"%";
+      var bpCompany = jsonData.data[0].soldtoname;
+      var bpColor = "green"
+      if (jsonData.data[0].bp > 100) {
+        var bpColor = "red"
       }
 
-    });
-
-    // Business Performance (D3 Circles)
-      d3.json("{% url 'dashboard:api_needone_businessPerformance' %}", function(error, jsonData) {
-        // BP: Acquire Data
-        var bpValue = jsonData.data.listing[0].bp.toString()+"%";
-        var bpCompany = jsonData.data.listing[0].soldtoname;
-        var bpColor = "green"
-        if (jsonData.data.listing[0].bp > 100) {
-          var bpColor = "red"
-        }
-
-        // BP: Render
-        var bp_svgContainer = d3.select("#bp_chart")
-          .attr("align", "center")
-          .append("svg")
-          .attr("width", 220)
-          .attr("height", 220)
-          .attr("align", "center");
-        var outterCircle = bp_svgContainer.append("circle")
-          .attr("cx", 110)
-          .attr("cy", 110)
-          .attr("r", 85)
-          .attr("fill", bpColor);
-        var innerCircle = bp_svgContainer.append("circle")
-          .attr("cx", 110)
-          .attr("cy", 110)
-          .attr("r", 70)
-          .attr("fill", "white");
-        var bp_value = bp_svgContainer.append("text")
-          .attr("text-anchor", "middle")
-          .attr("x", 110)
-          .attr("y", 120)
-          .text(bpValue)
-          .attr("font-family", "sans-serif")
-          .attr("font-size", "30px");
-        var bp_company = bp_svgContainer.append("text")
-          .attr("text-anchor", "middle")
-          .attr("x", 110)
-          .attr("y", 20)
-          .text(bpCompany)
-          .attr("font-family", "sans-serif")
-          .attr("font-size", "15px");
-      });
-
+      // BP: Render
+      var bp_svgContainer = d3.select("#bp_chart")
+        .attr("align", "center")
+        .append("svg")
+        .attr("width", 220)
+        .attr("height", 220)
+        .attr("align", "center");
+      var outterCircle = bp_svgContainer.append("circle")
+        .attr("cx", 110)
+        .attr("cy", 110)
+        .attr("r", 85)
+        .attr("fill", bpColor);
+      var innerCircle = bp_svgContainer.append("circle")
+        .attr("cx", 110)
+        .attr("cy", 110)
+        .attr("r", 70)
+        .attr("fill", "white");
+      var bp_value = bp_svgContainer.append("text")
+        .attr("text-anchor", "middle")
+        .attr("x", 110)
+        .attr("y", 120)
+        .text(bpValue)
+        .attr("font-family", "sans-serif")
+        .attr("font-size", "30px");
+      var bp_company = bp_svgContainer.append("text")
+        .attr("text-anchor", "middle")
+        .attr("x", 110)
+        .attr("y", 20)
+        .text(bpCompany)
+        .attr("font-family", "sans-serif")
+        .attr("font-size", "15px");
+    };
+    drawBP(bp_demand);
 
   // Structural Changes (ChartJS LineChart)
-    d3.json("{% url 'dashboard:api_needone_records' %}", function(error, jsonData) {
+    function drawRecords(jsonData) {
       // SC: Acquire Data
       var sc_dataset = [];
-      var sc_monat = jsonData.data.label;
+      var sc_monat = jsonData.data[0].labels;
 
       var mean_entry = {};
 
       // Defination of mean dataset
       mean_entry.label = 'Mean';
-      mean_entry.data = jsonData.data.summary[0].mean;
+      mean_entry.data = jsonData.data[0].means;
       mean_entry.fill = false;
       mean_entry.showLine = false;
       mean_entry.pointStyle = 'triangle';
@@ -242,9 +162,9 @@
 
       sc_dataset.push(mean_entry);
 
-      for (var i in jsonData.data.summary[0].salesname_sc) {
+      for (var i in jsonData.data[0].salesnames) {
         var sc_entry = {};
-        var salesname_data = jsonData.data.summary[0].salesname_sc[i];
+        var salesname_data = jsonData.data[0].salesnames[i];
 
         // Defination of each dataset
         sc_entry.label = salesname_data.salesname;
@@ -340,6 +260,7 @@
           }
         }
       });
-    });
+    };
+    drawRecords(records_demand);
   </script>
 {% endblock %}
