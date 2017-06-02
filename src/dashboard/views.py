@@ -271,9 +271,9 @@ def api_records_demand(request):
                     if NeedOneRecord.objects.filter(clm_code=query_id, soldtoname=soldtoname_choice, salesname=salesname_item, monat=monat_item).values('sc_diff_umwteuro_percent').exists():
                         salesname_sc.append(NeedOneRecord.objects.filter(clm_code=query_id, soldtoname=soldtoname_choice,salesname=salesname_item, monat=monat_item) \
                         .values('sc_diff_umwteuro_percent')[0]['sc_diff_umwteuro_percent'])
-                        if len(NeedOneRecord.objects.filter(clm_code=query_id, soldtoname=soldtoname_choice,salesname=salesname_item, monat=monat_item) \
-                        .values('sc_diff_umwteuro_percent')) > 1:
-                            print("Error(api_records_demand) : Multiple entries for", salesname_item, monat_item)
+                        # if len(NeedOneRecord.objects.filter(clm_code=query_id, soldtoname=soldtoname_choice,salesname=salesname_item, monat=monat_item) \
+                        # .values('sc_diff_umwteuro_percent')) > 1:
+                        #     print("Error(api_records_demand) : Multiple entries for", salesname_item, monat_item)
                     else:
                         salesname_sc.append(0.0) # fix: fill up missing values
 
