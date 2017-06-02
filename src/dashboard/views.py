@@ -300,7 +300,13 @@ def api_records_demand(request):
     return JsonResponse({'data' : data})
 
 def api_alerts_demand(request):
-    alert_fields = ('salesname','monat','alert_description', 'diff_umwteuro', 'sc_diff_umwteuro_percent') # Define field to be be shown
+    return api_alerts(request, 'Need 1')
+def api_alerts_supply(request):
+    return api_alerts(request, 'Need 2')
+
+def api_alerts(request, alert_type):
+    demand_fields = ('salesname', 'diff_umwteuro', 'sc_diff_umwteuro_percent') # Define field to be be shown
+    supply_fields = ('salesname', 'diff_umwtpcs_percent') # Define field to be be shown
 
     query_id = request.GET.get('id')
     query_soldtoindex = request.GET.get('soldtoindex')
@@ -332,11 +338,17 @@ def api_alerts_demand(request):
             soldtoname_data = {} # Each soldtoname is an entry into data
             soldtoname_data['soldtoname'] = soldtoname_choice
 
-            alerts_query = NeedOneRecord.objects.filter(soldtoname = soldtoname_choice, alert_type="Need 1").values(*alert_fields)
-            alerts_increase = alerts_query.filter(sc_diff_umwteuro_percent__gt = 0, sc_diff_umwteuro_percent__lt = 100).order_by('sc_diff_umwteuro_percent').reverse()
-            alerts_decrease = alerts_query.filter(diff_umwteuro__lt = 0).order_by('diff_umwteuro')
+            alerts_query = NeedOneRecord.objects.filter(soldtoname = soldtoname_choice, alert_type=alert_type).values('salesname', 'diff_umwteuro', 'sc_diff_umwteuro_percent')
+            if alert_type == 'Need 1':
+                alerts_increase = alerts_query.filter(sc_diff_umwteuro_percent__gt = 0, sc_diff_umwteuro_percent__lt = 100).order_by('sc_diff_umwteuro_percent').reverse()
+                alerts_decrease = alerts_query.filter(diff_umwteuro__lt = 0).order_by('diff_umwteuro')
+                soldtoname_data['alerts'] = {'increase': list(alerts_increase), 'decrease': list(alerts_decrease)}
 
-            soldtoname_data['alerts'] = {'increase': list(alerts_increase), 'decrease': list(alerts_decrease)}
+            elif alert_type == 'Need 2':
+            #     alerts = alerts_query.filter(diff_umwtpcs_percent__lt = 0).order_by('diff_umwtpcs_percent')
+            #     soldtoname_data['alerts'] = list(alerts)
+                soldtoname_data['alerts'] = "Nothing yet"
+
             data.append(soldtoname_data)
 
             if oneSoldtoname:
