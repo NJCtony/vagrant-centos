@@ -199,6 +199,11 @@
           labels: sc_monat,
         },
         options: {
+          layout: {
+            padding: {
+              top: 10,
+            }
+          },
           legend: {
             display: false,
           },
@@ -233,11 +238,13 @@
               ticks: {
                 min: -100,
                 max: 100,
-                stepSize: 25
+                stepSize: 25,
+                fontSize: 15
               },
               scaleLabel : {
                 display: true,
-                labelString: "Structural Change %"
+                labelString: "Structural Change %",
+                fontSize: 15
               },
               gridLines : {
                 // display: false,
@@ -246,15 +253,19 @@
               }
             }],
             xAxes: [{
+              ticks: {
+                fontSize: 15
+              },
               scaleLabel : {
                 display: true,
-                labelString: "MONAT"
+                labelString: "MONAT",
+                fontSize: 15
               },
               gridLines : {
                 // display: false,
                 drawBorder: false,
                 // lineWidth: [0,1,0],
-                drawOnChartArea: true,
+                // drawOnChartArea: true,
               }
             }]
           }
