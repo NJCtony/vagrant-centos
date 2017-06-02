@@ -3,7 +3,7 @@ from django.shortcuts import render
 from django.template import loader
 from django.views import generic
 from django.views.generic import View
-import operator, json
+import operator, json, time
 
 # Security
 from django.contrib.auth import authenticate
@@ -238,7 +238,11 @@ def api_records_demand(request):
 
     data = []
     if query_id:
-        soldtoname_list = [temp_dict['soldtoname'] for temp_dict in NeedOneRecord.objects.filter(clm_code=query_id).values('soldtoname').distinct()]
+        time_now = time.time()
+        #TODO: Check validity of query_id
+        clm_summary_json = api_clm_summary(request, query_id).content.decode('utf-8')
+        clm_summary_dict = json.loads(clm_summary_json)
+        soldtoname_list = clm_summary_dict['data']['soldtonames']
 
         for soldtoname_choice in soldtoname_list: # iterate ea soldtoname
             oneEntry = False
@@ -261,6 +265,7 @@ def api_records_demand(request):
             soldtoname_data['salesnames'] = []
             salesname_list = [temp_dict['salesname'] for temp_dict in NeedOneRecord.objects.filter(clm_code=query_id, soldtoname=soldtoname_choice).values('salesname').distinct()]
             for salesname_item in salesname_list: # iterate ea salesname
+
                 salesname_sc = [] # set of structural-change-% for each sales-name
                 for monat_item in monat_list:
                     if NeedOneRecord.objects.filter(clm_code=query_id, soldtoname=soldtoname_choice, salesname=salesname_item, monat=monat_item).values('sc_diff_umwteuro_percent').exists():
@@ -289,6 +294,8 @@ def api_records_demand(request):
 
             if oneEntry:
                 break
+        time_end = time.time() - time_now
+        print(time_end)
     # return HttpResponse(soldtoname_available)
     return JsonResponse({'data' : data})
 
@@ -300,7 +307,12 @@ def api_alerts_demand(request):
 
     data = []
     if query_id:
-        soldtoname_list = [temp_dict['soldtoname'] for temp_dict in NeedOneRecord.objects.filter(clm_code=query_id).values('soldtoname').distinct()]
+        time_now = time.time()
+
+        #TODO: Check validity of query_id
+        clm_summary_json = api_clm_summary(request, query_id).content.decode('utf-8')
+        clm_summary_dict = json.loads(clm_summary_json)
+        soldtoname_list = clm_summary_dict['data']['soldtonames']
 
         for soldtoname_choice in soldtoname_list: # iterate ea soldtoname
             oneSoldtoname = False
@@ -329,6 +341,8 @@ def api_alerts_demand(request):
 
             if oneSoldtoname:
                 break
+        time_end = time.time() - time_now
+        print(time_end)
     return JsonResponse({'data' : data})
 
 def isInt(value):
