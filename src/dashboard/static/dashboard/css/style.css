@@ -85,8 +85,30 @@ td{
 }
 .overview-records-content {
   margin: auto;
-  width: 385px;
+  /*width: 385px;*/
 }
+
+/* OVERVIEW : BP*/
+.overview-bp-container {
+  position: relative;
+  height: 170px;
+  width: 50px;
+}
+.overview-bp {
+  width: 20px;
+  height: 20px;
+  /*background: white;*/
+  background: red;
+  border-radius: 50%;
+  /*border: 7px solid red;*/
+  margin: 0;
+  position: absolute;
+  top: 10%;
+  right: 0;
+  -ms-transform: translate(0, -50%);
+  transform: translate(0, -50%);
+}
+
 
 /* OVERVIEW : Alert Listing */
 .overview-alert-heading {

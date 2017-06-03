@@ -60,19 +60,26 @@ def overview(request):
     query_aggregate = '1'
 
     request.GET = request.GET.copy() # Make DjangoDict mutable
-    request.GET.appendlist('id', query_id.upper())
 
+    # Params to get summary info
+    request.GET.appendlist('id', query_id.upper())
+    # Summary API
     clm_summary_json = api_clm_summary(request, query_id).content.decode('utf-8')
     clm_summary_model = json.loads(clm_summary_json)
 
-
+    # Params for to limit and aggregate Alerts
     request.GET.appendlist('limit', query_limit)
     request.GET.appendlist('aggregate', query_aggregate)
-    print('request:', request.GET)
+    # Alerts API
     alerts_demand_json = api_alerts_demand(request).content.decode('utf-8')
     alerts_demand_model = json.loads(alerts_demand_json)
 
-    context = {'clm_summary': clm_summary_model, 'alerts_demand': alerts_demand_model}
+    # TODO: Tuple the BPs by company level
+    bp_demand_json = api_bp_demand(request).content.decode('utf-8')
+    bp_demand_model = json.loads(bp_demand_json)['data']
+    bp_models = zip(bp_demand_model, bp_demand_model)
+
+    context = {'clm_summary': clm_summary_model, 'bp_models': bp_models, 'alerts_demand': alerts_demand_model}
     return render(request, 'dashboard/overview.html', context)
 
 def demand_change(request):
