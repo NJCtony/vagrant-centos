@@ -7,7 +7,9 @@
   <h3>Hello, {{ user }}!</h3>
   {% endif %}
 
-      {% for soldtoname in clm_summary.data.soldtonames %}
+      {% for bp_demand, bp_supply in bp_models %}
+      {% with bp_demand.soldtoname as soldtoname %}
+
       <!-- <p>{% url 'dashboard:api_records_demand_chart' %}?id=K03&soldtoindex={{ forloop.counter0 }}&image=11</p> -->
       <!-- https://stackoverflow.com/questions/12196435/javascript-function-return-src-path -->
 
@@ -17,15 +19,31 @@
 
             <div class="col-md-3 overview-col-left">
               <div class="overview-records-soldtoname">
+
                 <p><b>{{ soldtoname }}</b></p>
               </div>
             </div>
 
             <div class="col-md-9 overview-col-left">
               <div class="overview-records-content">
+                <div class="inline overview-bp-container">
+                  {% if bp_demand.bp > 100 %}
+                  <div class="overview-bp" style="background: green;"></div>
+                  {% else %}
+                  <div class="overview-bp"></div>
+                  {% endif %}
+                </div>
 
                 <div class="inline overview-records-chart">
                   <iframe src="{% url 'dashboard:api_records_demand_chart' %}?id=K03&soldtoindex={{ forloop.counter0 }}&image={{ forloop.counter0 }}" style="border:none; width:100%; height:100%;"></iframe>
+                </div>
+
+                <div class="inline overview-bp-container">
+                  {% if bp_supply.bp > 100 %}
+                  <div class="overview-bp" style="background: green;"></div>
+                  {% else %}
+                  <div class="overview-bp"></div>
+                  {% endif %}
                 </div>
 
                 <div class="inline overview-records-chart">
@@ -38,6 +56,7 @@
           </div>
         </div>
       </div>
+      {% endwith %}
       {% endfor %}
 </div>
 
