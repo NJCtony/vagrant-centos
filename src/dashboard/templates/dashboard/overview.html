@@ -1,26 +1,44 @@
 {% extends 'dashboard/_base.html' %}
 
 {% block content %}
-
+<link rel="prefetch" href="{% url 'dashboard:api_records_demand_chart' %}?id=K03&soldtoindex=0&image=11">
 <div class="col-md-9 min-panel-width"> <!-- Left Column -->
   {% if not user.is_anonymous %}
   <h3>Hello, {{ user }}!</h3>
   {% endif %}
 
-  
-  <h3 class="overview-heading">Demand Changes</h3>
-  <div class="panel panel-default">
-    <div class="panel-body overview-panel">
-    </div>
-  </div>
+      {% for soldtoname in clm_summary.data.soldtonames %}
+      <!-- <p>{% url 'dashboard:api_records_demand_chart' %}?id=K03&soldtoindex={{ forloop.counter0 }}&image=11</p> -->
+      <!-- https://stackoverflow.com/questions/12196435/javascript-function-return-src-path -->
 
+      <div class="panel panel-default">
+        <div class="panel-body">
+          <div class="row">
 
-  <h3 class="overview-heading">Supply Changes</h3>
-  <div class="panel panel-default">
-    <div class="panel-body overview-panel">
-    </div>
-  </div>
+            <div class="col-md-3 overview-col-left">
+              <div class="overview-listing-soldtoname">
+                <p><b>{{ soldtoname }}</b></p>
+              </div>
+            </div>
 
+            <div class="col-md-9 overview-col-left">
+              <div class="overview-listing-record">
+
+                <div class="inline" style="width:190px; height:170px;">
+                  <iframe src="{% url 'dashboard:api_records_demand_chart' %}?id=K03&soldtoindex={{ forloop.counter0 }}&image={{ forloop.counter0 }}" style="border:none; width:100%; height:100%;"></iframe>
+                </div>
+
+                <div class="inline" style="width:190px; height:170px;">
+                  <iframe src="{% url 'dashboard:api_records_demand_chart' %}?id=K03&soldtoindex={{ forloop.counter0 }}&image={{ forloop.counter0 }}" style="border:none; width:100%; height:100%;"></iframe>
+                </div>
+
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+      {% endfor %}
 </div>
 
 <div class="col-md-3 min-panel-width"> <!-- Right Column -->

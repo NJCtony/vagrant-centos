@@ -54,8 +54,14 @@ class LoginView(View):
 
 @login_required
 def overview(request):
-    template = loader.get_template('dashboard/overview.html')
-    return HttpResponse(template.render({}, request))
+    # template = loader.get_template('dashboard/overview.html')
+
+    clm_summary_json = api_clm_summary(request, 'k03').content.decode('utf-8')
+    clm_summary_model = json.loads(clm_summary_json)
+    records_demand_json = api_records_demand(request).content.decode('utf-8')
+
+    context = {'records_demand': records_demand_json, 'clm_summary': clm_summary_model}
+    return render(request, 'dashboard/overview.html', context)
 
 def demand_change(request):
     # template = loader.get_template('dashboard/demand_change.html')

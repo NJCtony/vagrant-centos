@@ -35,8 +35,8 @@
 
     if (jsonData.data[0].image) {
       var chart = document.getElementById('sc_chart');
-      chart.parentNode.style.height = '170px';
-      chart.parentNode.style.width = '200px';
+      chart.parentNode.style.height = '150px';
+      chart.parentNode.style.width = '170px';
       show_labels = false;
       step_size = 50;
       font_size = 10;
@@ -178,5 +178,12 @@
   };
   var records_demand = JSON.parse('{{ records_demand|safe }}');
   var records_chart = drawRecords(records_demand);
-  // var chart_image = records_chart.toBase64Image();
+  if (records_demand.data[0].image) {
+    // var img = document.createElement("img");
+    var chart_image = records_chart.toBase64Image();
+    window.location = chart_image;
+    // img.setAttribute('src', chart_image);
+    // document.body.innerHTML = '';
+    // document.body.appendChild(img);
+  }
 </script>
