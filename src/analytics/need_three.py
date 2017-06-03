@@ -5,61 +5,80 @@ import MySQLdb
 import time
 
 
-def check_period_need(df):  # month refers to monat
-    if "SoldTo_Name" not in list(df): return "ERROR! FILE TYPE NOT SUITABLE!"
-    else:
-        for i in reversed(list(df)):
-            if i[:2]=="20":
-                monat_minus1 = i
-                break
+### Function to identify 3 main periods: ####################################################################
+#  (1) 12 MONATs back, (2) 3 MONATs back, (3) Current + 2 MONATs ######
+#############################################################################################################
+
+def check_period_need(df):
+    for i in reversed(list(df)):
+        if i[:2]=="20":           #identification of the latest-past MONAT, ie current 201703, it identifies 201702
+            monat_minus1 = i
+            break
 
     monat_monthlist = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"]
-
     last_index = monat_monthlist.index(monat_minus1[-2:])
+    current_index = last_index+1
 
+    # Group MONATs that belong to the past 12 months
     monat_checkback_yr = []
     if last_index <= 11:
         for month in monat_monthlist[last_index+1-12:]:
             monat_checkback_yr.append(int(monat_minus1[0:3] + str(int(monat_minus1[3:4])-1) + month))
-        for month2 in monat_monthlist[:last_index+1]:
-            monat_checkback_yr.append(int(monat_minus1[0:3] + str(int(monat_minus1[3:4])) + month2))
+        if last_index != 11:
+            for month2 in monat_monthlist[0:last_index+1]:
+                monat_checkback_yr.append(int(monat_minus1[0:3] + str(int(monat_minus1[3:4])) + month2))
     else:
         for month in monat_monthlist:
             monat_checkback_yr.append(int(monat_minus1[0:3] + str(int(monat_minus1[3:4])) + month2))
 
+    # Group MONATs that belong to the past 3 months
     monat_checkback_3m = []
-    if last_index <= 11:
-        for month in monat_monthlist[last_index+1-3:]:
-            monat_checkback_3m.append(int(monat_minus1[0:3] + str(int(monat_minus1[3:4])-1) + month))
-        for month2 in monat_monthlist[:last_index+1]:
-            monat_checkback_3m.append(int(monat_minus1[0:3] + str(int(monat_minus1[3:4])) + month2))
+    if last_index > 2:
+        for month in monat_monthlist[last_index-2:last_index+1]:
+            monat_checkback_3m.append(int(monat_minus1[0:3] + str(int(monat_minus1[3:4])) + month))
     else:
-        for month in monat_monthlist:
-            monat_checkback_3m.append(int(monat_minus1[0:3] + str(int(monat_minus1[3:4])) + month2))
+        if last_index < 2:
+            for month2 in monat_monthlist[last_index-2:]:
+                monat_checkback_3m.append(int(monat_minus1[0:3] + str(int(monat_minus1[3:4])-1) + month2))
+        for month in monat_monthlist[0:last_index+1]:
+            monat_checkback_3m.append(int(monat_minus1[0:3] + str(int(monat_minus1[3:4])) + month))
 
-    current_index = last_index+1
-    if current_index+1 != 12:
-        monat_current = monat_minus1[:-2] + monat_monthlist[current_index]
-    else: monat_current = monat_minus1[0:3] + str(int(monat_minus1[3:4])+1) + monat_monthlist[1]
+    # Group MONATs that belong to the the current, or the next 2 months
+    monat_checkfwd_2m = []
+    if current_index <= 9:
+        for month in monat_monthlist[current_index:current_index+1+2]:
+            monat_checkfwd_2m.append(int(monat_minus1[0:3] + str(int(monat_minus1[3:4])) + month))
+    else:
+        for month in monat_monthlist[current_index:]:
+            monat_checkfwd_2m.append(int(monat_minus1[0:3] + str(int(monat_minus1[3:4])) + month))
+        for month in monat_monthlist[:current_index+2+1-12]:
+            monat_checkfwd_2m.append(int(monat_minus1[0:3] + str(int(monat_minus1[3:4])+1) + month))
+    #return monat_checkfwd_2m
 
-    next1_index = current_index+1
-    if next1_index != 12:
-        monat_plus1 = monat_current[:-2] + monat_monthlist[next1_index]
-    else: monat_plus1 = monat_current[0:3] + str(int(monat_current[3:4])+1) + str(1).zfill(2)
-
-    next2_index = next1_index+1
-    if next2_index != 12:
-        monat_plus2 = monat_plus1[:-2] + monat_monthlist[next2_index]
-    else: monat_plus2 = monat_plus1[0:3] + str(int(monat_plus1[3:4])+1) + str(1).zfill(2)
-
-    monat_tocheck = [int(monat_current), int(monat_plus1), int(monat_plus2)]
-    return {"pastyr":monat_checkback_yr, "past3m": monat_checkback_3m, "nowplus2": monat_tocheck}
-
+    return {"pastyr":monat_checkback_yr, "past3m": monat_checkback_3m, "nowplus2": monat_checkfwd_2m}
 
 
 
+################################## Main Function ##############################################
+# It firstly checks if there are any recent orders in the last 3 MONATs,   [At least 1 order in the past 3 MONATs]
+# then checks if there have been consistent ordering in the last 12 MONATs,   [At least 6 orders in the past 12 MONATs]
+# finally calculates the MEAN, and STANDARD DEVIATION
+# applying the threshold of MEAN+3*STANDARD DEVIATION to any orders in the current, or future 2 MONATs, where applicable.
+#############################################################################################################
 
-def need3(df):
+def need3(filename):
+    df = pd.read_csv(filename, encoding="ISO-8859-1", parse_dates=True, header=1)
+    if "bills" not in list(df):
+        ##############################################################################################
+        ######### Error Handling if the entire table is not copied and pasted in its entirety ########
+        df = pd.read_csv(filename, encoding="ISO-8859-1", parse_dates=True, header=0)
+        if "bills" not in list(df):            #Return error if the format of file is not acceptable
+            return "ERROR! COLUMN HEADERS CANNOT BE READ!"
+        else: pass
+        ##############################################################################################
+    else:
+        pass
+
     df['bills'] = pd.to_numeric(df['bills'].str.replace(',', ''))
     df['today'] = pd.to_numeric(df['today'].str.replace(',', ''))
     df['bills_today_WTCU'] = df.bills.fillna(0)+df.today.fillna(0)
@@ -71,42 +90,37 @@ def need3(df):
     pastyr = set(sorted(monat_dict["pastyr"]))
 
     alerts_n3 = []
-    summ=0
 
     for soldtoname in sorted(df["SoldTo_Name"].unique()):
         for salesname in sorted(df['SalesName'][df['SoldTo_Name']==soldtoname].unique()):
             monatlist = sorted(df['MONAT'][(df['SoldTo_Name']==soldtoname) & (df["SalesName"]==salesname)].unique())
             nowtoMplus2 = set(monatlist).intersection(nowplus2)
-            if len(nowtoMplus2) >= 1:
+            if len(nowtoMplus2) >= 1:     #if there is an order within the period of [M, M+1, M+2]
                 past3monat = set(monatlist).intersection(past3m)
-                if len(past3monat) >= 1:
+                if len(past3monat) >= 1:     #if there is at least an order in the last 3 MONATs
                     pastyrmonat = set(monatlist).intersection(pastyr)
-                    if len(pastyrmonat) >= 6:
-                        #average = np.mean(list(past3monat))
-                        average = df["bills_today_WTCU"][(df['SoldTo_Name']==soldtoname) & (df['SalesName']==salesname) & (df["MONAT"].isin(past3monat))].mean()
-                        stddev = df["bills_today_WTCU"][(df['SoldTo_Name']==soldtoname) & (df['SalesName']==salesname) & (df["MONAT"].isin(past3monat))].std()
+                    if len(pastyrmonat) >= 6:    #if there are at least 6 orders in the last 1 year
+                        average = df["bills_today_WTCU"][(df['SoldTo_Name']==soldtoname) & (df['SalesName']==salesname) & (df["MONAT"].isin(pastyr))].replace(0,np.nan).mean()
+                        stddev = df["bills_today_WTCU"][(df['SoldTo_Name']==soldtoname) & (df['SalesName']==salesname) & (df["MONAT"].isin(pastyr))].replace(0,np.nan).std()
 
                         for month in nowtoMplus2:
                             m_wtpcs = df["bills_today_WTCU"][(df['SoldTo_Name']==soldtoname) & (df["SalesName"]==salesname) & (df["MONAT"]==month)].max()
                             if m_wtpcs > 0:
                                 diff_rate = m_wtpcs - average
-                                percentage_rate = round((((m_wtpcs - average)/(m_wtpcs+average))) * 100, 2)
-                                summ += diff_rate
-                                if (diff_rate > average+3*stddev) or (diff_rate < average-3*stddev) and (abs(percentage_rate) > 20) :
-                                    type_need = "Need 3"
-                                    description = "Deviation by " + str(percentage_rate) + " %"
-                                    # alerts_n3.append({"soldtoname": soldtoname, "salesname":salesname, "monat":month, "type": type_need, "description": description, "wtpcs_amt":m_wtpcs, "average": average})
-                                    cursor.execute("INSERT INTO dashboard_needthreerecord(soldtoname, salesname, monat, wtpcs_amt, average, alert_type, alert_description) VALUES (%s, %s, %s, %s, %s, %s, %s)", (soldtoname, salesname, month, m_wtpcs, average, type_need, description))
+                                num_sd_diff = 0 if (abs(diff_rate) < 0.0001 or stddev < 0.0001) else round((diff_rate/stddev), 2)   #identifies how many std dev the order size is from the mean
+                                if (m_wtpcs > (average+3.0*stddev)) or (m_wtpcs < (average-3*stddev)):
+                                    alert_flag = 1
+                                    # alerts_n3.append({"soldtoname": soldtoname, "salesname":salesname, "monat":month, "alert_flag": alert_flag,  "wtpcs_amt":m_wtpcs, "average": average, "num_sd_diff": num_sd_diff})
+                                    cursor.execute("INSERT INTO dashboard_needthreerecord(soldtoname, salesname, monat, wtpcs_amt, average, num_sd_diff, alert_flag) VALUES (%s, %s, %s, %s, %s, %s, %s)", (soldtoname, salesname, month, m_wtpcs, average, num_sd_diff, alert_flag))
 
     return alerts_n3
 
 
+
 ##################### End Functions ########################
 
-start = time.time()
-df = pd.read_csv('/srv/website/data/Need3_K03.csv', encoding="ISO-8859-1", parse_dates=True, header=1)
-end = time.time()
-print("Time taken to read csv: {0:.6f} seconds ".format(end-start))
+#filename = 'Need 3_K03.csv'
+filename = '/srv/website/data/Need3_K03.csv'
 
 mydb = MySQLdb.connect(
     host='localhost',
@@ -118,7 +132,7 @@ mydb = MySQLdb.connect(
 cursor = mydb.cursor()
 cursor.execute("truncate dashboard_needthreerecord")
 start = time.time()
-need3(df)
+need3(filename)
 end = time.time()
 print("Time taken to run need3 algorithm: {0:.6f} seconds ".format(end-start))
 
