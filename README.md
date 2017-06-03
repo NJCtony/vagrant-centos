@@ -13,8 +13,7 @@ Getting Started
 1. Clone this repository and `cd` into the directory.
 2. Run `$ vagrant up`. This will take a few minutes.
 3. When done, run `$ vagrant ssh` to access your newly-created Centos 7 VM.
-4. Change directory to project files using `$ cd /srv` within the VM.
-5. Run `$ source venv/bin/activate` to activate the virtual environment.
-6. Go into the directory containing Django's `manage.py` file using `$ cd /srv/website`.
-7. Run `$ python manage.py runserver 0.0.0.0:8000`.
-8. Access the site on your host machine (not the VM) by going to `http://localhost:8000` on your browser.
+4. Run `$ source /srv/venv/bin/activate & cd /srv/website` to activate the virtual environment and change directory to where the project files are located.
+5. Run `$ python manage.py runserver 0.0.0.0:8000`.
+6. Access the site on your host machine (not the VM) by going to `http://localhost:8000` on your browser.
+7. Use user = `vagrant` and password = `password` to login to the superuser account.
