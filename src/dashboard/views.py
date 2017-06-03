@@ -55,12 +55,24 @@ class LoginView(View):
 @login_required
 def overview(request):
     # template = loader.get_template('dashboard/overview.html')
+    query_id = 'k03'
+    query_limit = '3'
+    query_aggregate = '1'
 
-    clm_summary_json = api_clm_summary(request, 'k03').content.decode('utf-8')
+    request.GET = request.GET.copy() # Make DjangoDict mutable
+    request.GET.appendlist('id', query_id.upper())
+
+    clm_summary_json = api_clm_summary(request, query_id).content.decode('utf-8')
     clm_summary_model = json.loads(clm_summary_json)
-    records_demand_json = api_records_demand(request).content.decode('utf-8')
 
-    context = {'records_demand': records_demand_json, 'clm_summary': clm_summary_model}
+
+    request.GET.appendlist('limit', query_limit)
+    request.GET.appendlist('aggregate', query_aggregate)
+    print('request:', request.GET)
+    alerts_demand_json = api_alerts_demand(request).content.decode('utf-8')
+    alerts_demand_model = json.loads(alerts_demand_json)
+
+    context = {'clm_summary': clm_summary_model, 'alerts_demand': alerts_demand_model}
     return render(request, 'dashboard/overview.html', context)
 
 def demand_change(request):
@@ -278,7 +290,7 @@ def api_alerts(request, alert_type):
 
             data.append(soldtoname_data)
 
-            if oneSoldtoname:
+            if oneSoldtoname or query_aggregate:
                 break
         time_end = time.time() - time_now
         print(alert_type, '- Time taken <api_alerts>:', time_end)

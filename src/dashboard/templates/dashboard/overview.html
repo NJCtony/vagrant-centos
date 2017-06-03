@@ -53,45 +53,24 @@
       </div>
       <div class ="overview-alert-content">
 
+        {% for alert in alerts_demand.data.0.alerts.increase %}
         <div class="card">
           <div class="overview-card-container">
             <div>
-              <h5 class="sc-text"><b class="sc-text">TLE4266-2G</b></h5>
+              <p class="sc-text sc-soldtoname"><b>{{ alert.soldtoname }}</b></p>
             </div>
             <div>
-              <h5 class="sc-text inline">201705</h5>
+              <p class="sc-text"><em>{{ alert.salesname }}</em></p>
+            </div>
+            <div>
+              <p class="sc-text inline">{{ alert.monat }}</p>
               <div class="inline right">
-                <h4 class="sc-text inline">67%</h4>
+                <h4 class="sc-text inline">{{ alert.sc_diff_umwteuro_percent }}&euro;%</h4>
               </div>
             </div>
           </div>
         </div>
-        <div class="card">
-          <div class="overview-card-container">
-            <div>
-                <h5 class="sc-text"><b class="sc-text">PXAC201602FC V1 R250</b></h5>
-            </div>
-            <div>
-              <h5 class="sc-text inline sc-monat">201705</h5>
-              <div class="inline right">
-                <h4 class="sc-text inline">67%</h4>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="card">
-          <div class="overview-card-container">
-            <div>
-                <h5 class="sc-text"><b class="sc-text">PXAC201602FC V1 R250</b></h5>
-            </div>
-            <div>
-              <h5 class="sc-text inline sc-monat">201705</h5>
-              <div class="inline right">
-                <h4 class="sc-text inline">67%</h4>
-              </div>
-            </div>
-          </div>
-        </div>
+        {% endfor %}
 
       </div>
       <div class="overview-alert-heading">
@@ -100,45 +79,24 @@
       </div>
       <div class ="overview-alert-content">
 
+        {% for alert in alerts_demand.data.0.alerts.decrease %}
         <div class="card">
           <div class="overview-card-container">
             <div>
-              <h5 class="sc-text"><b class="sc-text">TLE4266-2G</b></h5>
+              <p class="sc-text sc-soldtoname"><b>{{ alert.soldtoname }}</b></p>
             </div>
             <div>
-              <h5 class="sc-text inline">201705</h5>
+              <p class="sc-text"><em>{{ alert.salesname }}</em></p>
+            </div>
+            <div>
+              <p class="sc-text inline">{{ alert.monat }}</p>
               <div class="inline right">
-                <h4 class="sc-text inline">67%</h4>
+                <h4 class="sc-text inline">{{ alert.diff_umwteuro }}&euro;</h4>
               </div>
             </div>
           </div>
         </div>
-        <div class="card">
-          <div class="overview-card-container">
-            <div>
-                <h5 class="sc-text"><b class="sc-text">PXAC201602FC V1 R250</b></h5>
-            </div>
-            <div>
-              <h5 class="sc-text inline sc-monat">201705</h5>
-              <div class="inline right">
-                <h4 class="sc-text inline">67%</h4>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="card">
-          <div class="overview-card-container">
-            <div>
-                <h5 class="sc-text"><b class="sc-text">PXAC201602FC V1 R250</b></h5>
-            </div>
-            <div>
-              <h5 class="sc-text inline sc-monat">201705</h5>
-              <div class="inline right">
-                <h4 class="sc-text inline">67%</h4>
-              </div>
-            </div>
-          </div>
-        </div>
+        {% endfor %}
 
       </div>
       <div class="overview-alert-heading">
@@ -147,45 +105,25 @@
       </div>
       <div class ="overview-alert-content">
 
+        <!--  TODO: Replace with alerts_supply DECREASE! -->
+        {% for alert in alerts_demand.data.0.alerts.increase %}
         <div class="card">
           <div class="overview-card-container">
             <div>
-              <h5 class="sc-text"><b class="sc-text">TLE4266-2G</b></h5>
+              <p class="sc-text sc-soldtoname"><b>{{ alert.soldtoname }}</b></p>
             </div>
             <div>
-              <h5 class="sc-text inline">201705</h5>
+              <p class="sc-text"><em>{{ alert.salesname }}</em></p>
+            </div>
+            <div>
+              <p class="sc-text inline"></p>
               <div class="inline right">
-                <h4 class="sc-text inline">67%</h4>
+                <h4 class="sc-text inline">{{ alert.sc_diff_umwteuro_percent }}pcs%</h4>
               </div>
             </div>
           </div>
         </div>
-        <div class="card">
-          <div class="overview-card-container">
-            <div>
-                <h5 class="sc-text"><b class="sc-text">PXAC201602FC V1 R250</b></h5>
-            </div>
-            <div>
-              <h5 class="sc-text inline sc-monat">201705</h5>
-              <div class="inline right">
-                <h4 class="sc-text inline">67%</h4>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="card">
-          <div class="overview-card-container">
-            <div>
-                <h5 class="sc-text"><b class="sc-text">PXAC201602FC V1 R250</b></h5>
-            </div>
-            <div>
-              <h5 class="sc-text inline sc-monat">201705</h5>
-              <div class="inline right">
-                <h4 class="sc-text inline">67%</h4>
-              </div>
-            </div>
-          </div>
-        </div>
+        {% endfor %}
 
       </div>
       <div class="overview-alert-heading">
@@ -193,45 +131,25 @@
       </div>
       <div class ="overview-alert-content">
 
+        <!--  TODO: Replace with alerts_order -->
+        {% for alert in alerts_demand.data.0.alerts.increase %}
         <div class="card">
           <div class="overview-card-container">
             <div>
-              <h5 class="sc-text"><b class="sc-text">TLE4266-2G</b></h5>
+              <p class="sc-text sc-soldtoname"><b>{{ alert.soldtoname }}</b></p>
             </div>
             <div>
-              <h5 class="sc-text inline">201705</h5>
+              <p class="sc-text"><em>{{ alert.salesname }}</em></p>
+            </div>
+            <div>
+              <p class="sc-text inline">{{ alert.monat }}</p>
               <div class="inline right">
-                <h4 class="sc-text inline">67%</h4>
+                <h4 class="sc-text inline">{{ alert.sc_diff_umwteuro_percent }}pcs%</h4>
               </div>
             </div>
           </div>
         </div>
-        <div class="card">
-          <div class="overview-card-container">
-            <div>
-                <h5 class="sc-text"><b class="sc-text">PXAC201602FC V1 R250</b></h5>
-            </div>
-            <div>
-              <h5 class="sc-text inline sc-monat">201705</h5>
-              <div class="inline right">
-                <h4 class="sc-text inline">67%</h4>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="card">
-          <div class="overview-card-container">
-            <div>
-                <h5 class="sc-text"><b class="sc-text">PXAC201602FC V1 R250</b></h5>
-            </div>
-            <div>
-              <h5 class="sc-text inline sc-monat">201705</h5>
-              <div class="inline right">
-                <h4 class="sc-text inline">67%</h4>
-              </div>
-            </div>
-          </div>
-        </div>
+        {% endfor %}
 
       </div>
 

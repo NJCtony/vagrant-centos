@@ -159,6 +159,9 @@ td{
 .sc-text {
   margin: 0;
 }
+.sc-soldtoname {
+  font-size: 12px;
+}
 
 .arrow-up {
   width: 0;
