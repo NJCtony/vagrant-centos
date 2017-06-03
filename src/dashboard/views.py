@@ -147,9 +147,9 @@ def api_clm_summary(request, clm_code): # For a specific CLM
     return JsonResponse({'data' : {'clm_code': clm_code, 'settings': settings, 'soldtonames': soldtonames}})
 
 def api_records_demand(request):
-    return api_records(request, 'Need 1')
+    return api_records(request, 'demand')
 def api_records_supply(request):
-    return api_records(request, 'Need 2')
+    return api_records(request, 'supply')
 
 def api_records(request, alert_type):
     query_id = request.GET.get('id')
@@ -187,7 +187,7 @@ def api_records(request, alert_type):
 
                 salesname_sc = [] # set of structural-change-% for each sales-name
                 for monat_item in monat_list:
-                    if alert_type == 'Need 1':
+                    if alert_type == 'demand':
                         if NeedOneRecord.objects.filter(clm_code=query_id, soldtoname=soldtoname_choice, salesname=salesname_item, monat=monat_item).values('sc_diff_umwteuro_percent').exists():
                             salesname_sc.append(NeedOneRecord.objects.filter(clm_code=query_id, soldtoname=soldtoname_choice,salesname=salesname_item, monat=monat_item) \
                             .values('sc_diff_umwteuro_percent')[0]['sc_diff_umwteuro_percent'])
@@ -196,7 +196,7 @@ def api_records(request, alert_type):
                             #     print("Error(api_records_demand) : Multiple entries for", salesname_item, monat_item)
                         else:
                             salesname_sc.append(0.0) # fix: fill up missing values
-                    elif alert_type == 'Need 2':
+                    elif alert_type == 'supply':
                         salesname_sc.append(50.0)
 
                 for i in range(len(salesname_sc)):
@@ -237,7 +237,7 @@ def api_records_demand_chart(request):
 def api_alerts_demand(request):
     return api_alerts(request, 'demand')
 def api_alerts_supply(request):
-    return api_alerts(request, 'supply)
+    return api_alerts(request, 'supply')
 
 def api_alerts(request, alert_type):
     demand_values = ('soldtoname', 'salesname', 'monat', 'diff_umwteuro', 'sc_diff_umwteuro_percent', 'diff_umwtpcs_percent') # Define field to be be shown
