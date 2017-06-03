@@ -92,6 +92,7 @@ def demand_change(request):
 
     context = {'records_demand': records_demand_json, 'alerts_demand': alerts_demand_models, 'bp_demand': bp_demand_json}
     return render(request, 'dashboard/demand_change.html', context)
+
 def need_one(request):
     num_decline_alerts = 2
     num_increase_alerts = 3
@@ -101,7 +102,7 @@ def need_one(request):
     records = NeedOneRecord.objects.all()
     alerts = []
 
-    alerts_query = NeedOneRecord.objects.filter(alert_type="Need 1").order_by('diff_umwteuro')
+    alerts_query = NeedOneRecord.objects.filter(alert_flag="1").order_by('diff_umwteuro')
 
     for alert in alerts_query:
         if alert.diff_umwteuro < 0 and decline_alert_count < num_decline_alerts:
@@ -234,9 +235,9 @@ def api_records_demand_chart(request):
     return render(request, 'dashboard/demand_change_chart.html', context)
 
 def api_alerts_demand(request):
-    return api_alerts(request, 'Need 1')
+    return api_alerts(request, 'demand')
 def api_alerts_supply(request):
-    return api_alerts(request, 'Need 2')
+    return api_alerts(request, 'supply)
 
 def api_alerts(request, alert_type):
     demand_values = ('soldtoname', 'salesname', 'monat', 'diff_umwteuro', 'sc_diff_umwteuro_percent', 'diff_umwtpcs_percent') # Define field to be be shown
@@ -282,7 +283,7 @@ def api_alerts(request, alert_type):
             else:
                 alerts_query = NeedOneRecord.objects.filter(soldtoname = soldtoname_choice, alert_flag=1).values(*demand_values)
 
-            if alert_type == 'Need 1':
+            if alert_type == 'demand':
                 alerts_increase = alerts_query.filter(sc_diff_umwteuro_percent__gt = 0, sc_diff_umwteuro_percent__lt = 100).order_by('sc_diff_umwteuro_percent').reverse()
                 alerts_decrease = alerts_query.filter(diff_umwteuro__lt = 0).order_by('diff_umwteuro')
                 if query_limit:
@@ -290,7 +291,7 @@ def api_alerts(request, alert_type):
                     alerts_decrease = alerts_decrease[:query_limit]
                 soldtoname_data['alerts'] = {'increase': list(alerts_increase), 'decrease': list(alerts_decrease)}
 
-            elif alert_type == 'Need 2':
+            elif alert_type == 'supply':
             #     alerts = alerts_query.filter(diff_umwtpcs_percent__lt = 0).order_by('diff_umwtpcs_percent')
             #     soldtoname_data['alerts'] = list(alerts)
                 soldtoname_data['alerts'] = "Nothing yet"
@@ -335,11 +336,10 @@ def api_bp(request, alert_type):
             soldtoname_data = {} # Each soldtoname is an entry into data
             soldtoname_data['soldtoname'] = soldtoname_choice
 
-            if alert_type == 'demand':
-                bp_query = BusinessPerformance.objects.filter(clm_code=query_id, soldtoname=soldtoname_choice).values('bp_demand')
+            bp_query = BusinessPerformance.objects.filter(clm_code=query_id, soldtoname=soldtoname_choice).values('bp_{}'.format(alert_type))
 
             if len(bp_query) == 1:
-                soldtoname_data['bp'] = bp_query.get()['bp_demand']
+                soldtoname_data['bp'] = bp_query.get()['bp_{}'.format(alert_type)]
             else:
                 print("api_bp: Missing BP")
 
