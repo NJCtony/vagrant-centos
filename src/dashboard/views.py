@@ -14,7 +14,7 @@ from django.shortcuts import redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 
 # Models
-from .models import NeedOneRecord, BusinessPerformance, Profile, ClmSoldtoPair
+from .models import NeedOneRecord, BusinessPerformance, Profile
 
 
 # Forms
@@ -140,7 +140,7 @@ def api_clm_summary(request, clm_code): # For a specific CLM
         pass
 
     soldtonames = []
-    pair_query = ClmSoldtoPair.objects.filter(clm_code=clm_code).order_by('soldtoname')
+    pair_query = BusinessPerformance.objects.filter(clm_code=clm_code).order_by('soldtoname')
     for pair in pair_query:
         soldtonames.append(pair.soldtoname)
 

@@ -52,13 +52,6 @@ class BusinessPerformance(models.Model):
     bp_demand = models.FloatField(default=0)
     bp_supply = models.FloatField(default=0)
 
-class ClmSoldtoPair(models.Model):
-    clm_code = models.CharField(max_length=16, default='')
-    soldtoname = models.CharField(max_length=64, default=None)
-
-    class Meta:
-        unique_together = ("clm_code", "soldtoname")
-
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     clm_code = models.CharField(max_length=16, default='', unique=True)
