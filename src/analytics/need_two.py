@@ -57,10 +57,11 @@ def need2(df):
     recent_akt, last_akt = check_comparison_dates(df['AKT_DAY'])
     recent_month = str(recent_akt)[0:4]+str(recent_akt)[5:7]
     m_minus1, m, m_plus1 = check_supply_period(recent_month)
+    alerts_n2 = []
 
     for clm in sorted(df["CLM_Code"].unique()):
         for soldtoname in sorted(df['SoldTo_Name'][df['CLM_Code']==clm].unique()):
-            for salesname in df['SalesName'][(df['CLM_Code']==clm) & (df["SoldTo_Name"]==soldtoname)].unique():
+            for salesname in df['SalesName'][(df['CLM_Code']==clm) & (df["SoldTo_Name"]==soldtoname)].fillna("UNKNOWN").unique():
 
                 this_umwtpcs_3WPeriod = df.loc[(df['CLM_Code']==clm) & (df['SoldTo_Name']==soldtoname) & (df["SalesName"]==salesname) & (df["MONAT"].isin([int(m_minus1),int(m),int(m_plus1)])) & (df['AKT_DAY']==recent_akt),"UM_WT_Pcs"].replace('nan',0).sum()
                 last_umwtpcs_3WPeriod = df.loc[(df['CLM_Code']==clm) & (df['SoldTo_Name']==soldtoname)& (df["SalesName"]==salesname) & (df["MONAT"].isin([int(m_minus1),int(m),int(m_plus1)])) & (df['AKT_DAY']==last_akt),"UM_WT_Pcs"].replace('nan',0).sum()
@@ -81,8 +82,18 @@ def need2(df):
 
                 ### Structural Change Algo ###
                 for monat in [m_minus1, m, m_plus1]:
-                    this_umatpcs = df["UM_AT_Pcs"][(df['CLM_Code']==clm) & (df['SoldTo_Name']==soldtoname) & (df["SalesName"]==salesname) & (df["MONAT"]==monat) & (df['AKT_DAY']==recent_akt)].replace('nan',0).max()
-                    last_umatpcs = df["UM_AT_Pcs"][(df['CLM_Code']==clm) & (df['SoldTo_Name']==soldtoname)& (df["SalesName"]==salesname) & (df["MONAT"]==monat) & (df['AKT_DAY']==last_akt)].replace('nan',0).max()
+                    this_umatpcs_list = df["UM_AT_Pcs"][(df['CLM_Code']==clm) & (df['SoldTo_Name']==soldtoname) & (df["SalesName"]==salesname) & (df["MONAT"]==monat) & (df['AKT_DAY']==recent_akt)].values
+                    if len(this_umatpcs_list) == 0:
+                        this_umatpcs = 0
+                    else:
+                        this_umatpcs = this_umatpcs_list.max()
+
+                    last_umatpcs_list = df["UM_AT_Pcs"][(df['CLM_Code']==clm) & (df['SoldTo_Name']==soldtoname) & (df["SalesName"]==salesname) & (df["MONAT"]==monat) & (df['AKT_DAY']==last_akt)].values
+                    if len(last_umatpcs_list) == 0:
+                        last_umatpcs = 0
+                    else:
+                        last_umatpcs = last_umatpcs_list.max()
+
                     diff_umatpcs = round(this_umatpcs - last_umatpcs,0)
                     diff_umatpcs_percentage = calc_supply_change_percentage(this_umatpcs, last_umatpcs)
 
@@ -101,7 +112,7 @@ def need2(df):
                             # alerts_n2.append({"clm_code":clm, "soldtoname": soldtoname, "salesname":salesname, "monat":monat, "akt_day":recent_akt, "alert_flag":alert_flag, "alert_percentage": alert_percentage, "last_umatpcs_amt":last_umatpcs, "this_umatpcs_amt": this_umatpcs, "diff_umatpcs":diff_umatpcs, "[SC]_diff_umatpcs_%": diff_umatpcs_percentage, "diff_umwtpcs_3WPeriod": diff_umwtpcs_3WPeriod, "diff_umatpcs_3WPeriod": diff_umatpcs_3WPeriod, "this_umatpcs_3WPeriod":this_umatpcs_3WPeriod, "last_umatpcs_3WPeriod":last_umatpcs_3WPeriod})
                             cursor.execute("INSERT INTO dashboard_needtworecord(clm_code, soldtoname, salesname, monat, akt_day, this_umatpcs_3WPeriod, last_umatpcs_3WPeriod, diff_umatpcs_3WPeriod, this_umatpcs_amt, last_umatpcs_amt, diff_umatpcs, sc_diff_umatpcs_percentage, diff_umwtpcs_3WPeriod, alert_percentage, alert_flag) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", (clm, soldtoname, salesname, monat, recent_akt, this_umatpcs_3WPeriod, last_umatpcs_3WPeriod, diff_umatpcs_3WPeriod, this_umatpcs, last_umatpcs, diff_umatpcs, diff_umatpcs_percentage, diff_umwtpcs_3WPeriod, alert_percentage, alert_flag))
 
-
+    return alerts_n2
 
 ##################### End Functions ########################
 
