@@ -72,10 +72,7 @@
       // BP: Acquire Data
       var bpValue = jsonData.data[0].bp.toString()+"%";
       var bpCompany = jsonData.data[0].soldtoname;
-      var bpColor = "green"
-      if (jsonData.data[0].bp > 100) {
-        var bpColor = "red"
-      }
+      var bpColor = jsonData.data[0].bp > 100 ? "green" : "red";
 
       // BP: Render
       var bp_svgContainer = d3.select("#bp_chart")

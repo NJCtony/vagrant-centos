@@ -77,7 +77,9 @@ def overview(request):
     # TODO: Tuple the BPs by company level
     bp_demand_json = api_bp_demand(request).content.decode('utf-8')
     bp_demand_model = json.loads(bp_demand_json)['data']
-    bp_models = zip(bp_demand_model, bp_demand_model)
+    bp_supply_json = api_bp_supply(request).content.decode('utf-8')
+    bp_supply_model = json.loads(bp_supply_json)['data']
+    bp_models = zip(bp_demand_model, bp_supply_model)
 
     context = {'clm_summary': clm_summary_model, 'bp_models': bp_models, 'alerts_demand': alerts_demand_model}
     return render(request, 'dashboard/overview.html', context)
