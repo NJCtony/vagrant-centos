@@ -271,9 +271,9 @@ def api_alerts(request, alert_type):
             soldtoname_data = {} # Each soldtoname is an entry into data
 
             if query_aggregate and not oneSoldtoname:
-                alerts_query = NeedOneRecord.objects.filter(alert_type=alert_type).values(*demand_values)
+                alerts_query = NeedOneRecord.objects.filter(alert_flag=1).values(*demand_values)
             else:
-                alerts_query = NeedOneRecord.objects.filter(soldtoname = soldtoname_choice, alert_type=alert_type).values(*demand_values)
+                alerts_query = NeedOneRecord.objects.filter(soldtoname = soldtoname_choice, alert_flag=1).values(*demand_values)
 
             if alert_type == 'Need 1':
                 alerts_increase = alerts_query.filter(sc_diff_umwteuro_percent__gt = 0, sc_diff_umwteuro_percent__lt = 100).order_by('sc_diff_umwteuro_percent').reverse()
@@ -298,9 +298,9 @@ def api_alerts(request, alert_type):
 
 
 def api_bp_demand(request):
-    return api_bp(request, 'Need 1')
+    return api_bp(request, 'demand')
 def api_bp_supply(request):
-    return api_bp(request, 'Need 2')
+    return api_bp(request, 'supply')
 
 def api_bp(request, alert_type):
     query_id = request.GET.get('id')
@@ -328,10 +328,11 @@ def api_bp(request, alert_type):
             soldtoname_data = {} # Each soldtoname is an entry into data
             soldtoname_data['soldtoname'] = soldtoname_choice
 
-            bp_query = BusinessPerformance.objects.filter(clm_code=query_id, soldtoname=soldtoname_choice, alert_type=alert_type).values('bp')
+            if alert_type == 'demand':
+                bp_query = BusinessPerformance.objects.filter(clm_code=query_id, soldtoname=soldtoname_choice).values('bp_demand')
 
             if len(bp_query) == 1:
-                soldtoname_data['bp'] = bp_query.get()['bp']
+                soldtoname_data['bp'] = bp_query.get()['bp_demand']
             else:
                 print("api_bp: Missing BP")
 
