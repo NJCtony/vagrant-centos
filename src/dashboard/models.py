@@ -18,8 +18,24 @@ class NeedOneRecord(models.Model):
     diff_umwtpcs = models.IntegerField(default=0)
     diff_umwtpcs_percent = models.FloatField(default=0)
     sc_diff_umwteuro_percent = models.FloatField(default=0)
-    alert_type = models.CharField(max_length=16, default=None)
-    alert_description = models.CharField(max_length=64, default=None)
+    alert_flag = models.NullBooleanField()
+
+class NeedTwoRecord(models.Model):
+    clm_code = models.CharField(max_length=16, default=None)
+    soldtoname = models.CharField(max_length=64, default=None)
+    salesname = models.CharField(max_length=32, default=None)
+    monat = models.CharField(max_length=16, default=None)
+    akt_day = models.DateField()
+    this_umatpcs_3WPeriod = models.IntegerField(default=0)
+    last_umatpcs_3WPeriod = models.IntegerField(default=0)
+    diff_umatpcs_3WPeriod = models.IntegerField(default=0)
+    this_umatpcs_amt = models.IntegerField(default=0)
+    last_umatpcs_amt = models.IntegerField(default=0)
+    diff_umatpcs = models.IntegerField(default=0)
+    sc_diff_umatpcs_percentage = models.FloatField(default=0)
+    diff_umwtpcs_3WPeriod = models.IntegerField(default=0)
+    alert_percentage = models.FloatField(default=0)
+    alert_flag = models.NullBooleanField()
 
 class NeedThreeRecord(models.Model):
     soldtoname = models.CharField(max_length=64, default=None)
@@ -27,15 +43,14 @@ class NeedThreeRecord(models.Model):
     monat = models.CharField(max_length=16, default=None)
     wtpcs_amt = models.IntegerField(default=0)
     average = models.FloatField(default=0)
-    alert_type = models.CharField(max_length=16, default=None)
-    alert_description = models.CharField(max_length=64, default=None)
+    num_sd_diff = models.FloatField(default=0)
+    alert_flag = models.NullBooleanField()
 
 class BusinessPerformance(models.Model):
     clm_code = models.CharField(max_length=16, default=None)
-    alert_type = models.CharField(max_length=16, default=None)
     soldtoname = models.CharField(max_length=64, default=None)
-    bp = models.FloatField(default=0)
-    monat = models.CharField(max_length=32, default=None)
+    bp_demand = models.FloatField(default=0)
+    bp_supply = models.FloatField(default=0)
 
 class ClmSoldtoPair(models.Model):
     clm_code = models.CharField(max_length=16, default='')
