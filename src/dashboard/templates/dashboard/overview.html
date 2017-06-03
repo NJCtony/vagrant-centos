@@ -12,23 +12,23 @@
       <!-- https://stackoverflow.com/questions/12196435/javascript-function-return-src-path -->
 
       <div class="panel panel-default">
-        <div class="panel-body">
+        <div class="panel-body overview-panel">
           <div class="row">
 
             <div class="col-md-3 overview-col-left">
-              <div class="overview-listing-soldtoname">
+              <div class="overview-records-soldtoname">
                 <p><b>{{ soldtoname }}</b></p>
               </div>
             </div>
 
             <div class="col-md-9 overview-col-left">
-              <div class="overview-listing-record">
+              <div class="overview-records-content">
 
-                <div class="inline" style="width:190px; height:170px;">
+                <div class="inline overview-records-chart">
                   <iframe src="{% url 'dashboard:api_records_demand_chart' %}?id=K03&soldtoindex={{ forloop.counter0 }}&image={{ forloop.counter0 }}" style="border:none; width:100%; height:100%;"></iframe>
                 </div>
 
-                <div class="inline" style="width:190px; height:170px;">
+                <div class="inline overview-records-chart">
                   <iframe src="{% url 'dashboard:api_records_demand_chart' %}?id=K03&soldtoindex={{ forloop.counter0 }}&image={{ forloop.counter0 }}" style="border:none; width:100%; height:100%;"></iframe>
                 </div>
 

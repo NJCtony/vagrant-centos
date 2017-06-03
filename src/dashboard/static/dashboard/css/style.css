@@ -48,10 +48,47 @@ td{
 /* OVERVIEW */
 .overview-panel {
   padding-top: 5px;
+  padding-bottom: 5px;
 }
 .overview-heading {
   margin: 0 0 5px 15px;
 }
+
+/* OVERVIEW : Records Listing (center)*/
+.overview-records-chart {
+  width:190px;
+  height:170px;
+}
+.overview-col-left {
+  padding-left: 8px;
+  padding-right: 4px;
+}
+.overview-col-right {
+  padding-left: 4px;
+  padding-right: 8px;
+}
+
+.overview-records-soldtoname {
+  text-align: right;
+  position: relative;
+  height: 170px;
+}
+
+.overview-records-soldtoname p {
+  margin: 0;
+  position: absolute;
+  top: 50%;
+  right: 0;
+  -ms-transform: translate(0, -50%);
+  transform: translate(0, -50%);
+  text-align: right;
+}
+.overview-records-content {
+  margin: auto;
+  width: 385px;
+}
+
+/* OVERVIEW : Alert Listing */
 .overview-alert-heading {
   text-align: center;
   text-transform: capitalize;
@@ -67,36 +104,6 @@ td{
   padding: 2px 5px;
 }
 
-.overview-col-left {
-  padding-left: 8px;
-  padding-right: 4px;
-}
-.overview-col-right {
-  padding-left: 4px;
-  padding-right: 8px;
-}
-
-.overview-listing-soldtoname {
-  text-align: right;
-  position: relative;
-  height: 170px;
-}
-
-.overview-listing-soldtoname p {
-  margin: 0;
-  position: absolute;
-  top: 50%;
-  right: 0;
-  -ms-transform: translate(0, -50%);
-  transform: translate(0, -50%);
-  text-align: right;
-}
-.overview-listing-record {
-  margin: auto;
-  width: 385px;
-}
-
-/* OVERVIEW : Alert Listing */
 .card {
     border-style: solid;
     border-width: 0 0 thin 0;
