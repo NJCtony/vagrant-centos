@@ -225,7 +225,7 @@ def api_records(request, alert_type):
                             print('(WARNING) api_records_{}>: Filled missing value for {} {}'.format(alert_type, salesname_item, monat_item))
 
                     for i in range(len(salesname_sc)):
-                        if salesname_sc[i] != 0:
+                        if salesname_sc[i] != 100:
                             sc_mean[i] += salesname_sc[i]
                             sc_count[i] += 1
 
