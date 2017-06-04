@@ -46,6 +46,10 @@
     var yaxis_label = 'Structural Change, €%'
     var min_ticks = -100
     var max_ticks = 100
+    {% elif records_supply %}
+    var yaxis_label = 'Structural Change, pcs%'
+    var min_ticks = 0
+    var max_ticks = 200
     {% endif %}
 
     // Defination of mean dataset
@@ -182,8 +186,13 @@
 
     return sc_LineChart;
   };
-  var records_demand = JSON.parse('{{ records_demand|safe }}');
-  var records_chart = drawRecords(records_demand);
+
+  {% if records_demand %}
+  var sc_records = JSON.parse('{{ records_demand|safe }}');
+  {% elif records_supply %}
+  var sc_records = JSON.parse('{{ records_supply|safe }}');
+  {% endif %}
+  var records_chart = drawRecords(sc_records);
   if (records_demand.data[0].image) {
     // var img = document.createElement("img");
     var chart_image = records_chart.toBase64Image();

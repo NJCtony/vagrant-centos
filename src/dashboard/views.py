@@ -259,6 +259,11 @@ def api_records_demand_chart(request):
     context = {'records_demand': records_demand_json}
     return render(request, 'dashboard/structural_change_chart.html', context)
 
+def api_records_supply_chart(request):
+    records_supply_json = api_records_supply(request).content.decode('utf-8')
+    context = {'records_supply': records_supply_json}
+    return render(request, 'dashboard/structural_change_chart.html', context)
+
 def api_alerts_demand(request):
     return api_alerts(request, 'demand')
 def api_alerts_supply(request):
