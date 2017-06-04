@@ -1,0 +1,93 @@
+{% extends 'dashboard/_base.html' %}
+{% block title %}Supply Changes{% endblock %}
+{% block content %}
+  <div class="col-md-5 min-panel-width"> <!-- Left Column -->
+    <div class="panel panel-default bp-panel">
+      <div class="panel-body">
+        <div id="bp_chart"></div>
+      </div>
+    </div>
+
+    <div class="panel panel-default alert-panel">
+      <div class="panel-body">
+        <div class="container-fluid alert-container">
+          {% if alerts_supply %}
+          <div id="alert-increase" class="col-md-6 col-sm-6 alert-col-left">
+            {% for alert in alerts_supply.data.0.alerts %}
+            <div class="card">
+              <div class="card-container">
+                <div>
+                  <h5 class="sc-text"><b class="sc-text">{{ alert.salesname }}</b></h5>
+                </div>
+                <div>
+                  <h5 class="sc-text inline"></h5>
+                  <div class="inline right">
+                    <h3 class="sc-text inline">{{ alert.sc_diff_umatpcs_percentage }}pcs%</h3>
+                    <div class="arrow-up inline"></div>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          {% endif %}
+        </div>
+
+      </div>
+    </div>
+  </div>
+  <div class="col-md-7 min-panel-width"> <!-- Right Column -->
+    <div class="panel panel-default">
+      <div class="panel-body sc-panel">
+        {% include 'dashboard/structural_change_chart.html' %}
+      </div>
+    </div>
+  </div>
+
+  <script type="text/javascript">
+    var bp_supply = JSON.parse('{{ bp_supply|safe }}');
+
+    // Business Performance (D3 Circles)
+    function drawBP(jsonData) {
+      // BP: Acquire Data
+      var bpValue = jsonData.data[0].bp.toString()+"%";
+      var bpCompany = jsonData.data[0].soldtoname;
+      var bpColor = jsonData.data[0].bp > 100 ? "green" : "red";
+
+      // BP: Render
+      var bp_svgContainer = d3.select("#bp_chart")
+        .attr("align", "center")
+        .append("svg")
+        .attr("width", 220)
+        .attr("height", 220)
+        .attr("align", "center");
+      var outterCircle = bp_svgContainer.append("circle")
+        .attr("cx", 110)
+        .attr("cy", 110)
+        .attr("r", 85)
+        .attr("fill", bpColor);
+      var innerCircle = bp_svgContainer.append("circle")
+        .attr("cx", 110)
+        .attr("cy", 110)
+        .attr("r", 70)
+        .attr("fill", "white");
+      var bp_value = bp_svgContainer.append("text")
+        .attr("text-anchor", "middle")
+        .attr("x", 110)
+        .attr("y", 120)
+        .text(bpValue)
+        .attr("font-family", "sans-serif")
+        .attr("font-size", "30px");
+      var bp_company = bp_svgContainer.append("text")
+        .attr("text-anchor", "middle")
+        .attr("x", 110)
+        .attr("y", 20)
+        .text(bpCompany)
+        .attr("font-family", "sans-serif")
+        .attr("font-size", "15px");
+    };
+    drawBP(bp_supply);
+
+</script>
+{% endblock %}
