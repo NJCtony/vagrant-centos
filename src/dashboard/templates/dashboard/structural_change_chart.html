@@ -10,19 +10,39 @@
   }
 
   function sc_rgb_colormap(value) {
-    var base1 = [0, 162, 189];
-    var base2 = [255, 162, 189];
-    // var base2 = [246, 85, 160];
-    // var base1 = [227, 247, 73];
-    var diff = [base2[0]-base1[0], base2[1]-base1[1], base2[2]-base1[2]];
-    var result = [];
-
-    for(var v in diff) {
-      result.push(Math.round(base1[v] + Math.abs(value)/100.0*diff[v]));
-    }
-
-    return rgbToString(result, 1);
+    {% if records_demand %}
+    return sc_demand_colormap(value);
+    {% elif records_supply %}
+    return sc_supply_colormap(value);
+    {% endif %}
   }
+  function sc_demand_colormap(value) {
+    // var base1 = [0, 162, 189];
+    // var base2 = [255, 162, 189];
+    // var diff = [base2[0]-base1[0], base2[1]-base1[1], base2[2]-base1[2]];
+    // var result = [];
+    //
+    // for(var v in diff) {
+    //   result.push(Math.round(base1[v] + Math.abs(value)/100.0*diff[v]));
+    // }
+    // return rgbToString(result, 1);
+
+    var blue = [0, 0, 128];
+    var red = [255, 0, 0];
+    if (Math.abs(value) >= 50) {
+      return rgbToString(red, 1);
+    }
+    return rgbToString(blue, 1);
+  }
+  function sc_supply_colormap(value) {
+    var blue = [0, 0, 128];
+    var red = [255, 0, 0];
+    if (value >= 93) {
+      return rgbToString(blue, 1);
+    }
+    return rgbToString(red, 1);
+  }
+
   function drawRecords(jsonData) {
     // SC: Acquire Data
     var sc_dataset = [];
