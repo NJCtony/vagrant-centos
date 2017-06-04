@@ -14,7 +14,7 @@ from django.shortcuts import redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 
 # Models
-from .models import DemandChangeRecord, SupplyChangeRecord, BusinessPerformance, Profile
+from .models import DemandChangeRecord, SupplyChangeRecord, OrderDiscrepancyRecord, BusinessPerformance, Profile
 
 
 # Forms
@@ -267,6 +267,8 @@ def api_alerts_demand(request):
     return api_alerts(request, 'demand')
 def api_alerts_supply(request):
     return api_alerts(request, 'supply')
+def api_alerts_order(request):
+    return api_alerts(request, 'order')
 
 def api_alerts(request, alert_type):
     query_id = request.GET.get('id')
@@ -329,6 +331,19 @@ def api_alerts(request, alert_type):
                     alerts_query = SupplyChangeRecord.objects.filter(soldtoname = soldtoname_choice, alert_flag=1).values(*supply_values)
 
                 alerts = alerts_query.order_by('sc_diff_umatpcs_percentage')
+                if query_limit:
+                    alerts = alerts[:query_limit]
+                soldtoname_data['alerts'] = list(alerts)
+
+            elif alert_type == 'order':
+                order_values = ('soldtoname', 'salesname', 'monat', 'wtpcs_amt', 'num_sd_diff') # Define field to be be shown
+
+                if query_aggregate and not oneSoldtoname:
+                    alerts_query = OrderDiscrepancyRecord.objects.filter(alert_flag=1).values(*order_values)
+                else:
+                    alerts_query = OrderDiscrepancyRecord.objects.filter(soldtoname = soldtoname_choice, alert_flag=1).values(*order_values)
+
+                alerts = alerts_query.order_by('abs_num_sd_diff').reverse()
                 if query_limit:
                     alerts = alerts[:query_limit]
                 soldtoname_data['alerts'] = list(alerts)

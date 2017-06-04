@@ -17,6 +17,7 @@ urlpatterns = [
     url(r'^api/records/supply/', views.api_records_supply, name='api_records_supply'),
     url(r'^api/alerts/demand/', views.api_alerts_demand, name='api_alerts_demand'),
     url(r'^api/alerts/supply/', views.api_alerts_supply, name='api_alerts_supply'),
+    url(r'^api/alerts/order/', views.api_alerts_order, name='api_alerts_order'),
     url(r'^api/bp/demand/', views.api_bp_demand, name='api_bp_demand'),
     url(r'^api/bp/supply/', views.api_bp_supply, name='api_bp_supply'),
 ]
