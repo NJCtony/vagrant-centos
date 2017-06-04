@@ -14,7 +14,7 @@ from django.shortcuts import redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 
 # Models
-from .models import NeedOneRecord, BusinessPerformance, Profile
+from .models import NeedOneRecord, NeedTwoRecord, BusinessPerformance, Profile
 
 
 # Forms
@@ -180,16 +180,16 @@ def api_records(request, alert_type):
             sc_mean = [0.0, 0.0, 0.0]
             sc_count = [0, 0, 0]
 
-            soldtoname_data['soldtoname'] = soldtoname_choice
-            monat_list = [temp_dict['monat'] for temp_dict in NeedOneRecord.objects.values('monat').distinct()]
-            soldtoname_data['labels'] = monat_list
-            soldtoname_data['salesnames'] = []
-            salesname_list = [temp_dict['salesname'] for temp_dict in NeedOneRecord.objects.filter(clm_code=query_id, soldtoname=soldtoname_choice).values('salesname').distinct()]
-            for salesname_item in salesname_list: # iterate ea salesname
+            if alert_type == 'demand':
+                soldtoname_data['soldtoname'] = soldtoname_choice
+                monat_list = [temp_dict['monat'] for temp_dict in NeedOneRecord.objects.values('monat').distinct()]
+                soldtoname_data['labels'] = monat_list
+                soldtoname_data['salesnames'] = []
+                salesname_list = [temp_dict['salesname'] for temp_dict in NeedOneRecord.objects.filter(clm_code=query_id, soldtoname=soldtoname_choice).values('salesname').distinct()]
+                for salesname_item in salesname_list: # iterate ea salesname
 
-                salesname_sc = [] # set of structural-change-% for each sales-name
-                for monat_item in monat_list:
-                    if alert_type == 'demand':
+                    salesname_sc = [] # set of structural-change-% for each sales-name
+                    for monat_item in monat_list:
                         if NeedOneRecord.objects.filter(clm_code=query_id, soldtoname=soldtoname_choice, salesname=salesname_item, monat=monat_item).values('sc_diff_umwteuro_percent').exists():
                             salesname_sc.append(NeedOneRecord.objects.filter(clm_code=query_id, soldtoname=soldtoname_choice,salesname=salesname_item, monat=monat_item) \
                             .values('sc_diff_umwteuro_percent')[0]['sc_diff_umwteuro_percent'])
@@ -198,15 +198,36 @@ def api_records(request, alert_type):
                             #     print("Error(api_records_demand) : Multiple entries for", salesname_item, monat_item)
                         else:
                             salesname_sc.append(0.0) # fix: fill up missing values
-                    elif alert_type == 'supply':
-                        salesname_sc.append(50.0)
 
-                for i in range(len(salesname_sc)):
-                    if salesname_sc[i] != 0:
-                        sc_mean[i] += salesname_sc[i]
-                        sc_count[i] += 1
+                    for i in range(len(salesname_sc)):
+                        if salesname_sc[i] != 0:
+                            sc_mean[i] += salesname_sc[i]
+                            sc_count[i] += 1
 
-                soldtoname_data['salesnames'].append({'salesname': salesname_item, 'sc': salesname_sc})
+                    soldtoname_data['salesnames'].append({'salesname': salesname_item, 'sc': salesname_sc})
+
+            elif alert_type == 'supply':
+                soldtoname_data['soldtoname'] = soldtoname_choice
+                monat_list = [temp_dict['monat'] for temp_dict in NeedTwoRecord.objects.values('monat').distinct()]
+                soldtoname_data['labels'] = monat_list
+                soldtoname_data['salesnames'] = []
+                salesname_list = [temp_dict['salesname'] for temp_dict in NeedTwoRecord.objects.filter(clm_code=query_id, soldtoname=soldtoname_choice).values('salesname').distinct()]
+                for salesname_item in salesname_list: # iterate ea salesname
+
+                    salesname_sc = [] # set of structural-change-% for each sales-name
+                    for monat_item in monat_list:
+                        if NeedTwoRecord.objects.filter(clm_code=query_id, soldtoname=soldtoname_choice, salesname=salesname_item, monat=monat_item).values('sc_diff_umatpcs_percentage').exists():
+                            salesname_sc.append(NeedTwoRecord.objects.filter(clm_code=query_id, soldtoname=soldtoname_choice,salesname=salesname_item, monat=monat_item) \
+                            .values('sc_diff_umatpcs_percentage')[0]['sc_diff_umatpcs_percentage'])
+                        else:
+                            salesname_sc.append(0.0) # fix: fill up missing values
+
+                    for i in range(len(salesname_sc)):
+                        if salesname_sc[i] != 0:
+                            sc_mean[i] += salesname_sc[i]
+                            sc_count[i] += 1
+
+                    soldtoname_data['salesnames'].append({'salesname': salesname_item, 'sc': salesname_sc})
 
             for i in range(len(sc_mean)):
                 if sc_mean[i] > 0:
