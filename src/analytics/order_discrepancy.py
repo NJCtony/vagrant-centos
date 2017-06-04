@@ -111,7 +111,7 @@ def find_order_discrepancies(filename):
                                 if (m_wtpcs > (average+3.0*stddev)) or (m_wtpcs < (average-3*stddev)):
                                     alert_flag = 1
                                     # alerts_n3.append({"soldtoname": soldtoname, "salesname":salesname, "monat":month, "alert_flag": alert_flag,  "wtpcs_amt":m_wtpcs, "average": average, "num_sd_diff": num_sd_diff})
-                                    cursor.execute("INSERT INTO dashboard_orderdiscrepancyrecord(soldtoname, salesname, monat, wtpcs_amt, average, num_sd_diff, alert_flag) VALUES (%s, %s, %s, %s, %s, %s, %s)", (soldtoname, salesname, month, m_wtpcs, average, num_sd_diff, alert_flag))
+                                    cursor.execute("INSERT INTO dashboard_orderdiscrepancyrecord(soldtoname, salesname, monat, wtpcs_amt, average, num_sd_diff, abs_num_sd_diff, alert_flag) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)", (soldtoname, salesname, month, m_wtpcs, average, num_sd_diff, abs(num_sd_diff), alert_flag))
 
     return alerts_n3
 

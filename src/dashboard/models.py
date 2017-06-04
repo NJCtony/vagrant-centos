@@ -44,6 +44,7 @@ class OrderDiscrepancyRecord(models.Model):
     wtpcs_amt = models.IntegerField(default=0)
     average = models.FloatField(default=0)
     num_sd_diff = models.FloatField(default=0)
+    abs_num_sd_diff = models.FloatField(default=0)
     alert_flag = models.NullBooleanField()
 
 class BusinessPerformance(models.Model):
