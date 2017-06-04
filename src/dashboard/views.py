@@ -198,6 +198,7 @@ def api_records(request, alert_type):
                             #     print("Error(api_records_demand) : Multiple entries for", salesname_item, monat_item)
                         else:
                             salesname_sc.append(0.0) # fix: fill up missing values
+                            # print('(WARNING) api_records_{}>: Filled missing value for {} {}'.format(alert_type, salesname_item, monat_item))
 
                     for i in range(len(salesname_sc)):
                         if salesname_sc[i] != 0:
@@ -220,7 +221,8 @@ def api_records(request, alert_type):
                             salesname_sc.append(NeedTwoRecord.objects.filter(clm_code=query_id, soldtoname=soldtoname_choice,salesname=salesname_item, monat=monat_item) \
                             .values('sc_diff_umatpcs_percentage')[0]['sc_diff_umatpcs_percentage'])
                         else:
-                            salesname_sc.append(0.0) # fix: fill up missing values
+                            salesname_sc.append(100) # fix: fill up missing values
+                            print('(WARNING) api_records_{}>: Filled missing value for {} {}'.format(alert_type, salesname_item, monat_item))
 
                     for i in range(len(salesname_sc)):
                         if salesname_sc[i] != 0:
@@ -248,7 +250,7 @@ def api_records(request, alert_type):
             if oneEntry:
                 break
         time_end = time.time() - time_now
-        print(alert_type, '- Time taken <api_records>:', time_end)
+        print('Time taken <api_records_{}>: {}'.format(alert_type ,time_end))
     # return HttpResponse(soldtoname_available)
     return JsonResponse({'data' : data})
 
