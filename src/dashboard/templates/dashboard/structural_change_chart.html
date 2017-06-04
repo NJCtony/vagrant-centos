@@ -42,6 +42,12 @@
       font_size = 10;
     }
 
+    {% if records_demand %}
+    var yaxis_label = 'Structural Change, €%'
+    var min_ticks = -100
+    var max_ticks = 100
+    {% endif %}
+
     // Defination of mean dataset
     mean_entry.label = 'Mean';
     mean_entry.data = jsonData.data[0].means;
@@ -138,14 +144,14 @@
         scales: {
           yAxes: [{
             ticks: {
-              min: -100,
-              max: 100,
+              min: min_ticks,
+              max: max_ticks,
               stepSize: step_size,
               fontSize: font_size
             },
             scaleLabel : {
               display: show_labels,
-              labelString: "Structural Change %",
+              labelString: yaxis_label,
               fontSize: font_size
             },
             gridLines : {
