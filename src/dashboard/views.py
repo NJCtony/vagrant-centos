@@ -74,7 +74,6 @@ def overview(request):
     alerts_demand_json = api_alerts_demand(request).content.decode('utf-8')
     alerts_demand_model = json.loads(alerts_demand_json)
 
-    # TODO: Tuple the BPs by company level
     bp_demand_json = api_bp_demand(request).content.decode('utf-8')
     bp_demand_model = json.loads(bp_demand_json)['data']
     bp_supply_json = api_bp_supply(request).content.decode('utf-8')
