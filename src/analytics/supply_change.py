@@ -50,7 +50,7 @@ def calc_supply_change_percentage(this, last):
 #   SC account for each W                                  #
 ###############################################################
 
-def need2(df):
+def calc_supply_change(df):
     df['UM_WT_Pcs'] =df['UM_ST'].replace('nan', 0)+df['OOH_Pcs_WT_CU'].replace('nan', 0)
     df['UM_AT_Pcs'] =df['UM_ST'].replace('nan', 0)+df['OOH_Pcs_AT_SC'].replace('nan', 0)
     df['AKT_DAY'] = pd.to_datetime(df['AKT_DAY'], dayfirst=True)
@@ -134,13 +134,13 @@ cursor.execute("truncate dashboard_supplychangerecord")
 
 start = time.time()
 # import csv
-# toCSV = need2(df)
+# toCSV = calc_supply_change(df)
 # keys = toCSV[0].keys()
-# with open('output_need2.csv', 'w') as output_file:
+# with open('output_supply_change.csv', 'w') as output_file:
 #    dict_writer = csv.DictWriter(output_file, keys)
 #    dict_writer.writeheader()
 #    dict_writer.writerows(toCSV)
-need2(df)
+calc_supply_change(df)
 end = time.time()
 print("Time taken to run supply change algorithm: {0:.6f} seconds ".format(end-start))
 

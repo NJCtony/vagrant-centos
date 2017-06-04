@@ -49,7 +49,7 @@ def change_percentage(this, last):
         calc = round((( ((this - last)/(float(this + last))) ) * 100),1)
     return calc
 
-def need1(df):
+def calc_demand_change(df):
     df['UM_WT_Euro'] =df['UM_EURO'].replace('nan', 0)+df['OOH_Euro_WT_CU'].replace('nan', 0)
     df['UM_WT_Pcs'] =df['UM_ST'].replace('nan', 0)+df['OOH_Pcs_WT_CU'].replace('nan', 0)
     df['AKT_DAY'] = pd.to_datetime(df['AKT_DAY'], dayfirst=True)
@@ -137,7 +137,7 @@ cursor = mydb.cursor()
 cursor.execute("truncate dashboard_demandchangerecord")
 
 start = time.time()
-need1(df)
+calc_demand_change(df)
 end = time.time()
 print("Time taken to run demand change algorithm: {0:.6f} seconds ".format(end-start))
 

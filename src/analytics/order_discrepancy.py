@@ -66,7 +66,7 @@ def check_period_need(df):
 # applying the threshold of MEAN+3*STANDARD DEVIATION to any orders in the current, or future 2 MONATs, where applicable.
 #############################################################################################################
 
-def need3(filename):
+def find_order_discrepancies(filename):
     df = pd.read_csv(filename, encoding="ISO-8859-1", parse_dates=True, header=1)
     if "bills" not in list(df):
         ##############################################################################################
@@ -132,7 +132,7 @@ mydb = MySQLdb.connect(
 cursor = mydb.cursor()
 cursor.execute("truncate dashboard_orderdiscrepancyrecord")
 start = time.time()
-need3(filename)
+find_order_discrepancies(filename)
 end = time.time()
 print("Time taken to run order discrepancy algorithm: {0:.6f} seconds ".format(end-start))
 
