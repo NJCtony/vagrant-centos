@@ -1,41 +1,67 @@
 {% extends 'dashboard/_base.html' %}
 {% block title %}Supply Changes{% endblock %}
 {% block content %}
-  <div class="col-md-5 min-panel-width"> <!-- Left Column -->
-    <div class="panel panel-default bp-panel">
-      <div class="panel-body">
-        <div id="bp_chart"></div>
-      </div>
+<div class="col-md-5 min-panel-width"> <!-- Left Column -->
+  <div class="panel panel-info"> <!-- Right Column -->
+    <div class="panel-heading">
+      <b>Business Performance</b>
+    </div>
+    <div class="panel-body">
+      <div id="bp_chart"></div>
+    </div>
+  </div>
+
+  {% if alerts_supply.data.0.alerts %}
+  <div class="panel panel-danger">
+    <div class="panel-heading">
+      <b>Alerts: Supply Increase</b>
     </div>
 
-    <div class="panel panel-default alert-panel">
-      <div class="panel-body">
-        <div class="container-fluid alert-container">
-          {% if alerts_supply %}
-          <div id="alert-increase" class="col-md-6 col-sm-6 alert-col-left">
-            {% for alert in alerts_supply.data.0.alerts %}
-            <div class="card">
-              <div class="card-container">
-                <div>
-                  <h5 class="sc-text"><b class="sc-text">{{ alert.salesname }}</b></h5>
-                </div>
-                <div>
-                  <h5 class="sc-text inline"></h5>
-                  <div class="inline right">
-                    <h3 class="sc-text inline">{{ alert.sc_diff_umatpcs_percentage }}pcs%</h3>
-                    <div class="arrow-up inline"></div>
-                  </div>
+    <div class="panel-body">
+      {% for alert in alerts_supply.data.0.alerts|slice:":4" %}
+      <div class="card">
+        <div class="card-container">
+          <div>
+            <p class="sc-text"><b class="sc-text">{{ alert.salesname }}</b></p>
+          </div>
+          <div>
+            <p class="sc-text inline"></p>
+            <div class="right">
+              <h3 class="sc-text inline">{{ alert.sc_diff_umatpcs_percentage }}pcs%</h3>
+              <div class="arrow-down inline"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
 
-                </div>
+      <div id="demo_decrease" class="collapse">
+        {% for alert in alerts_demand.data.0.alerts.decrease|slice:"4:" %}
+        <div class="card">
+          <div class="card-container">
+            <div>
+              <p class="sc-text"><b class="sc-text">{{ alert.salesname }}</b></p>
+            </div>
+            <div>
+              <p class="sc-text inline"></p>
+              <div class="right">
+                <h3 class="sc-text inline">{{ alert.sc_diff_umatpcs_percentage }}pcs%</h3>
+                <div class="arrow-down inline"></div>
               </div>
             </div>
-            {% endfor %}
           </div>
-          {% endif %}
         </div>
-
+        {% endfor %}
       </div>
+
     </div>
+    <div class="panel-footer" data-toggle="collapse" data-target="#demo_decrease">
+      <span class="glyphicon glyphicon-menu-down"></span>
+    </div>
+  </div>
+  {% endif %}
+
+
   </div>
   <div class="col-md-7 min-panel-width"> <!-- Right Column -->
     <div class="panel panel-default">
