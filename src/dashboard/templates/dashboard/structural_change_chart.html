@@ -193,12 +193,9 @@
   var sc_records = JSON.parse('{{ records_supply|safe }}');
   {% endif %}
   var records_chart = drawRecords(sc_records);
-  if (records_demand.data[0].image) {
-    // var img = document.createElement("img");
+
+  if (sc_records.data[0].image) {
     var chart_image = records_chart.toBase64Image();
     window.location = chart_image;
-    // img.setAttribute('src', chart_image);
-    // document.body.innerHTML = '';
-    // document.body.appendChild(img);
   }
 </script>
