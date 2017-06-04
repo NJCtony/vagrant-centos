@@ -94,7 +94,10 @@ def demand_change(request):
     alerts_demand_models = json.loads(alerts_demand_json)
     bp_demand_json = api_bp_demand(request).content.decode('utf-8')
 
-    context = {'records_demand': records_demand_json, 'alerts_demand': alerts_demand_models, 'bp_demand': bp_demand_json}
+    alerts_length_model = {'demand_increase': len(alerts_demand_models['data'][0]['alerts']['increase']), \
+    'demand_decrease': len(alerts_demand_models['data'][0]['alerts']['decrease'])}
+
+    context = {'records_demand': records_demand_json, 'alerts_demand': alerts_demand_models, 'bp_demand': bp_demand_json, 'alert_length': alerts_length_model}
     return render(request, 'dashboard/demand_change.html', context)
 
 def supply_change(request):

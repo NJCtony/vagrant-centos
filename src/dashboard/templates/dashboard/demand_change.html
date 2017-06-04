@@ -2,62 +2,121 @@
 {% block title %}Demand Changes{% endblock %}
 {% block content %}
   <div class="col-md-5 min-panel-width"> <!-- Left Column -->
-    <div class="panel panel-default bp-panel">
+    <div class="panel panel-info"> <!-- Right Column -->
+      <div class="panel-heading">
+        <b>Business Performance</b>
+      </div>
       <div class="panel-body">
         <div id="bp_chart"></div>
       </div>
     </div>
 
-    <div class="panel panel-default alert-panel">
+    {% if alerts_demand.data.0.alerts.increase %}
+    <div class="panel panel-success">
+      <div class="panel-heading">
+        <b>Alerts: Demand Increase</b>
+        <!-- <div class="arrow-up inline"></div> -->
+      </div>
       <div class="panel-body">
-        <div class="container-fluid alert-container">
-          {% if alerts_demand %}
-          <div id="alert-increase" class="col-md-6 col-sm-6 alert-col-left">
-            {% for alert in alerts_demand.data.0.alerts.increase %}
-            <div class="card">
-              <div class="card-container">
-                <div>
-                  <h5 class="sc-text"><b class="sc-text">{{ alert.salesname }}</b></h5>
-                </div>
-                <div>
-                  <h5 class="sc-text inline">{{ alert.monat }}</h5>
-                  <div class="inline right">
-                    <h3 class="sc-text inline">{{ alert.sc_diff_umwteuro_percent }}&euro;%</h3>
-                    <div class="arrow-up inline"></div>
-                  </div>
+        {% for alert in alerts_demand.data.0.alerts.increase|slice:":4" %}
+        <div class="card">
+          <div class="card-container">
+            <div>
+              <p class="sc-text"><b class="sc-text">{{ alert.salesname }}</b></p>
+            </div>
+            <div>
+              <p class="sc-text inline">{{ alert.monat }}</p>
+              <div class="right">
+                <h3 class="sc-text inline">{{ alert.sc_diff_umwteuro_percent }}&euro;%</h3>
+                <div class="arrow-up inline"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
 
+        <div id="demo_increase" class="collapse">
+          {% for alert in alerts_demand.data.0.alerts.increase|slice:"4:" %}
+          <div class="card">
+            <div class="card-container">
+              <div>
+                <p class="sc-text"><b class="sc-text">{{ alert.salesname }}</b></p>
+              </div>
+              <div>
+                <p class="sc-text inline">{{ alert.monat }}</p>
+                <div class="right">
+                  <h3 class="sc-text inline">{{ alert.sc_diff_umwteuro_percent }}&euro;%</h3>
+                  <div class="arrow-up inline"></div>
                 </div>
               </div>
             </div>
-            {% endfor %}
           </div>
-
-          <div id="alert-decrease" class="col-md-6 col-sm-6 alert-col-right">
-            {% for alert in alerts_demand.data.0.alerts.decrease %}
-            <div class="card">
-              <div class="card-container">
-                <div>
-                    <h5 class="sc-text"><b class="sc-text">{{ alert.salesname }}</b></h5>
-                </div>
-                <div>
-                  <h5 class="sc-text inline sc-monat">{{ alert.monat }}</h5>
-                  <div class="inline right">
-                    <h3 class="sc-text inline">{{ alert.diff_umwteuro }}&euro;</h3>
-                    <div class="arrow-down inline"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            {% endfor %}
-          </div>
-          {% endif %}
+          {% endfor %}
         </div>
 
       </div>
+      <div class="panel-footer" data-toggle="collapse" data-target="#demo_increase">
+        <span class="glyphicon glyphicon-menu-down"></span>
+      </div>
     </div>
+    {% endif %}
+
+    {% if alerts_demand.data.0.alerts.decrease %}
+    <div class="panel panel-danger">
+      <div class="panel-heading">
+        <b>Alerts: Demand Increase</b>
+        <!-- <div class="arrow-up inline"></div> -->
+      </div>
+      <div class="panel-body">
+        {% for alert in alerts_demand.data.0.alerts.decrease|slice:":4" %}
+        <div class="card">
+          <div class="card-container">
+            <div>
+              <p class="sc-text"><b class="sc-text">{{ alert.salesname }}</b></p>
+            </div>
+            <div>
+              <p class="sc-text inline">{{ alert.monat }}</p>
+              <div class="right">
+                <h3 class="sc-text inline">{{ alert.sc_diff_umwteuro_percent }}&euro;</h3>
+                <div class="arrow-down inline"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+
+        <div id="demo_increase" class="collapse">
+          {% for alert in alerts_demand.data.0.alerts.increase|slice:"4:" %}
+          <div class="card">
+            <div class="card-container">
+              <div>
+                <p class="sc-text"><b class="sc-text">{{ alert.salesname }}</b></p>
+              </div>
+              <div>
+                <p class="sc-text inline">{{ alert.monat }}</p>
+                <div class="right">
+                  <h3 class="sc-text inline">{{ alert.sc_diff_umwteuro_percent }}&euro;</h3>
+                  <div class="arrow-down inline"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+
+      </div>
+      <div class="panel-footer" data-toggle="collapse" data-target="#demo_increase">
+        <span class="glyphicon glyphicon-menu-down"></span>
+      </div>
+    </div>
+    {% endif %}
+
   </div>
-  <div class="col-md-7 min-panel-width"> <!-- Right Column -->
-    <div class="panel panel-default">
+  <div class="col-md-7 min-panel-width">
+    <div class="panel panel-info"> <!-- Right Column -->
+      <div class="panel-heading">
+        <b>Structural Performance</b>
+      </div>
       <div class="panel-body sc-panel">
         {% include 'dashboard/structural_change_chart.html' %}
       </div>
@@ -75,7 +134,8 @@
       var bpColor = jsonData.data[0].bp > 100 ? "green" : "red";
 
       var width = 350
-      var height = 220
+      var height = 200
+      var circleOffsetY = 15
 
       // BP: Render
       var bp_svgContainer = d3.select("#bp_chart")
@@ -86,25 +146,25 @@
         .attr("align", "center");
       var outterCircle = bp_svgContainer.append("circle")
         .attr("cx", width/2)
-        .attr("cy", height/2)
+        .attr("cy", height/2 + circleOffsetY)
         .attr("r", 85)
         .attr("fill", bpColor);
       var innerCircle = bp_svgContainer.append("circle")
         .attr("cx", width/2)
-        .attr("cy", height/2)
+        .attr("cy", height/2 + circleOffsetY)
         .attr("r", 70)
         .attr("fill", "white");
       var bp_value = bp_svgContainer.append("text")
         .attr("text-anchor", "middle")
         .attr("x", width/2)
-        .attr("y", height/2 + 10)
+        .attr("y", height/2 + 10 + circleOffsetY)
         .text(bpValue)
         .attr("font-family", "sans-serif")
         .attr("font-size", "30px");
       var bp_company = bp_svgContainer.append("text")
         .attr("text-anchor", "middle")
         .attr("x", width/2)
-        .attr("y", 20)
+        .attr("y", 15)
         .text(bpCompany)
         .attr("font-family", "sans-serif")
         .attr("font-size", "15px");
