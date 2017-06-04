@@ -2,6 +2,7 @@
 
 inotifywait -m -e moved_to /srv/website/data/ | while read line
 do
-  python ../analytics/need_three.py
-  python ../analytics/need_one.py
+  python ../analytics/demand_change.py
+  python ../analytics/supply_change.py
+  python ../analytics/order_discrepancy.py
 done
