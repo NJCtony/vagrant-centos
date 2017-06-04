@@ -326,7 +326,7 @@ def api_alerts(request, alert_type):
             if oneSoldtoname or query_aggregate:
                 break
         time_end = time.time() - time_now
-        print(alert_type, '- Time taken <api_alerts>:', time_end)
+        print('Time taken <api_alerts_{}>: {}'.format(alert_type ,time_end))
     return JsonResponse({'data' : data})
 
 
@@ -373,7 +373,7 @@ def api_bp(request, alert_type):
             if oneSoldtoname:
                 break
         time_end = time.time() - time_now
-        print(alert_type, '- Time taken <api_bp>:', time_end)
+        print('Time taken <api_bp_{}>: {}'.format(alert_type ,time_end))
     return JsonResponse({'data' : data})
 
 ## Helper Functions
