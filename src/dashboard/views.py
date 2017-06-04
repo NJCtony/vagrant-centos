@@ -269,8 +269,6 @@ def api_alerts_supply(request):
     return api_alerts(request, 'supply')
 
 def api_alerts(request, alert_type):
-    demand_values = ('soldtoname', 'salesname', 'monat', 'diff_umwteuro', 'sc_diff_umwteuro_percent', 'diff_umwtpcs_percent') # Define field to be be shown
-
     query_id = request.GET.get('id')
     query_soldtoindex = request.GET.get('soldtoindex')
     query_limit = request.GET.get('limit')
@@ -307,12 +305,14 @@ def api_alerts(request, alert_type):
 
             soldtoname_data = {} # Each soldtoname is an entry into data
 
-            if query_aggregate and not oneSoldtoname:
-                alerts_query = DemandChangeRecord.objects.filter(alert_flag=1).values(*demand_values)
-            else:
-                alerts_query = DemandChangeRecord.objects.filter(soldtoname = soldtoname_choice, alert_flag=1).values(*demand_values)
-
             if alert_type == 'demand':
+                demand_values = ('soldtoname', 'salesname', 'monat', 'diff_umwteuro', 'sc_diff_umwteuro_percent', 'diff_umwtpcs_percent') # Define field to be be shown
+
+                if query_aggregate and not oneSoldtoname:
+                    alerts_query = DemandChangeRecord.objects.filter(alert_flag=1).values(*demand_values)
+                else:
+                    alerts_query = DemandChangeRecord.objects.filter(soldtoname = soldtoname_choice, alert_flag=1).values(*demand_values)
+
                 alerts_increase = alerts_query.filter(sc_diff_umwteuro_percent__gt = 0, sc_diff_umwteuro_percent__lt = 100).order_by('sc_diff_umwteuro_percent').reverse()
                 alerts_decrease = alerts_query.filter(diff_umwteuro__lt = 0).order_by('diff_umwteuro')
                 if query_limit:
@@ -321,9 +321,17 @@ def api_alerts(request, alert_type):
                 soldtoname_data['alerts'] = {'increase': list(alerts_increase), 'decrease': list(alerts_decrease)}
 
             elif alert_type == 'supply':
-            #     alerts = alerts_query.filter(diff_umwtpcs_percent__lt = 0).order_by('diff_umwtpcs_percent')
-            #     soldtoname_data['alerts'] = list(alerts)
-                soldtoname_data['alerts'] = "Nothing yet"
+                supply_values = ('soldtoname', 'salesname', 'sc_diff_umatpcs_percentage') # Define field to be be shown
+
+                if query_aggregate and not oneSoldtoname:
+                    alerts_query = SupplyChangeRecord.objects.filter(alert_flag=1).values(*supply_values)
+                else:
+                    alerts_query = SupplyChangeRecord.objects.filter(soldtoname = soldtoname_choice, alert_flag=1).values(*supply_values)
+
+                alerts = alerts_query.order_by('sc_diff_umatpcs_percentage')
+                if query_limit:
+                    alerts = alerts[:query_limit]
+                soldtoname_data['alerts'] = list(alerts)
 
             data.append(soldtoname_data)
 
