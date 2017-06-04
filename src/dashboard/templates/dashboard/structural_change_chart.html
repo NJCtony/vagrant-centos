@@ -42,6 +42,16 @@
       font_size = 10;
     }
 
+    {% if records_demand %}
+    var yaxis_label = 'Structural Change, €%'
+    var min_ticks = -100
+    var max_ticks = 100
+    {% elif records_supply %}
+    var yaxis_label = 'Structural Change, pcs%'
+    var min_ticks = 0
+    var max_ticks = 200
+    {% endif %}
+
     // Defination of mean dataset
     mean_entry.label = 'Mean';
     mean_entry.data = jsonData.data[0].means;
@@ -138,14 +148,14 @@
         scales: {
           yAxes: [{
             ticks: {
-              min: -100,
-              max: 100,
+              min: min_ticks,
+              max: max_ticks,
               stepSize: step_size,
               fontSize: font_size
             },
             scaleLabel : {
               display: show_labels,
-              labelString: "Structural Change %",
+              labelString: yaxis_label,
               fontSize: font_size
             },
             gridLines : {
@@ -176,14 +186,16 @@
 
     return sc_LineChart;
   };
-  var records_demand = JSON.parse('{{ records_demand|safe }}');
-  var records_chart = drawRecords(records_demand);
-  if (records_demand.data[0].image) {
-    // var img = document.createElement("img");
+
+  {% if records_demand %}
+  var sc_records = JSON.parse('{{ records_demand|safe }}');
+  {% elif records_supply %}
+  var sc_records = JSON.parse('{{ records_supply|safe }}');
+  {% endif %}
+  var records_chart = drawRecords(sc_records);
+
+  if (sc_records.data[0].image) {
     var chart_image = records_chart.toBase64Image();
     window.location = chart_image;
-    // img.setAttribute('src', chart_image);
-    // document.body.innerHTML = '';
-    // document.body.appendChild(img);
   }
 </script>

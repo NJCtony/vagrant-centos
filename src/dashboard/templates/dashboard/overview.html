@@ -39,7 +39,7 @@
                 </div>
 
                 <div class="inline overview-bp-container">
-                  {% if bp_supply.bp > 100 %}
+                  {% if bp_supply.bp >= 93 %}
                   <div class="overview-bp" style="background: green;"></div>
                   {% else %}
                   <div class="overview-bp"></div>
@@ -47,7 +47,7 @@
                 </div>
 
                 <div class="inline overview-records-chart">
-                  <iframe src="{% url 'dashboard:api_records_demand_chart' %}?id=K03&soldtoindex={{ forloop.counter0 }}&image={{ forloop.counter0 }}" style="border:none; width:100%; height:100%;"></iframe>
+                  <iframe src="{% url 'dashboard:api_records_supply_chart' %}?id=K03&soldtoindex={{ forloop.counter0 }}&image={{ forloop.counter0 }}" style="border:none; width:100%; height:100%;"></iframe>
                 </div>
 
               </div>

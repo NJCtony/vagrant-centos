@@ -74,7 +74,6 @@ def overview(request):
     alerts_demand_json = api_alerts_demand(request).content.decode('utf-8')
     alerts_demand_model = json.loads(alerts_demand_json)
 
-    # TODO: Tuple the BPs by company level
     bp_demand_json = api_bp_demand(request).content.decode('utf-8')
     bp_demand_model = json.loads(bp_demand_json)['data']
     bp_supply_json = api_bp_supply(request).content.decode('utf-8')
@@ -225,7 +224,7 @@ def api_records(request, alert_type):
                             print('(WARNING) api_records_{}>: Filled missing value for {} {}'.format(alert_type, salesname_item, monat_item))
 
                     for i in range(len(salesname_sc)):
-                        if salesname_sc[i] != 0:
+                        if salesname_sc[i] != 100:
                             sc_mean[i] += salesname_sc[i]
                             sc_count[i] += 1
 
@@ -257,7 +256,12 @@ def api_records(request, alert_type):
 def api_records_demand_chart(request):
     records_demand_json = api_records_demand(request).content.decode('utf-8')
     context = {'records_demand': records_demand_json}
-    return render(request, 'dashboard/demand_change_chart.html', context)
+    return render(request, 'dashboard/structural_change_chart.html', context)
+
+def api_records_supply_chart(request):
+    records_supply_json = api_records_supply(request).content.decode('utf-8')
+    context = {'records_supply': records_supply_json}
+    return render(request, 'dashboard/structural_change_chart.html', context)
 
 def api_alerts_demand(request):
     return api_alerts(request, 'demand')
