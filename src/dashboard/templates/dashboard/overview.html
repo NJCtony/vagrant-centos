@@ -2,65 +2,121 @@
 
 {% block content %}
 <link rel="prefetch" href="{% url 'dashboard:api_records_demand_chart' %}?id=K03&soldtoindex=0&image=11">
-<div class="col-md-9 min-panel-width"> <!-- Left Column -->
+<div class="col-md-8 min-panel-width"> <!-- Left Column -->
   {% if not user.is_anonymous %}
   <h3>Hello, {{ user }}!</h3>
   {% endif %}
 
-      {% for bp_demand, bp_supply in bp_models %}
-      {% with bp_demand.soldtoname as soldtoname %}
+  <!-- <p>{% url 'dashboard:api_records_demand_chart' %}?id=K03&soldtoindex={{ forloop.counter0 }}&image=11</p> -->
+  <!-- https://stackoverflow.com/questions/12196435/javascript-function-return-src-path -->
 
-      <!-- <p>{% url 'dashboard:api_records_demand_chart' %}?id=K03&soldtoindex={{ forloop.counter0 }}&image=11</p> -->
-      <!-- https://stackoverflow.com/questions/12196435/javascript-function-return-src-path -->
+  <div class="panel panel-default"> <!-- Right Column -->
+    <div class="panel-body">
 
-      <div class="panel panel-default">
-        <div class="panel-body overview-panel">
-          <div class="row">
+      <table class="table table-hover">
+        <thead>
+          <tr>
+            <th style="text-align: center; width: 25%;">Company Name</th>
+            <th style="text-align: center;">Demand Changes</th>
+            <th style="text-align: center;">Supply Changes</th>
+          </tr>
+        </thead>
 
-            <div class="col-md-3 overview-col-left">
-              <div class="overview-records-soldtoname">
-
-                <p><b>{{ soldtoname }}</b></p>
-              </div>
-            </div>
-
-            <div class="col-md-9 overview-col-left">
-              <div class="overview-records-content">
-                <div class="inline overview-bp-container">
+        <tbody>
+          {% for bp_demand, bp_supply in bp_models %}
+          {% with bp_demand.soldtoname as soldtoname %}
+          <tr>
+            <td>{{ soldtoname }}</td>
+            <td>
+              <div style="text-align:center;">
+                <div style="vertical-align:top; display:inline-block;">
                   {% if bp_demand.bp > 100 %}
                   <div class="overview-bp" style="background: green;"></div>
                   {% else %}
                   <div class="overview-bp"></div>
                   {% endif %}
                 </div>
-
-                <div class="inline overview-records-chart">
-                  <iframe src="{% url 'dashboard:api_records_demand_chart' %}?id=K03&soldtoindex={{ forloop.counter0 }}&image={{ forloop.counter0 }}" style="border:none; width:100%; height:100%;"></iframe>
+                <div style="display:inline-block;">
+                  <div class="overview-records-chart">
+                    <iframe src="{% url 'dashboard:api_records_demand_chart' %}?id=K03&soldtoindex={{ forloop.counter0 }}&image={{ forloop.counter0 }}" style="border:none; width:100%; height:100%;"></iframe>
+                  </div>
                 </div>
+              </div>
+            </td>
 
-                <div class="inline overview-bp-container">
+            <td>
+              <div style="text-align:center;">
+                <div style="vertical-align:top; display:inline-block;">
                   {% if bp_supply.bp >= 93 %}
-                  <div class="overview-bp" style="background: green;"></div>
+                  <div class="inline overview-bp" style="background: green;"></div>
                   {% else %}
-                  <div class="overview-bp"></div>
+                  <div class="inline overview-bp"></div>
                   {% endif %}
                 </div>
-
-                <div class="inline overview-records-chart">
-                  <iframe src="{% url 'dashboard:api_records_supply_chart' %}?id=K03&soldtoindex={{ forloop.counter0 }}&image={{ forloop.counter0 }}" style="border:none; width:100%; height:100%;"></iframe>
+                <div style="display:inline-block;">
+                  <div class="overview-records-chart">
+                    <iframe src="{% url 'dashboard:api_records_supply_chart' %}?id=K03&soldtoindex={{ forloop.counter0 }}&image={{ forloop.counter0 }}" style="border:none; width:100%; height:100%;"></iframe>
+                  </div>
                 </div>
-
               </div>
+            </td>
+
+          </tr>
+          {% endwith %}
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+
+  <!-- {% for bp_demand, bp_supply in bp_models %}
+  {% with bp_demand.soldtoname as soldtoname %}
+  <div class="panel panel-default">
+    <div class="panel-body overview-panel">
+
+        <div class="col-md-4 overview-col-left">
+          <div class="overview-records-soldtoname">
+
+            <p><b>{{ soldtoname }}</b></p>
+          </div>
+        </div>
+
+        <div class="col-md-8 overview-col-left">
+          <div class="overview-records-content">
+            <div class="inline overview-bp-container">
+              {% if bp_demand.bp > 100 %}
+              <div class="overview-bp" style="background: green;"></div>
+              {% else %}
+              <div class="overview-bp"></div>
+              {% endif %}
+            </div>
+
+            <div class="inline overview-records-chart">
+              <iframe src="{% url 'dashboard:api_records_demand_chart' %}?id=K03&soldtoindex={{ forloop.counter0 }}&image={{ forloop.counter0 }}" style="border:none; width:100%; height:100%;"></iframe>
+            </div>
+
+            <div class="inline overview-bp-container">
+              {% if bp_supply.bp >= 93 %}
+              <div class="overview-bp" style="background: green;"></div>
+              {% else %}
+              <div class="overview-bp"></div>
+              {% endif %}
+            </div>
+
+            <div class="inline overview-records-chart">
+              <iframe src="{% url 'dashboard:api_records_supply_chart' %}?id=K03&soldtoindex={{ forloop.counter0 }}&image={{ forloop.counter0 }}" style="border:none; width:100%; height:100%;"></iframe>
             </div>
 
           </div>
         </div>
-      </div>
-      {% endwith %}
-      {% endfor %}
+    </div>
+  </div>
+  {% endwith %}
+  {% endfor %} -->
 </div>
 
-<div class="col-md-3 min-panel-width"> <!-- Right Column -->
+<div class="col-md-4 min-panel-width"> <!-- Right Column -->
 
   <h3 class="overview-heading">Alerts</h3>
   <div class="panel panel-default no-bottom">

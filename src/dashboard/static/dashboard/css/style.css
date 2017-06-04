@@ -5,9 +5,6 @@ html,body {
   padding: 0px;
   background-color: #04040404;
 }
-td{
-  vertical-align: bottom;
-}
 
 .content {
   padding-top: 20px;
@@ -62,8 +59,12 @@ td{
 
 /* OVERVIEW : Records Listing (center)*/
 .overview-records-chart {
+  margin-left: 20px;
   width:190px;
   height:170px;
+}.overview-narrow-padding {
+  padding-left: 4px;
+  padding-right: 4px;
 }
 .overview-col-left {
   padding-left: 8px;
@@ -95,11 +96,6 @@ td{
 }
 
 /* OVERVIEW : BP*/
-.overview-bp-container {
-  position: relative;
-  height: 170px;
-  width: 50px;
-}
 .overview-bp {
   width: 20px;
   height: 20px;
@@ -108,11 +104,7 @@ td{
   border-radius: 50%;
   /*border: 7px solid red;*/
   margin: 0;
-  position: absolute;
-  top: 10%;
-  right: 0;
-  -ms-transform: translate(0, -50%);
-  transform: translate(0, -50%);
+  /vertical-align: top;
 }
 
 
