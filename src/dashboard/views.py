@@ -14,7 +14,7 @@ from django.shortcuts import redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 
 # Models
-from .models import NeedOneRecord, NeedTwoRecord, BusinessPerformance, Profile
+from .models import DemandChangeRecord, SupplyChangeRecord, BusinessPerformance, Profile
 
 
 # Forms
@@ -101,10 +101,10 @@ def need_one(request):
     decline_alert_count = 0
     increase_alert_count = 0
 
-    records = NeedOneRecord.objects.all()
+    records = DemandChangeRecord.objects.all()
     alerts = []
 
-    alerts_query = NeedOneRecord.objects.filter(alert_flag="1").order_by('diff_umwteuro')
+    alerts_query = DemandChangeRecord.objects.filter(alert_flag="1").order_by('diff_umwteuro')
 
     for alert in alerts_query:
         if alert.diff_umwteuro < 0 and decline_alert_count < num_decline_alerts:
@@ -182,18 +182,18 @@ def api_records(request, alert_type):
 
             if alert_type == 'demand':
                 soldtoname_data['soldtoname'] = soldtoname_choice
-                monat_list = [temp_dict['monat'] for temp_dict in NeedOneRecord.objects.values('monat').distinct()]
+                monat_list = [temp_dict['monat'] for temp_dict in DemandChangeRecord.objects.values('monat').distinct()]
                 soldtoname_data['labels'] = monat_list
                 soldtoname_data['salesnames'] = []
-                salesname_list = [temp_dict['salesname'] for temp_dict in NeedOneRecord.objects.filter(clm_code=query_id, soldtoname=soldtoname_choice).values('salesname').distinct()]
+                salesname_list = [temp_dict['salesname'] for temp_dict in DemandChangeRecord.objects.filter(clm_code=query_id, soldtoname=soldtoname_choice).values('salesname').distinct()]
                 for salesname_item in salesname_list: # iterate ea salesname
 
                     salesname_sc = [] # set of structural-change-% for each sales-name
                     for monat_item in monat_list:
-                        if NeedOneRecord.objects.filter(clm_code=query_id, soldtoname=soldtoname_choice, salesname=salesname_item, monat=monat_item).values('sc_diff_umwteuro_percent').exists():
-                            salesname_sc.append(NeedOneRecord.objects.filter(clm_code=query_id, soldtoname=soldtoname_choice,salesname=salesname_item, monat=monat_item) \
+                        if DemandChangeRecord.objects.filter(clm_code=query_id, soldtoname=soldtoname_choice, salesname=salesname_item, monat=monat_item).values('sc_diff_umwteuro_percent').exists():
+                            salesname_sc.append(DemandChangeRecord.objects.filter(clm_code=query_id, soldtoname=soldtoname_choice,salesname=salesname_item, monat=monat_item) \
                             .values('sc_diff_umwteuro_percent')[0]['sc_diff_umwteuro_percent'])
-                            # if len(NeedOneRecord.objects.filter(clm_code=query_id, soldtoname=soldtoname_choice,salesname=salesname_item, monat=monat_item) \
+                            # if len(DemandChangeRecord.objects.filter(clm_code=query_id, soldtoname=soldtoname_choice,salesname=salesname_item, monat=monat_item) \
                             # .values('sc_diff_umwteuro_percent')) > 1:
                             #     print("Error(api_records_demand) : Multiple entries for", salesname_item, monat_item)
                         else:
@@ -209,16 +209,16 @@ def api_records(request, alert_type):
 
             elif alert_type == 'supply':
                 soldtoname_data['soldtoname'] = soldtoname_choice
-                monat_list = [temp_dict['monat'] for temp_dict in NeedTwoRecord.objects.values('monat').distinct()]
+                monat_list = [temp_dict['monat'] for temp_dict in SupplyChangeRecord.objects.values('monat').distinct()]
                 soldtoname_data['labels'] = monat_list
                 soldtoname_data['salesnames'] = []
-                salesname_list = [temp_dict['salesname'] for temp_dict in NeedTwoRecord.objects.filter(clm_code=query_id, soldtoname=soldtoname_choice).values('salesname').distinct()]
+                salesname_list = [temp_dict['salesname'] for temp_dict in SupplyChangeRecord.objects.filter(clm_code=query_id, soldtoname=soldtoname_choice).values('salesname').distinct()]
                 for salesname_item in salesname_list: # iterate ea salesname
 
                     salesname_sc = [] # set of structural-change-% for each sales-name
                     for monat_item in monat_list:
-                        if NeedTwoRecord.objects.filter(clm_code=query_id, soldtoname=soldtoname_choice, salesname=salesname_item, monat=monat_item).values('sc_diff_umatpcs_percentage').exists():
-                            salesname_sc.append(NeedTwoRecord.objects.filter(clm_code=query_id, soldtoname=soldtoname_choice,salesname=salesname_item, monat=monat_item) \
+                        if SupplyChangeRecord.objects.filter(clm_code=query_id, soldtoname=soldtoname_choice, salesname=salesname_item, monat=monat_item).values('sc_diff_umatpcs_percentage').exists():
+                            salesname_sc.append(SupplyChangeRecord.objects.filter(clm_code=query_id, soldtoname=soldtoname_choice,salesname=salesname_item, monat=monat_item) \
                             .values('sc_diff_umatpcs_percentage')[0]['sc_diff_umatpcs_percentage'])
                         else:
                             salesname_sc.append(100) # fix: fill up missing values
@@ -304,9 +304,9 @@ def api_alerts(request, alert_type):
             soldtoname_data = {} # Each soldtoname is an entry into data
 
             if query_aggregate and not oneSoldtoname:
-                alerts_query = NeedOneRecord.objects.filter(alert_flag=1).values(*demand_values)
+                alerts_query = DemandChangeRecord.objects.filter(alert_flag=1).values(*demand_values)
             else:
-                alerts_query = NeedOneRecord.objects.filter(soldtoname = soldtoname_choice, alert_flag=1).values(*demand_values)
+                alerts_query = DemandChangeRecord.objects.filter(soldtoname = soldtoname_choice, alert_flag=1).values(*demand_values)
 
             if alert_type == 'demand':
                 alerts_increase = alerts_query.filter(sc_diff_umwteuro_percent__gt = 0, sc_diff_umwteuro_percent__lt = 100).order_by('sc_diff_umwteuro_percent').reverse()

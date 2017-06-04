@@ -4,7 +4,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 
 # Create your models here.
-class NeedOneRecord(models.Model):
+class DemandChangeRecord(models.Model):
     clm_code = models.CharField(max_length=16, default=None)
     soldtoname = models.CharField(max_length=64, default=None)
     salesname = models.CharField(max_length=32, default=None)
@@ -20,7 +20,7 @@ class NeedOneRecord(models.Model):
     sc_diff_umwteuro_percent = models.FloatField(default=0)
     alert_flag = models.NullBooleanField()
 
-class NeedTwoRecord(models.Model):
+class SupplyChangeRecord(models.Model):
     clm_code = models.CharField(max_length=16, default=None)
     soldtoname = models.CharField(max_length=64, default=None)
     salesname = models.CharField(max_length=32, default=None)
@@ -37,7 +37,7 @@ class NeedTwoRecord(models.Model):
     alert_percentage = models.FloatField(default=0)
     alert_flag = models.NullBooleanField()
 
-class NeedThreeRecord(models.Model):
+class OrderDiscrepancyRecord(models.Model):
     soldtoname = models.CharField(max_length=64, default=None)
     salesname = models.CharField(max_length=32, default=None)
     monat = models.CharField(max_length=16, default=None)

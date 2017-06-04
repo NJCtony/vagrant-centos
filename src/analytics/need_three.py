@@ -111,7 +111,7 @@ def need3(filename):
                                 if (m_wtpcs > (average+3.0*stddev)) or (m_wtpcs < (average-3*stddev)):
                                     alert_flag = 1
                                     # alerts_n3.append({"soldtoname": soldtoname, "salesname":salesname, "monat":month, "alert_flag": alert_flag,  "wtpcs_amt":m_wtpcs, "average": average, "num_sd_diff": num_sd_diff})
-                                    cursor.execute("INSERT INTO dashboard_needthreerecord(soldtoname, salesname, monat, wtpcs_amt, average, num_sd_diff, alert_flag) VALUES (%s, %s, %s, %s, %s, %s, %s)", (soldtoname, salesname, month, m_wtpcs, average, num_sd_diff, alert_flag))
+                                    cursor.execute("INSERT INTO dashboard_orderdiscrepancyrecord(soldtoname, salesname, monat, wtpcs_amt, average, num_sd_diff, alert_flag) VALUES (%s, %s, %s, %s, %s, %s, %s)", (soldtoname, salesname, month, m_wtpcs, average, num_sd_diff, alert_flag))
 
     return alerts_n3
 
@@ -130,11 +130,11 @@ mydb = MySQLdb.connect(
 )
 
 cursor = mydb.cursor()
-cursor.execute("truncate dashboard_needthreerecord")
+cursor.execute("truncate dashboard_orderdiscrepancyrecord")
 start = time.time()
 need3(filename)
 end = time.time()
-print("Time taken to run need3 algorithm: {0:.6f} seconds ".format(end-start))
+print("Time taken to run order discrepancy algorithm: {0:.6f} seconds ".format(end-start))
 
 mydb.commit()
 cursor.close()

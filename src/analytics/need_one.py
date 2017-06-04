@@ -79,7 +79,7 @@ def need1(df):
                     if np.isnan(difference_umwteuro_percentage):
                         pass
                     else:
-                        cursor.execute("INSERT INTO dashboard_needonerecord(clm_code, soldtoname, salesname, monat, akt_day, last_umwteuro_amt, this_umwteuro_amt, diff_umwteuro, last_umwtpcs_amt, this_umwtpcs_amt, diff_umwtpcs, diff_umwtpcs_percent, sc_diff_umwteuro_percent, alert_flag) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", (clm, soldtoname, salesname, monat, recent_akt, last_umwteuro, this_umwteuro, difference_umwteuro, last_umwtpcs, this_umwtpcs, difference_umwtpcs, difference_umwtpcs_percentage, difference_umwteuro_percentage, alert_flag))
+                        cursor.execute("INSERT INTO dashboard_demandchangerecord(clm_code, soldtoname, salesname, monat, akt_day, last_umwteuro_amt, this_umwteuro_amt, diff_umwteuro, last_umwtpcs_amt, this_umwtpcs_amt, diff_umwtpcs, diff_umwtpcs_percent, sc_diff_umwteuro_percent, alert_flag) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", (clm, soldtoname, salesname, monat, recent_akt, last_umwteuro, this_umwteuro, difference_umwteuro, last_umwtpcs, this_umwtpcs, difference_umwtpcs, difference_umwtpcs_percentage, difference_umwteuro_percentage, alert_flag))
 
 
 #################### Above is Need 1 and Structural Change ####################
@@ -134,12 +134,12 @@ mydb = MySQLdb.connect(
 )
 
 cursor = mydb.cursor()
-cursor.execute("truncate dashboard_needonerecord")
+cursor.execute("truncate dashboard_demandchangerecord")
 
 start = time.time()
 need1(df)
 end = time.time()
-print("Time taken to run need1 algorithm: {0:.6f} seconds ".format(end-start))
+print("Time taken to run demand change algorithm: {0:.6f} seconds ".format(end-start))
 
 cursor.execute("truncate dashboard_businessperformance")
 

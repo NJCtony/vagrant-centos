@@ -103,14 +103,14 @@ def need2(df):
                         if alert_flag == 1:
                             # alerts_n2.append({"clm_code":clm, "soldtoname": soldtoname, "salesname":salesname, "monat":monat, "akt_day":recent_akt, "alert_flag":alert_flag, "alert_percentage": alert_percentage, "last_umatpcs_amt":last_umatpcs, "this_umatpcs_amt": this_umatpcs, "diff_umatpcs":diff_umatpcs, "[SC]_diff_umatpcs_%": diff_umatpcs_percentage, "diff_umwtpcs_3WPeriod": diff_umwtpcs_3WPeriod, "diff_umatpcs_3WPeriod": diff_umatpcs_3WPeriod, "this_umatpcs_3WPeriod":this_umatpcs_3WPeriod, "last_umatpcs_3WPeriod":last_umatpcs_3WPeriod})
 
-                            cursor.execute("INSERT INTO dashboard_needtworecord(clm_code, soldtoname, salesname, monat, akt_day, this_umatpcs_3WPeriod, last_umatpcs_3WPeriod, diff_umatpcs_3WPeriod, this_umatpcs_amt, last_umatpcs_amt, diff_umatpcs, sc_diff_umatpcs_percentage, diff_umwtpcs_3WPeriod, alert_percentage, alert_flag) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", (clm, soldtoname, salesname, monat, recent_akt, this_umatpcs_3WPeriod, last_umatpcs_3WPeriod, diff_umatpcs_3WPeriod, this_umatpcs, last_umatpcs, diff_umatpcs, diff_umatpcs_percentage, diff_umwtpcs_3WPeriod, alert_percentage, alert_flag))
+                            cursor.execute("INSERT INTO dashboard_supplychangerecord(clm_code, soldtoname, salesname, monat, akt_day, this_umatpcs_3WPeriod, last_umatpcs_3WPeriod, diff_umatpcs_3WPeriod, this_umatpcs_amt, last_umatpcs_amt, diff_umatpcs, sc_diff_umatpcs_percentage, diff_umwtpcs_3WPeriod, alert_percentage, alert_flag) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", (clm, soldtoname, salesname, monat, recent_akt, this_umatpcs_3WPeriod, last_umatpcs_3WPeriod, diff_umatpcs_3WPeriod, this_umatpcs, last_umatpcs, diff_umatpcs, diff_umatpcs_percentage, diff_umwtpcs_3WPeriod, alert_percentage, alert_flag))
 
                             alert_flag = 0
                             alert_percentage = 0
 
                         else:
                             # alerts_n2.append({"clm_code":clm, "soldtoname": soldtoname, "salesname":salesname, "monat":monat, "akt_day":recent_akt, "alert_flag":alert_flag, "alert_percentage": alert_percentage, "last_umatpcs_amt":last_umatpcs, "this_umatpcs_amt": this_umatpcs, "diff_umatpcs":diff_umatpcs, "[SC]_diff_umatpcs_%": diff_umatpcs_percentage, "diff_umwtpcs_3WPeriod": diff_umwtpcs_3WPeriod, "diff_umatpcs_3WPeriod": diff_umatpcs_3WPeriod, "this_umatpcs_3WPeriod":this_umatpcs_3WPeriod, "last_umatpcs_3WPeriod":last_umatpcs_3WPeriod})
-                            cursor.execute("INSERT INTO dashboard_needtworecord(clm_code, soldtoname, salesname, monat, akt_day, this_umatpcs_3WPeriod, last_umatpcs_3WPeriod, diff_umatpcs_3WPeriod, this_umatpcs_amt, last_umatpcs_amt, diff_umatpcs, sc_diff_umatpcs_percentage, diff_umwtpcs_3WPeriod, alert_percentage, alert_flag) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", (clm, soldtoname, salesname, monat, recent_akt, this_umatpcs_3WPeriod, last_umatpcs_3WPeriod, diff_umatpcs_3WPeriod, this_umatpcs, last_umatpcs, diff_umatpcs, diff_umatpcs_percentage, diff_umwtpcs_3WPeriod, alert_percentage, alert_flag))
+                            cursor.execute("INSERT INTO dashboard_supplychangerecord(clm_code, soldtoname, salesname, monat, akt_day, this_umatpcs_3WPeriod, last_umatpcs_3WPeriod, diff_umatpcs_3WPeriod, this_umatpcs_amt, last_umatpcs_amt, diff_umatpcs, sc_diff_umatpcs_percentage, diff_umwtpcs_3WPeriod, alert_percentage, alert_flag) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", (clm, soldtoname, salesname, monat, recent_akt, this_umatpcs_3WPeriod, last_umatpcs_3WPeriod, diff_umatpcs_3WPeriod, this_umatpcs, last_umatpcs, diff_umatpcs, diff_umatpcs_percentage, diff_umwtpcs_3WPeriod, alert_percentage, alert_flag))
 
     return alerts_n2
 
@@ -130,7 +130,7 @@ mydb = MySQLdb.connect(
 )
 
 cursor = mydb.cursor()
-cursor.execute("truncate dashboard_needtworecord")
+cursor.execute("truncate dashboard_supplychangerecord")
 
 start = time.time()
 # import csv
@@ -142,7 +142,7 @@ start = time.time()
 #    dict_writer.writerows(toCSV)
 need2(df)
 end = time.time()
-print("Time taken to run need2 algorithm: {0:.6f} seconds ".format(end-start))
+print("Time taken to run supply change algorithm: {0:.6f} seconds ".format(end-start))
 
 
 mydb.commit()
