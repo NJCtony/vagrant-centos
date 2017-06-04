@@ -66,6 +66,8 @@
   <div class="panel panel-default no-bottom">
 
     <div class="panel-body overview-panel">
+
+      {% if alerts_demand.data.0.alerts.increase %}
       <div class="overview-alert-heading">
         <h4 class="overview-alert-heading-text inline">Demand</h4>
         <div class="arrow-up inline"></div>
@@ -90,8 +92,10 @@
           </div>
         </div>
         {% endfor %}
-
       </div>
+      {% endif %}
+
+      {% if alerts_demand.data.0.alerts.decrease %}
       <div class="overview-alert-heading">
         <h4 class="overview-alert-heading-text inline">Demand</h4>
         <div class="arrow-down inline"></div>
@@ -116,16 +120,17 @@
           </div>
         </div>
         {% endfor %}
-
       </div>
+      {% endif %}
+
+      {% if alerts_supply.data.0.alerts %}
       <div class="overview-alert-heading">
         <h4 class="overview-alert-heading-text inline">Supply</h4>
         <div class="arrow-down inline"></div>
       </div>
       <div class ="overview-alert-content">
 
-        <!--  TODO: Replace with alerts_supply DECREASE! -->
-        {% for alert in alerts_demand.data.0.alerts.increase %}
+        {% for alert in alerts_supply.data.0.alerts %}
         <div class="card">
           <div class="overview-card-container">
             <div>
@@ -137,21 +142,23 @@
             <div>
               <p class="sc-text inline"></p>
               <div class="inline right">
-                <h4 class="sc-text inline">{{ alert.sc_diff_umwteuro_percent }}pcs%</h4>
+                <h4 class="sc-text inline">{{ alert.sc_diff_umatpcs_percentage }}pcs%</h4>
               </div>
             </div>
           </div>
         </div>
         {% endfor %}
-
       </div>
+      {% endif %}
+
+      {% if alerts_order.data.0.alerts %}
       <div class="overview-alert-heading">
         <h4 class="overview-alert-heading-text inline">Order Discrepancies</h4>
       </div>
       <div class ="overview-alert-content">
 
         <!--  TODO: Replace with alerts_order -->
-        {% for alert in alerts_demand.data.0.alerts.increase %}
+        {% for alert in alerts_order.data.0.alerts %}
         <div class="card">
           <div class="overview-card-container">
             <div>
@@ -163,14 +170,14 @@
             <div>
               <p class="sc-text inline">{{ alert.monat }}</p>
               <div class="inline right">
-                <h4 class="sc-text inline">{{ alert.sc_diff_umwteuro_percent }}pcs%</h4>
+                <h4 class="sc-text inline">{{ alert.wtpcs_amt }}pcs</h4>
               </div>
             </div>
           </div>
         </div>
         {% endfor %}
-
       </div>
+      {% endif %}
 
     </div>
   </div>
