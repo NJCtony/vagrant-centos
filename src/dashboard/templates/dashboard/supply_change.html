@@ -13,11 +13,12 @@
     </div>
   </div>
 
-  {% if alerts_supply.data.0.alerts %}
   <div class="panel panel-danger">
     <div class="panel-heading">
-      <b>Alerts: Supply Increase</b>
+      <b>Alerts: Supply Decrease</b>
+      <em>(umat %)</em>
     </div>
+    {% if alerts_supply.data.0.alerts %}
 
     <div class="panel-body">
       {% for alert in alerts_supply.data.0.alerts|slice:":4" %}
@@ -56,13 +57,20 @@
         {% endfor %}
       </div>
 
+    {% else %}
+    <div class="comtainer text-center">
+        <h5>- No Alerts -</h5>
     </div>
-    <div class="panel-footer" data-toggle="collapse" data-target="#demo_decrease">
+
+    {% endif %}
+    {% if alerts_demand.data.0.alerts.decrease|length > 4 %}
+    <div class="panel-footer" data-toggle="collapse" data-target="#demo_increase">
       <span class="glyphicon glyphicon-menu-down"></span>
     </div>
   </div>
+    {% else %}
+  </div>
   {% endif %}
-
 
   </div>
 
@@ -85,7 +93,7 @@
       // BP: Acquire Data
       var bpValue = jsonData.data[0].bp.toString()+"%";
       var bpCompany = jsonData.data[0].soldtoname;
-      var bpColor = jsonData.data[0].bp > 100 ? "green" : "red";
+      var bpColor = jsonData.data[0].bp >= 93 ? "green" : "red";
 
       var width = 350
       var height = 220

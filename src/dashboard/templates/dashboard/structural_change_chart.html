@@ -35,13 +35,20 @@
     }
     return rgbToString(color_normal, 1);
   }
-  function sc_supply_colormap(value) {
-    var blue = [0, 0, 128];
-    var red = [255, 0, 0];
-    if (value >= 93) {
-      return rgbToString(blue, 1);
+  function sc_supply_colormap(value, alert_flag) {
+    // var blue = [0, 0, 128];
+    // var red = [255, 0, 0];
+    // if (value >= 93) {
+    //   return rgbToString(blue, 1);
+    // }
+    // return rgbToString(red, 1);
+    var color_normal = [255,245,157];
+    var color_alert = [249,168,37];
+
+    if (alert_flag == true) {
+      return rgbToString(color_alert, 1);
     }
-    return rgbToString(red, 1);
+    return rgbToString(color_normal, 1);
   }
 
   function drawRecords(jsonData) {
@@ -88,6 +95,7 @@
     var black_color_list = [black_color,black_color,black_color];
     var meanColor = rgbToString([245,127,23], 1);
     var color_list = [meanColor,meanColor,meanColor];
+
     mean_entry.pointBackgroundColor = color_list;
     mean_entry.pointBorderColor = black_color;
     mean_entry.pointHoverBackgroundColor = color_list;

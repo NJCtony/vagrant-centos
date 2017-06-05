@@ -234,10 +234,14 @@ def api_records(request, alert_type):
                 for salesname_item in salesname_list: # iterate ea salesname
 
                     salesname_sc = [] # set of structural-change-% for each sales-name
+                    salesname_alert = []
                     for monat_item in monat_list:
-                        if SupplyChangeRecord.objects.filter(clm_code=query_id, soldtoname=soldtoname_choice, salesname=salesname_item, monat=monat_item).values('sc_diff_umatpcs_percentage').exists():
-                            salesname_sc.append(SupplyChangeRecord.objects.filter(clm_code=query_id, soldtoname=soldtoname_choice,salesname=salesname_item, monat=monat_item) \
-                            .values('sc_diff_umatpcs_percentage')[0]['sc_diff_umatpcs_percentage'])
+                        if SupplyChangeRecord.objects.filter(clm_code=query_id, soldtoname=soldtoname_choice, salesname=salesname_item, monat=monat_item).values('sc_diff_umatpcs_percentage', 'alert_flag').exists():
+                            record_query = SupplyChangeRecord.objects.filter(clm_code=query_id, soldtoname=soldtoname_choice,salesname=salesname_item, monat=monat_item) \
+                            .values('sc_diff_umatpcs_percentage', 'alert_flag')
+
+                            salesname_sc.append(record_query[0]['sc_diff_umatpcs_percentage'])
+                            salesname_alert.append(record_query[0]['alert_flag'])
                         else:
                             salesname_sc.append(100) # fix: fill up missing values
                             print('(WARNING) api_records_{}>: Filled missing value for {} {}'.format(alert_type, salesname_item, monat_item))
@@ -247,7 +251,7 @@ def api_records(request, alert_type):
                             sc_mean[i] += salesname_sc[i]
                             sc_count[i] += 1
 
-                    soldtoname_data['salesnames'].append({'salesname': salesname_item, 'sc': salesname_sc})
+                    soldtoname_data['salesnames'].append({'salesname': salesname_item, 'sc': salesname_sc, 'alert_flag': salesname_alert})
 
             for i in range(len(sc_mean)):
                 if sc_mean[i] != 0:
