@@ -13,7 +13,7 @@
   <div class="panel panel-default"> <!-- Right Column -->
     <div class="panel-body">
 
-      <table class="table table-hover">
+      <table class="table">
         <thead>
           <tr>
             <th style="text-align: center; width: 25%;">Company Name</th>
@@ -24,10 +24,10 @@
 
         <tbody>
           {% for bp_demand, bp_supply in bp_models %}
-          {% with bp_demand.soldtoname as soldtoname %}
+          {% with soldtoname=bp_demand.soldtoname clm_code=clm_summary.data.clm_code %}
           <tr>
             <td>{{ soldtoname }}</td>
-            <td>
+            <td class="clickable-block" data-href="{% url 'dashboard:demand_change' %}?id={{ clm_code }}&soldtoindex={{ forloop.counter0 }}">
               <div style="text-align:center;">
                 <div style="vertical-align:top; display:inline-block;">
                   {% if bp_demand.bp > 100 %}
@@ -38,13 +38,13 @@
                 </div>
                 <div style="display:inline-block;">
                   <div class="overview-records-chart">
-                    <iframe src="{% url 'dashboard:api_records_demand_chart' %}?id=K03&soldtoindex={{ forloop.counter0 }}&image={{ forloop.counter0 }}" style="border:none; width:100%; height:100%;"></iframe>
+                    <iframe src="{% url 'dashboard:api_records_demand_chart' %}?id={{ clm_code }}&soldtoindex={{ forloop.counter0 }}&image={{ forloop.counter0 }}" style="border:none; width:100%; height:100%;"></iframe>
                   </div>
                 </div>
               </div>
             </td>
 
-            <td>
+            <td class="clickable-block" data-href="{% url 'dashboard:supply_change' %}?id={{ clm_code }}&soldtoindex={{ forloop.counter0 }}">
               <div style="text-align:center;">
                 <div style="vertical-align:top; display:inline-block;">
                   {% if bp_supply.bp >= 93 %}
@@ -55,7 +55,7 @@
                 </div>
                 <div style="display:inline-block;">
                   <div class="overview-records-chart">
-                    <iframe src="{% url 'dashboard:api_records_supply_chart' %}?id=K03&soldtoindex={{ forloop.counter0 }}&image={{ forloop.counter0 }}" style="border:none; width:100%; height:100%;"></iframe>
+                    <iframe src="{% url 'dashboard:api_records_supply_chart' %}?id={{ clm_code }}&soldtoindex={{ forloop.counter0 }}&image={{ forloop.counter0 }}" style="border:none; width:100%; height:100%;"></iframe>
                   </div>
                 </div>
               </div>
@@ -238,5 +238,13 @@
     </div>
   </div>
 </div>
+
+<script type="text/javascript">
+  jQuery(document).ready(function($) {
+    $(".clickable-block").click(function() {
+        window.location = $(this).data("href");
+    });
+  });
+</script>
 
 {% endblock %}

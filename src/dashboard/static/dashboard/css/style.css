@@ -23,6 +23,12 @@ html,body {
 .no-bottom {
   margin-bottom: 0;
 }
+.clickable-block:hover {
+  border-radius: 10px;
+  background-color: #0f0f0f0f;
+  /*border-bottom: 5px solid red;*/
+}
+
 
 /* BASE : Navigation Bar */
 .navbar-header {
