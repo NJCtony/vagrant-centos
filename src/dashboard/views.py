@@ -89,6 +89,13 @@ def overview(request):
     return render(request, 'dashboard/overview.html', context)
 
 def demand_change(request):
+    # Params to get summary info
+    query_id = request.GET['id'].upper()
+
+    # Summary API
+    clm_summary_json = api_clm_summary(request, query_id).content.decode('utf-8')
+    clm_summary_model = json.loads(clm_summary_json)
+
     records_demand_json = api_records_demand(request).content.decode('utf-8')
     alerts_demand_json = api_alerts_demand(request).content.decode('utf-8')
     alerts_demand_models = json.loads(alerts_demand_json)
@@ -97,16 +104,23 @@ def demand_change(request):
     alerts_length_model = {'demand_increase': len(alerts_demand_models['data'][0]['alerts']['increase']), \
     'demand_decrease': len(alerts_demand_models['data'][0]['alerts']['decrease'])}
 
-    context = {'records_demand': records_demand_json, 'alerts_demand': alerts_demand_models, 'bp_demand': bp_demand_json, 'alert_length': alerts_length_model}
+    context = {'clm_summary': clm_summary_model, 'records_demand': records_demand_json, 'alerts_demand': alerts_demand_models, 'bp_demand': bp_demand_json, 'alert_length': alerts_length_model}
     return render(request, 'dashboard/demand_change.html', context)
 
 def supply_change(request):
+    # Params to get summary info
+    query_id = request.GET['id'].upper()
+
+    # Summary API
+    clm_summary_json = api_clm_summary(request, query_id).content.decode('utf-8')
+    clm_summary_model = json.loads(clm_summary_json)
+
     records_supply_json = api_records_supply(request).content.decode('utf-8')
     alerts_supply_json = api_alerts_supply(request).content.decode('utf-8')
     alerts_supply_models = json.loads(alerts_supply_json)
     bp_supply_json = api_bp_supply(request).content.decode('utf-8')
 
-    context = {'records_supply': records_supply_json, 'alerts_supply': alerts_supply_models, 'bp_supply': bp_supply_json}
+    context = {'clm_summary': clm_summary_model, 'records_supply': records_supply_json, 'alerts_supply': alerts_supply_models, 'bp_supply': bp_supply_json}
     return render(request, 'dashboard/supply_change.html', context)
 
 def need_one(request):
