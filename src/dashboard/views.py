@@ -347,7 +347,7 @@ def api_alerts(request, alert_type):
             soldtoname_data = {} # Each soldtoname is an entry into data
 
             if alert_type == 'demand':
-                demand_values = ('soldtoname', 'salesname', 'monat', 'diff_umwteuro', 'sc_diff_umwteuro_percent', 'diff_umwtpcs_percent') # Define field to be be shown
+                demand_values = ('soldtoname', 'salesname', 'monat', 'diff_umwteuro', 'sc_diff_umwteuro_percent', 'diff_umwteuro') # Define field to be be shown
 
                 if query_aggregate and not oneSoldtoname:
                     alerts_query = DemandChangeRecord.objects.filter(alert_flag=1).values(*demand_values)
@@ -362,7 +362,7 @@ def api_alerts(request, alert_type):
                 soldtoname_data['alerts'] = {'increase': list(alerts_increase), 'decrease': list(alerts_decrease)}
 
             elif alert_type == 'supply':
-                supply_values = ('soldtoname', 'salesname', 'alert_percentage') # Define field to be be shown
+                supply_values = ('soldtoname', 'salesname', 'alert_percentage', 'diff_umwtpcs_3WPeriod') # Define field to be be shown
 
                 if query_aggregate and not oneSoldtoname:
                     alerts_query = SupplyChangeRecord.objects.filter(alert_flag=1).values(*supply_values)

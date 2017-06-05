@@ -126,14 +126,14 @@ html, body {
 /* OVERVIEW : BP*/
 
 .overview-bp {
-    width: 20px;
-    height: 20px;
-    /*background: white;*/
-    background: red;
+    width: 30px;
+    height: 30px;
+    color: white;
     border-radius: 50%;
     /*border: 7px solid red;*/
     margin: 0;
-    /vertical-align: top;
+    vertical-align: top;
+    line-height: 27px;
 }
 
 
@@ -145,8 +145,8 @@ html, body {
 }
 
 .overview-alert-heading-text {
-    margin: 0;
-    line-height: 0;
+    /*margin: 0;*/
+    /*line-height: 0;*/
 }
 
 .overview-alert-content:not(:last-child) {

@@ -32,14 +32,14 @@
             <td>{{ soldtoname }}</td>
             <td class="clickable-block" data-href="{% url 'dashboard:demand_change' %}?id={{ clm_code }}&soldtoindex={{ forloop.counter0 }}">
               <div style="text-align:center;">
-                <div style="vertical-align:top; display:inline-block;">
+                <div title="Business Performance" style="vertical-align:top; display:inline-block;">
                   {% if bp_demand.bp > 100 %}
-                  <div class="overview-bp" style="background: green;"></div>
+                  <div class="overview-bp" style="background: green;">BP</div>
                   {% else %}
-                  <div class="overview-bp"></div>
+                  <div class="overview-bp" style="background: red;">BP</div>
                   {% endif %}
                 </div>
-                <div style="display:inline-block;">
+                <div title="Structural Performance" style="display:inline-block;">
                   <div class="overview-records-chart">
                     <iframe src="{% url 'dashboard:api_records_demand_chart' %}?id={{ clm_code }}&soldtoindex={{ forloop.counter0 }}&image={{ forloop.counter0 }}" style="border:none; width:100%; height:100%;"></iframe>
                   </div>
@@ -49,14 +49,14 @@
 
             <td class="clickable-block" data-href="{% url 'dashboard:supply_change' %}?id={{ clm_code }}&soldtoindex={{ forloop.counter0 }}">
               <div style="text-align:center;">
-                <div style="vertical-align:top; display:inline-block;">
+                <div title="Business Performance" style="vertical-align:top; display:inline-block;">
                   {% if bp_supply.bp >= 93 %}
-                  <div class="inline overview-bp" style="background: green;"></div>
+                  <div class="overview-bp" style="background: green;">BP</div>
                   {% else %}
-                  <div class="inline overview-bp"></div>
+                  <div class="overview-bp" style="background: red;">BP</div>
                   {% endif %}
                 </div>
-                <div style="display:inline-block;">
+                <div title="Structural Performance" style="display:inline-block;">
                   <div class="overview-records-chart">
                     <iframe src="{% url 'dashboard:api_records_supply_chart' %}?id={{ clm_code }}&soldtoindex={{ forloop.counter0 }}&image={{ forloop.counter0 }}" style="border:none; width:100%; height:100%;"></iframe>
                   </div>
@@ -72,51 +72,6 @@
     </div>
   </div>
 
-
-  <!-- {% for bp_demand, bp_supply in bp_models %}
-  {% with bp_demand.soldtoname as soldtoname %}
-  <div class="panel panel-default">
-    <div class="panel-body overview-panel">
-
-        <div class="col-md-4 overview-col-left">
-          <div class="overview-records-soldtoname">
-
-            <p><b>{{ soldtoname }}</b></p>
-          </div>
-        </div>
-
-        <div class="col-md-8 overview-col-left">
-          <div class="overview-records-content">
-            <div class="inline overview-bp-container">
-              {% if bp_demand.bp > 100 %}
-              <div class="overview-bp" style="background: green;"></div>
-              {% else %}
-              <div class="overview-bp"></div>
-              {% endif %}
-            </div>
-
-            <div class="inline overview-records-chart">
-              <iframe src="{% url 'dashboard:api_records_demand_chart' %}?id=K03&soldtoindex={{ forloop.counter0 }}&image={{ forloop.counter0 }}" style="border:none; width:100%; height:100%;"></iframe>
-            </div>
-
-            <div class="inline overview-bp-container">
-              {% if bp_supply.bp >= 93 %}
-              <div class="overview-bp" style="background: green;"></div>
-              {% else %}
-              <div class="overview-bp"></div>
-              {% endif %}
-            </div>
-
-            <div class="inline overview-records-chart">
-              <iframe src="{% url 'dashboard:api_records_supply_chart' %}?id=K03&soldtoindex={{ forloop.counter0 }}&image={{ forloop.counter0 }}" style="border:none; width:100%; height:100%;"></iframe>
-            </div>
-
-          </div>
-        </div>
-    </div>
-  </div>
-  {% endwith %}
-  {% endfor %} -->
 </div>
 
 <div class="col-md-4 min-panel-width"> <!-- Right Column -->
