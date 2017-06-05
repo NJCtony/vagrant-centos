@@ -203,15 +203,19 @@ def api_records(request, alert_type):
                 for salesname_item in salesname_list: # iterate ea salesname
 
                     salesname_sc = [] # set of structural-change-% for each sales-name
+                    salesname_alert = []
                     for monat_item in monat_list:
-                        if DemandChangeRecord.objects.filter(clm_code=query_id, soldtoname=soldtoname_choice, salesname=salesname_item, monat=monat_item).values('sc_diff_umwteuro_percent').exists():
-                            salesname_sc.append(DemandChangeRecord.objects.filter(clm_code=query_id, soldtoname=soldtoname_choice,salesname=salesname_item, monat=monat_item) \
-                            .values('sc_diff_umwteuro_percent')[0]['sc_diff_umwteuro_percent'])
+                        if DemandChangeRecord.objects.filter(clm_code=query_id, soldtoname=soldtoname_choice, salesname=salesname_item, monat=monat_item).values('sc_diff_umwteuro_percent', 'alert_flag').exists():
+                            record_query = DemandChangeRecord.objects.filter(clm_code=query_id, soldtoname=soldtoname_choice,salesname=salesname_item, monat=monat_item).values('sc_diff_umwteuro_percent', 'alert_flag')
+
+                            salesname_sc.append(record_query[0]['sc_diff_umwteuro_percent'])
+                            salesname_alert.append(record_query[0]['alert_flag'])
                             # if len(DemandChangeRecord.objects.filter(clm_code=query_id, soldtoname=soldtoname_choice,salesname=salesname_item, monat=monat_item) \
                             # .values('sc_diff_umwteuro_percent')) > 1:
                             #     print("Error(api_records_demand) : Multiple entries for", salesname_item, monat_item)
                         else:
                             salesname_sc.append(0.0) # fix: fill up missing values
+                            salesname_alert.append(False)
                             # print('(WARNING) api_records_{}>: Filled missing value for {} {}'.format(alert_type, salesname_item, monat_item))
 
                     for i in range(len(salesname_sc)):
@@ -219,7 +223,7 @@ def api_records(request, alert_type):
                             sc_mean[i] += salesname_sc[i]
                             sc_count[i] += 1
 
-                    soldtoname_data['salesnames'].append({'salesname': salesname_item, 'sc': salesname_sc})
+                    soldtoname_data['salesnames'].append({'salesname': salesname_item, 'sc': salesname_sc, 'alert_flag': salesname_alert})
 
             elif alert_type == 'supply':
                 soldtoname_data['soldtoname'] = soldtoname_choice
@@ -246,7 +250,7 @@ def api_records(request, alert_type):
                     soldtoname_data['salesnames'].append({'salesname': salesname_item, 'sc': salesname_sc})
 
             for i in range(len(sc_mean)):
-                if sc_mean[i] > 0:
+                if sc_mean[i] != 0:
                     sc_mean[i] /= sc_count[i]
                 sc_mean[i] = round(sc_mean[i], 1)
 
@@ -361,6 +365,15 @@ def api_alerts(request, alert_type):
                 alerts = alerts_query.order_by('abs_num_sd_diff').reverse()
                 if query_limit:
                     alerts = alerts[:query_limit]
+
+                for alert in alerts:
+                    if alert['num_sd_diff'] >= 0:
+                        alert['color'] = 'green'
+                        alert['direction'] = 'up'
+                    else:
+                        alert['color'] = 'red'
+                        alert['direction'] = 'down'
+
                 soldtoname_data['alerts'] = list(alerts)
 
             data.append(soldtoname_data)

@@ -1,5 +1,7 @@
 {% extends 'dashboard/_base.html' %}
-{% block title %}Demand Changes{% endblock %}
+
+{% block title %}Dashboard:Demand Changes{% endblock %}
+
 {% block content %}
   <div class="col-md-5 min-panel-width"> <!-- Left Column -->
     <div class="panel panel-info"> <!-- Right Column -->
@@ -15,6 +17,7 @@
     <div class="panel panel-success">
       <div class="panel-heading">
         <b>Alerts: Demand Increase</b>
+        <em>(umwt &euro;)</em>
         <!-- <div class="arrow-up inline"></div> -->
       </div>
       <div class="panel-body">
@@ -27,7 +30,7 @@
             <div>
               <p class="sc-text inline">{{ alert.monat }}</p>
               <div class="right">
-                <h3 class="sc-text inline">{{ alert.sc_diff_umwteuro_percent }}&euro;%</h3>
+                <h3 class="sc-text inline">{{ alert.sc_diff_umwteuro_percent }}%</h3>
                 <div class="arrow-up inline"></div>
               </div>
             </div>
@@ -45,7 +48,7 @@
               <div>
                 <p class="sc-text inline">{{ alert.monat }}</p>
                 <div class="right">
-                  <h3 class="sc-text inline">{{ alert.sc_diff_umwteuro_percent }}&euro;%</h3>
+                  <h3 class="sc-text inline">{{ alert.sc_diff_umwteuro_percent }}%</h3>
                   <div class="arrow-up inline"></div>
                 </div>
               </div>
@@ -64,7 +67,8 @@
     {% if alerts_demand.data.0.alerts.decrease %}
     <div class="panel panel-danger">
       <div class="panel-heading">
-        <b>Alerts: Demand Increase</b>
+        <b>Alerts: Demand Decrease</b>
+        <em>(umwt &euro;)</em>
         <!-- <div class="arrow-up inline"></div> -->
       </div>
       <div class="panel-body">

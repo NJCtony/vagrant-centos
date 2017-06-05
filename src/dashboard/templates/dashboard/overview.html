@@ -1,11 +1,14 @@
 {% extends 'dashboard/_base.html' %}
 
+{% block title %}Dashboard:Overview{% endblock %}
+
 {% block content %}
 <link rel="prefetch" href="{% url 'dashboard:api_records_demand_chart' %}?id=K03&soldtoindex=0&image=11">
 <div class="col-md-8 min-panel-width"> <!-- Left Column -->
-  {% if not user.is_anonymous %}
+  <!-- {% if not user.is_anonymous %}
   <h3 class='overview-heading'>Hello, {{ user }}!</h3>
-  {% endif %}
+  {% endif %} -->
+  <h3 class='overview-heading'>Overview</h3>
 
   <!-- <p>{% url 'dashboard:api_records_demand_chart' %}?id=K03&soldtoindex={{ forloop.counter0 }}&image=11</p> -->
   <!-- https://stackoverflow.com/questions/12196435/javascript-function-return-src-path -->
@@ -125,8 +128,7 @@
 
       {% if alerts_demand.data.0.alerts.increase %}
       <div class="overview-alert-heading">
-        <h4 class="overview-alert-heading-text inline">Demand</h4>
-        <div class="arrow-up inline"></div>
+        <h4 class="overview-alert-heading-text inline">Demand Increase</h4>
       </div>
       <div class ="overview-alert-content">
 
@@ -142,7 +144,9 @@
             <div>
               <p class="sc-text inline">{{ alert.monat }}</p>
               <div class="inline right">
-                <h4 class="sc-text inline">{{ alert.sc_diff_umwteuro_percent }}&euro;%</h4>
+                <h4 class="sc-text inline green">{{ alert.sc_diff_umwteuro_percent }}</h4>
+                <h5 class="sc-text inline green">&euro;%</h5>
+                <div class="arrow-up inline"></div>
               </div>
             </div>
           </div>
@@ -153,8 +157,7 @@
 
       {% if alerts_demand.data.0.alerts.decrease %}
       <div class="overview-alert-heading">
-        <h4 class="overview-alert-heading-text inline">Demand</h4>
-        <div class="arrow-down inline"></div>
+        <h4 class="overview-alert-heading-text inline">Demand Decrease</h4>
       </div>
       <div class ="overview-alert-content">
 
@@ -170,7 +173,9 @@
             <div>
               <p class="sc-text inline">{{ alert.monat }}</p>
               <div class="inline right">
-                <h4 class="sc-text inline">{{ alert.diff_umwteuro }}&euro;</h4>
+                <h4 class="sc-text inline red">{{ alert.diff_umwteuro }}</h4>
+                <h5 class="sc-text inline red">&euro;</h5>
+                <div class="arrow-down inline"></div>
               </div>
             </div>
           </div>
@@ -181,8 +186,7 @@
 
       {% if alerts_supply.data.0.alerts %}
       <div class="overview-alert-heading">
-        <h4 class="overview-alert-heading-text inline">Supply</h4>
-        <div class="arrow-down inline"></div>
+        <h4 class="overview-alert-heading-text inline">Supply Decrease</h4>
       </div>
       <div class ="overview-alert-content">
 
@@ -198,7 +202,10 @@
             <div>
               <p class="sc-text inline"></p>
               <div class="inline right">
-                <h4 class="sc-text inline">{{ alert.alert_percentage }}%</h4>
+
+                <h4 class="sc-text inline red">to {{ alert.alert_percentage }}</h4>
+                <h5 class="sc-text inline red">% pcs</h5>
+                <div class="arrow-down inline"></div>
               </div>
             </div>
           </div>
@@ -213,7 +220,6 @@
       </div>
       <div class ="overview-alert-content">
 
-        <!--  TODO: Replace with alerts_order -->
         {% for alert in alerts_order.data.0.alerts %}
         <div class="card">
           <div class="overview-card-container">
@@ -226,7 +232,8 @@
             <div>
               <p class="sc-text inline">{{ alert.monat }}</p>
               <div class="inline right">
-                <h4 class="sc-text inline">{{ alert.num_sd_diff }}&sigma;</h4>
+                <h4 class="sc-text inline {{ alert.color }}">{{ alert.num_sd_diff }}&sigma;</h4>
+                <div class="arrow-{{ alert.direction }} inline"></div>
               </div>
             </div>
           </div>

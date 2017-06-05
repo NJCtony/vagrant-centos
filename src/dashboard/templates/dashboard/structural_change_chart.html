@@ -9,14 +9,14 @@
     return 'rgba(' + value_list[0].toString() + ',' + value_list[1].toString() + ',' + value_list[2].toString() + ',' + opacity.toString() + ')';
   }
 
-  function sc_rgb_colormap(value) {
+  function sc_rgb_colormap(value, alert_flag) {
     {% if records_demand %}
-    return sc_demand_colormap(value);
+    return sc_demand_colormap(value, alert_flag);
     {% elif records_supply %}
     return sc_supply_colormap(value);
     {% endif %}
   }
-  function sc_demand_colormap(value) {
+  function sc_demand_colormap(value, alert_flag) {
     // var base1 = [0, 162, 189];
     // var base2 = [255, 162, 189];
     // var diff = [base2[0]-base1[0], base2[1]-base1[1], base2[2]-base1[2]];
@@ -27,12 +27,13 @@
     // }
     // return rgbToString(result, 1);
 
-    var blue = [0, 0, 128];
-    var red = [255, 0, 0];
-    if (Math.abs(value) >= 50) {
-      return rgbToString(red, 1);
+    var color_normal = [255,245,157];
+    var color_alert = [249,168,37];
+
+    if (alert_flag == true) {
+      return rgbToString(color_alert, 1);
     }
-    return rgbToString(blue, 1);
+    return rgbToString(color_normal, 1);
   }
   function sc_supply_colormap(value) {
     var blue = [0, 0, 128];
@@ -58,7 +59,7 @@
       chart.parentNode.style.height = '150px';
       chart.parentNode.style.width = '170px';
       show_labels = false;
-      step_size = 50;
+      step_size = 100;
       font_size = 10;
     }
 
@@ -77,17 +78,20 @@
     mean_entry.data = jsonData.data[0].means;
     mean_entry.fill = false;
     mean_entry.showLine = false;
-    mean_entry.pointStyle = 'triangle';
+    mean_entry.pointStyle = 'rectRot';
+    mean_entry.pointBorderWidth = 2;
 
     // Color mapping for mean
-    var black = rgbToString([10,10,10], 1);
-    var blackList = [black,black,black];
-    var meanColor = rgbToString([227,243,53], 1);
-    var colorList = [meanColor,meanColor,meanColor];
-    mean_entry.pointBackgroundColor = colorList;
-    mean_entry.pointBorderColor = blackList;
-    mean_entry.pointHoverBackgroundColor = colorList;
-    mean_entry.pointHoverBorderColor = blackList;
+    var border_color = rgbToString([170,170,170], 1);
+    var border_color_list = [border_color,border_color,border_color];
+    var black_color = rgbToString([30,30,30], 1);
+    var black_color_list = [black_color,black_color,black_color];
+    var meanColor = rgbToString([245,127,23], 1);
+    var color_list = [meanColor,meanColor,meanColor];
+    mean_entry.pointBackgroundColor = color_list;
+    mean_entry.pointBorderColor = black_color;
+    mean_entry.pointHoverBackgroundColor = color_list;
+    mean_entry.pointHoverBorderColor = black_color;
     mean_entry.pointRadius = 12;
     mean_entry.pointHoverRadius = 12;
     mean_entry.pointHitRadius = 0;
@@ -101,6 +105,7 @@
       // Defination of each dataset
       sc_entry.label = salesname_data.salesname;
       sc_entry.data = salesname_data.sc;
+      sc_entry.alert_flag = salesname_data.alert_flag;
       sc_entry.fill = false;
       sc_entry.showLine = false;
       sc_entry.pointStyle = 'circle';
@@ -109,13 +114,13 @@
       sc_entry.pointHitRadius = 0;
 
       // Color mapping
-      var rgb0 = sc_rgb_colormap(sc_entry.data[0]);
-      var rgb1 = sc_rgb_colormap(sc_entry.data[1]);
-      var rgb2 = sc_rgb_colormap(sc_entry.data[2]);
+      var rgb0 = sc_rgb_colormap(sc_entry.data[0], sc_entry.alert_flag[0]);
+      var rgb1 = sc_rgb_colormap(sc_entry.data[1], sc_entry.alert_flag[1]);
+      var rgb2 = sc_rgb_colormap(sc_entry.data[2], sc_entry.alert_flag[2]);
       sc_entry.pointBackgroundColor = [rgb0, rgb1, rgb2];
-      sc_entry.pointBorderColor = blackList;
+      sc_entry.pointBorderColor = border_color_list;
       sc_entry.pointHoverBackgroundColor = [rgb0, rgb1, rgb2];
-      sc_entry.pointHoverBorderColor = blackList;
+      sc_entry.pointHoverBorderColor = border_color_list;
 
       sc_dataset.push(sc_entry);
     }
@@ -194,7 +199,7 @@
               fontSize: font_size
             },
             gridLines : {
-              // display: false,
+              display: false,
               drawBorder: false,
               // lineWidth: [0,1,0],
               // drawOnChartArea: true,
