@@ -191,10 +191,11 @@ def api_records(request, alert_type):
 
             # Each soldtoname is an entry into data
             soldtoname_data = {}
-            sc_mean = [0.0, 0.0, 0.0]
+            sc_mean = []
             sc_count = [0, 0, 0]
 
             if alert_type == 'demand':
+                sc_mean = [0.0, 0.0, 0.0]
                 soldtoname_data['soldtoname'] = soldtoname_choice
                 monat_list = [temp_dict['monat'] for temp_dict in DemandChangeRecord.objects.values('monat').distinct()]
                 soldtoname_data['labels'] = monat_list
@@ -226,6 +227,7 @@ def api_records(request, alert_type):
                     soldtoname_data['salesnames'].append({'salesname': salesname_item, 'sc': salesname_sc, 'alert_flag': salesname_alert})
 
             elif alert_type == 'supply':
+                sc_mean = [100.0, 100.0, 100.0]
                 soldtoname_data['soldtoname'] = soldtoname_choice
                 monat_list = [temp_dict['monat'] for temp_dict in SupplyChangeRecord.objects.values('monat').distinct()]
                 soldtoname_data['labels'] = monat_list
@@ -254,7 +256,7 @@ def api_records(request, alert_type):
                     soldtoname_data['salesnames'].append({'salesname': salesname_item, 'sc': salesname_sc, 'alert_flag': salesname_alert})
 
             for i in range(len(sc_mean)):
-                if sc_mean[i] != 0:
+                if sc_count[i] != 0 :
                     sc_mean[i] /= sc_count[i]
                 sc_mean[i] = round(sc_mean[i], 1)
 

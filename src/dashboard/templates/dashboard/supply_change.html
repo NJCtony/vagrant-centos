@@ -17,9 +17,10 @@
     <div class="panel-heading">
       <b>Alerts: Supply Decrease</b>
       <em>(umat %)</em>
+      <!-- <div class="arrow-up inline"></div> -->
     </div>
-    {% if alerts_supply.data.0.alerts %}
 
+    {% if alerts_supply.data.0.alerts %}
     <div class="panel-body">
       {% for alert in alerts_supply.data.0.alerts|slice:":4" %}
       <div class="card">
@@ -39,7 +40,7 @@
       {% endfor %}
 
       <div id="demo_decrease" class="collapse">
-        {% for alert in alerts_demand.data.0.alerts.decrease|slice:"4:" %}
+        {% for alert in alerts_supply.data.0.alerts|slice:"4:" %}
         <div class="card">
           <div class="card-container">
             <div>
@@ -57,14 +58,16 @@
         {% endfor %}
       </div>
 
+    </div>
     {% else %}
     <div class="comtainer text-center">
         <h5>- No Alerts -</h5>
     </div>
 
     {% endif %}
-    {% if alerts_demand.data.0.alerts.decrease|length > 4 %}
-    <div class="panel-footer" data-toggle="collapse" data-target="#demo_increase">
+
+    {% if alerts_supply.data.0.alerts|length > 4 %}
+    <div class="panel-footer" data-toggle="collapse" data-target="#demo_decrease">
       <span class="glyphicon glyphicon-menu-down"></span>
     </div>
   </div>
