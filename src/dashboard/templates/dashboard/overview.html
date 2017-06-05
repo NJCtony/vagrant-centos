@@ -4,7 +4,7 @@
 <link rel="prefetch" href="{% url 'dashboard:api_records_demand_chart' %}?id=K03&soldtoindex=0&image=11">
 <div class="col-md-8 min-panel-width"> <!-- Left Column -->
   {% if not user.is_anonymous %}
-  <h3>Hello, {{ user }}!</h3>
+  <h3 class='overview-heading'>Hello, {{ user }}!</h3>
   {% endif %}
 
   <!-- <p>{% url 'dashboard:api_records_demand_chart' %}?id=K03&soldtoindex={{ forloop.counter0 }}&image=11</p> -->
