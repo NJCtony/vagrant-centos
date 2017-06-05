@@ -338,14 +338,14 @@ def api_alerts(request, alert_type):
                 soldtoname_data['alerts'] = {'increase': list(alerts_increase), 'decrease': list(alerts_decrease)}
 
             elif alert_type == 'supply':
-                supply_values = ('soldtoname', 'salesname', 'sc_diff_umatpcs_percentage') # Define field to be be shown
+                supply_values = ('soldtoname', 'salesname', 'alert_percentage') # Define field to be be shown
 
                 if query_aggregate and not oneSoldtoname:
                     alerts_query = SupplyChangeRecord.objects.filter(alert_flag=1).values(*supply_values)
                 else:
                     alerts_query = SupplyChangeRecord.objects.filter(soldtoname = soldtoname_choice, alert_flag=1).values(*supply_values)
 
-                alerts = alerts_query.order_by('sc_diff_umatpcs_percentage')
+                alerts = alerts_query.order_by('alert_percentage')
                 if query_limit:
                     alerts = alerts[:query_limit]
                 soldtoname_data['alerts'] = list(alerts)
