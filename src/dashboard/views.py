@@ -12,6 +12,7 @@ from django.contrib.auth import login as auth_login
 from django.contrib.auth import logout as auth_logout
 from django.shortcuts import redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
 
 # Models
 from .models import DemandChangeRecord, SupplyChangeRecord, OrderDiscrepancyRecord, BusinessPerformance, Profile
@@ -45,6 +46,7 @@ class LoginView(View):
 
         if user is not None:
             auth_login(request, user)
+
             return redirect('dashboard:overview')
 
         return render(request, self.template_name, {
@@ -52,76 +54,85 @@ class LoginView(View):
             'error_message': 'The username and password provided do not match.'
         })
 
-@login_required
-def overview(request):
-    # template = loader.get_template('dashboard/overview.html')
-    query_id = 'k03'
-    query_limit = '3'
-    query_aggregate = '1'
+@method_decorator(login_required, name='dispatch')
+class OverviewView(View):
+    template_name = 'dashboard/overview.html'
+    def get(self, request):
+        print(request)
+        query_id = 'k03'
+        query_limit = '3'
+        query_aggregate = '1'
 
-    request.GET = request.GET.copy() # Make DjangoDict mutable
+        request.GET = request.GET.copy() # Make DjangoDict mutable
 
-    # Params to get summary info
-    request.GET.appendlist('id', query_id.upper())
-    # Summary API
-    clm_summary_json = api_clm_summary(request, query_id).content.decode('utf-8')
-    clm_summary_model = json.loads(clm_summary_json)
+        # Params to get summary info
+        request.GET.appendlist('id', query_id.upper())
+        # Summary API
+        clm_summary_json = api_clm_summary(request, query_id).content.decode('utf-8')
+        clm_summary_model = json.loads(clm_summary_json)
 
-    # Params for to limit and aggregate Alerts
-    request.GET.appendlist('limit', query_limit)
-    request.GET.appendlist('aggregate', query_aggregate)
-    # Alerts API
-    alerts_demand_json = api_alerts_demand(request).content.decode('utf-8')
-    alerts_demand_model = json.loads(alerts_demand_json)
-    alerts_supply_json = api_alerts_supply(request).content.decode('utf-8')
-    alerts_supply_model = json.loads(alerts_supply_json)
-    alerts_order_json = api_alerts_order(request).content.decode('utf-8')
-    alerts_order_model = json.loads(alerts_order_json)
+        # Params for to limit and aggregate Alerts
+        request.GET.appendlist('limit', query_limit)
+        request.GET.appendlist('aggregate', query_aggregate)
+        # Alerts API
+        alerts_demand_json = api_alerts_demand(request).content.decode('utf-8')
+        alerts_demand_model = json.loads(alerts_demand_json)
+        alerts_supply_json = api_alerts_supply(request).content.decode('utf-8')
+        alerts_supply_model = json.loads(alerts_supply_json)
+        alerts_order_json = api_alerts_order(request).content.decode('utf-8')
+        alerts_order_model = json.loads(alerts_order_json)
 
-    bp_demand_json = api_bp_demand(request).content.decode('utf-8')
-    bp_demand_model = json.loads(bp_demand_json)['data']
-    bp_supply_json = api_bp_supply(request).content.decode('utf-8')
-    bp_supply_model = json.loads(bp_supply_json)['data']
-    bp_models = zip(bp_demand_model, bp_supply_model)
+        bp_demand_json = api_bp_demand(request).content.decode('utf-8')
+        bp_demand_model = json.loads(bp_demand_json)['data']
+        bp_supply_json = api_bp_supply(request).content.decode('utf-8')
+        bp_supply_model = json.loads(bp_supply_json)['data']
+        bp_models = zip(bp_demand_model, bp_supply_model)
 
-    context = {'clm_summary': clm_summary_model, 'bp_models': bp_models, \
-    'alerts_demand': alerts_demand_model, 'alerts_supply': alerts_supply_model, 'alerts_order': alerts_order_model}
-    return render(request, 'dashboard/overview.html', context)
+        context = {'clm_summary': clm_summary_model, 'bp_models': bp_models, \
+        'alerts_demand': alerts_demand_model, 'alerts_supply': alerts_supply_model, 'alerts_order': alerts_order_model}
+        return render(request, self.template_name, context)
 
-def demand_change(request):
-    # Params to get summary info
-    query_id = request.GET['id'].upper()
+@method_decorator(login_required, name='dispatch')
+class DemandView(View):
+    template_name = 'dashboard/demand_change.html'
+    def get(self, request):
+        # Params to get summary info
+        query_id = request.GET['id'].upper()
 
-    # Summary API
-    clm_summary_json = api_clm_summary(request, query_id).content.decode('utf-8')
-    clm_summary_model = json.loads(clm_summary_json)
+        # Summary API
+        clm_summary_json = api_clm_summary(request, query_id).content.decode('utf-8')
+        clm_summary_model = json.loads(clm_summary_json)
 
-    records_demand_json = api_records_demand(request).content.decode('utf-8')
-    alerts_demand_json = api_alerts_demand(request).content.decode('utf-8')
-    alerts_demand_models = json.loads(alerts_demand_json)
-    bp_demand_json = api_bp_demand(request).content.decode('utf-8')
+        records_demand_json = api_records_demand(request).content.decode('utf-8')
+        alerts_demand_json = api_alerts_demand(request).content.decode('utf-8')
+        alerts_demand_models = json.loads(alerts_demand_json)
+        bp_demand_json = api_bp_demand(request).content.decode('utf-8')
 
-    alerts_length_model = {'demand_increase': len(alerts_demand_models['data'][0]['alerts']['increase']), \
-    'demand_decrease': len(alerts_demand_models['data'][0]['alerts']['decrease'])}
+        alerts_length_model = {'demand_increase': len(alerts_demand_models['data'][0]['alerts']['increase']), \
+        'demand_decrease': len(alerts_demand_models['data'][0]['alerts']['decrease'])}
 
-    context = {'clm_summary': clm_summary_model, 'records_demand': records_demand_json, 'alerts_demand': alerts_demand_models, 'bp_demand': bp_demand_json, 'alert_length': alerts_length_model}
-    return render(request, 'dashboard/demand_change.html', context)
+        context = {'clm_summary': clm_summary_model, 'records_demand': records_demand_json, 'alerts_demand': alerts_demand_models, 'bp_demand': bp_demand_json, 'alert_length': alerts_length_model}
+        return render(request, self.template_name, context)
 
-def supply_change(request):
-    # Params to get summary info
-    query_id = request.GET['id'].upper()
+@method_decorator(login_required, name='dispatch')
+class SupplyView(View):
+    template_name = 'dashboard/supply_change.html'
 
-    # Summary API
-    clm_summary_json = api_clm_summary(request, query_id).content.decode('utf-8')
-    clm_summary_model = json.loads(clm_summary_json)
+    def get(self, request):
+        # Params to get summary info
+        query_id = request.GET['id'].upper()
 
-    records_supply_json = api_records_supply(request).content.decode('utf-8')
-    alerts_supply_json = api_alerts_supply(request).content.decode('utf-8')
-    alerts_supply_models = json.loads(alerts_supply_json)
-    bp_supply_json = api_bp_supply(request).content.decode('utf-8')
+        # Summary API
+        clm_summary_json = api_clm_summary(request, query_id).content.decode('utf-8')
+        clm_summary_model = json.loads(clm_summary_json)
 
-    context = {'clm_summary': clm_summary_model, 'records_supply': records_supply_json, 'alerts_supply': alerts_supply_models, 'bp_supply': bp_supply_json}
-    return render(request, 'dashboard/supply_change.html', context)
+        records_supply_json = api_records_supply(request).content.decode('utf-8')
+        alerts_supply_json = api_alerts_supply(request).content.decode('utf-8')
+        alerts_supply_models = json.loads(alerts_supply_json)
+        bp_supply_json = api_bp_supply(request).content.decode('utf-8')
+
+        context = {'clm_summary': clm_summary_model, 'records_supply': records_supply_json, 'alerts_supply': alerts_supply_models, 'bp_supply': bp_supply_json}
+        return render(request, 'self.template_name', context)
 
 def need_one(request):
     num_decline_alerts = 2
