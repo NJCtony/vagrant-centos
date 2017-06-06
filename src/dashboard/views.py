@@ -132,7 +132,7 @@ class SupplyView(View):
         bp_supply_json = api_bp_supply(request).content.decode('utf-8')
 
         context = {'clm_summary': clm_summary_model, 'records_supply': records_supply_json, 'alerts_supply': alerts_supply_models, 'bp_supply': bp_supply_json}
-        return render(request, 'self.template_name', context)
+        return render(request, self.template_name, context)
 
 def need_one(request):
     num_decline_alerts = 2
