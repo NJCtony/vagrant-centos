@@ -1,7 +1,7 @@
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.template import loader
-from django.views import generic
+from django.urls import reverse
 from django.views.generic import View
 from django.core import serializers
 import operator, json, time
@@ -12,6 +12,7 @@ from django.contrib.auth import login as auth_login
 from django.contrib.auth import logout as auth_logout
 from django.shortcuts import redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
 
 # Models
 from .models import DemandChangeRecord, SupplyChangeRecord, OrderDiscrepancyRecord, BusinessPerformance, Profile
@@ -45,6 +46,10 @@ class LoginView(View):
 
         if user is not None:
             auth_login(request, user)
+
+            # TODO: Replace with actual clm_code when scaling up to serve different users
+            request.session['id'] = 'K03'
+
             return redirect('dashboard:overview')
 
         return render(request, self.template_name, {
@@ -52,76 +57,88 @@ class LoginView(View):
             'error_message': 'The username and password provided do not match.'
         })
 
-@login_required
-def overview(request):
-    # template = loader.get_template('dashboard/overview.html')
-    query_id = 'k03'
-    query_limit = '3'
-    query_aggregate = '1'
+class DefaultView(View):
+    query_params = []
+    def request_with_params(self, request_get):
+        for k, v in self.query_params:
+            request_get.appendlist(k, v)
+        return request_get
 
-    request.GET = request.GET.copy() # Make DjangoDict mutable
+@method_decorator(login_required, name='dispatch')
+class OverviewView(DefaultView):
+    template_name = 'dashboard/overview.html'
+    query_params = [['id',''], ['limit','3'], ['aggregate','true']]
 
-    # Params to get summary info
-    request.GET.appendlist('id', query_id.upper())
-    # Summary API
-    clm_summary_json = api_clm_summary(request, query_id).content.decode('utf-8')
-    clm_summary_model = json.loads(clm_summary_json)
+    def get(self, request):
+        self.query_params[0][1] = request.session.get('id')
 
-    # Params for to limit and aggregate Alerts
-    request.GET.appendlist('limit', query_limit)
-    request.GET.appendlist('aggregate', query_aggregate)
-    # Alerts API
-    alerts_demand_json = api_alerts_demand(request).content.decode('utf-8')
-    alerts_demand_model = json.loads(alerts_demand_json)
-    alerts_supply_json = api_alerts_supply(request).content.decode('utf-8')
-    alerts_supply_model = json.loads(alerts_supply_json)
-    alerts_order_json = api_alerts_order(request).content.decode('utf-8')
-    alerts_order_model = json.loads(alerts_order_json)
+        # Load params into get request
+        request.GET = request.GET.copy() # Make DjangoDict mutable
+        request.GET = self.request_with_params(request.GET)
 
-    bp_demand_json = api_bp_demand(request).content.decode('utf-8')
-    bp_demand_model = json.loads(bp_demand_json)['data']
-    bp_supply_json = api_bp_supply(request).content.decode('utf-8')
-    bp_supply_model = json.loads(bp_supply_json)['data']
-    bp_models = zip(bp_demand_model, bp_supply_model)
+        # Summary API
+        clm_summary_json = api_clm_summary(request, self.query_params[0][1]).content.decode('utf-8')
+        clm_summary_model = json.loads(clm_summary_json)
 
-    context = {'clm_summary': clm_summary_model, 'bp_models': bp_models, \
-    'alerts_demand': alerts_demand_model, 'alerts_supply': alerts_supply_model, 'alerts_order': alerts_order_model}
-    return render(request, 'dashboard/overview.html', context)
+        # Alerts API
+        alerts_demand_json = api_alerts_demand(request).content.decode('utf-8')
+        alerts_demand_model = json.loads(alerts_demand_json)
+        alerts_supply_json = api_alerts_supply(request).content.decode('utf-8')
+        alerts_supply_model = json.loads(alerts_supply_json)
+        alerts_order_json = api_alerts_order(request).content.decode('utf-8')
+        alerts_order_model = json.loads(alerts_order_json)
 
-def demand_change(request):
-    # Params to get summary info
-    query_id = request.GET['id'].upper()
+        bp_demand_json = api_bp_demand(request).content.decode('utf-8')
+        bp_demand_model = json.loads(bp_demand_json)['data']
+        bp_supply_json = api_bp_supply(request).content.decode('utf-8')
+        bp_supply_model = json.loads(bp_supply_json)['data']
+        bp_models = zip(bp_demand_model, bp_supply_model)
 
-    # Summary API
-    clm_summary_json = api_clm_summary(request, query_id).content.decode('utf-8')
-    clm_summary_model = json.loads(clm_summary_json)
+        context = {'clm_summary': clm_summary_model, 'bp_models': bp_models, \
+        'alerts_demand': alerts_demand_model, 'alerts_supply': alerts_supply_model, 'alerts_order': alerts_order_model}
+        return render(request, self.template_name, context)
 
-    records_demand_json = api_records_demand(request).content.decode('utf-8')
-    alerts_demand_json = api_alerts_demand(request).content.decode('utf-8')
-    alerts_demand_models = json.loads(alerts_demand_json)
-    bp_demand_json = api_bp_demand(request).content.decode('utf-8')
+@method_decorator(login_required, name='dispatch')
+class DemandView(View):
+    template_name = 'dashboard/demand_change.html'
+    def get(self, request):
+        # Params to get summary info
+        query_id = request.GET['id'].upper()
 
-    alerts_length_model = {'demand_increase': len(alerts_demand_models['data'][0]['alerts']['increase']), \
-    'demand_decrease': len(alerts_demand_models['data'][0]['alerts']['decrease'])}
+        # Summary API
+        clm_summary_json = api_clm_summary(request, query_id).content.decode('utf-8')
+        clm_summary_model = json.loads(clm_summary_json)
 
-    context = {'clm_summary': clm_summary_model, 'records_demand': records_demand_json, 'alerts_demand': alerts_demand_models, 'bp_demand': bp_demand_json, 'alert_length': alerts_length_model}
-    return render(request, 'dashboard/demand_change.html', context)
+        records_demand_json = api_records_demand(request).content.decode('utf-8')
+        alerts_demand_json = api_alerts_demand(request).content.decode('utf-8')
+        alerts_demand_models = json.loads(alerts_demand_json)
+        bp_demand_json = api_bp_demand(request).content.decode('utf-8')
 
-def supply_change(request):
-    # Params to get summary info
-    query_id = request.GET['id'].upper()
+        alerts_length_model = {'demand_increase': len(alerts_demand_models['data'][0]['alerts']['increase']), \
+        'demand_decrease': len(alerts_demand_models['data'][0]['alerts']['decrease'])}
 
-    # Summary API
-    clm_summary_json = api_clm_summary(request, query_id).content.decode('utf-8')
-    clm_summary_model = json.loads(clm_summary_json)
+        context = {'clm_summary': clm_summary_model, 'records_demand': records_demand_json, 'alerts_demand': alerts_demand_models, 'bp_demand': bp_demand_json, 'alert_length': alerts_length_model}
+        return render(request, self.template_name, context)
 
-    records_supply_json = api_records_supply(request).content.decode('utf-8')
-    alerts_supply_json = api_alerts_supply(request).content.decode('utf-8')
-    alerts_supply_models = json.loads(alerts_supply_json)
-    bp_supply_json = api_bp_supply(request).content.decode('utf-8')
+@method_decorator(login_required, name='dispatch')
+class SupplyView(View):
+    template_name = 'dashboard/supply_change.html'
 
-    context = {'clm_summary': clm_summary_model, 'records_supply': records_supply_json, 'alerts_supply': alerts_supply_models, 'bp_supply': bp_supply_json}
-    return render(request, 'dashboard/supply_change.html', context)
+    def get(self, request):
+        # Params to get summary info
+        query_id = request.GET['id'].upper()
+
+        # Summary API
+        clm_summary_json = api_clm_summary(request, query_id).content.decode('utf-8')
+        clm_summary_model = json.loads(clm_summary_json)
+
+        records_supply_json = api_records_supply(request).content.decode('utf-8')
+        alerts_supply_json = api_alerts_supply(request).content.decode('utf-8')
+        alerts_supply_models = json.loads(alerts_supply_json)
+        bp_supply_json = api_bp_supply(request).content.decode('utf-8')
+
+        context = {'clm_summary': clm_summary_model, 'records_supply': records_supply_json, 'alerts_supply': alerts_supply_models, 'bp_supply': bp_supply_json}
+        return render(request, self.template_name, context)
 
 def need_one(request):
     num_decline_alerts = 2
@@ -158,8 +175,7 @@ def need_one(request):
     })
 
 ## JSON API Endpoints
-def api_clm_summary(request, clm_code): # For a specific CLM
-
+def api_clm_summary(request, clm_code=None): # For a specific CLM
     settings = {}
     try:
         profile = Profile.objects.get(clm_code=clm_code)
