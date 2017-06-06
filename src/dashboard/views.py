@@ -140,39 +140,6 @@ class SupplyView(View):
         context = {'clm_summary': clm_summary_model, 'records_supply': records_supply_json, 'alerts_supply': alerts_supply_models, 'bp_supply': bp_supply_json}
         return render(request, self.template_name, context)
 
-def need_one(request):
-    num_decline_alerts = 2
-    num_increase_alerts = 3
-    decline_alert_count = 0
-    increase_alert_count = 0
-
-    records = DemandChangeRecord.objects.all()
-    alerts = []
-
-    alerts_query = DemandChangeRecord.objects.filter(alert_flag="1").order_by('diff_umwteuro')
-
-    for alert in alerts_query:
-        if alert.diff_umwteuro < 0 and decline_alert_count < num_decline_alerts:
-            alerts.append(alert)
-            decline_alert_count += 1
-
-    alerts_query_sorted = sorted(alerts_query, key=operator.attrgetter('sc_diff_umwteuro_percent'), reverse=True)
-
-    for alert in alerts_query_sorted:
-        if alert.sc_diff_umwteuro_percent != 100 and increase_alert_count < num_increase_alerts:
-            alerts.append(alert)
-            increase_alert_count += 1
-
-    for alert in alerts:
-        alerts_query_sorted.remove(alert)
-
-    for alert in alerts_query_sorted:
-        alerts.append(alert)
-
-    return render(request, 'dashboard/need-one.html', {
-        'records': records,
-        'alerts': alerts
-    })
 
 ## JSON API Endpoints
 def api_clm_summary(request, clm_code=None): # For a specific CLM
