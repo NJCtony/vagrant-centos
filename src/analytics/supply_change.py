@@ -4,6 +4,8 @@ from datetime import date
 import MySQLdb
 import time
 
+# Put this as 'True' if you're working on the algorithm and validating the results through the output csv
+is_algorithm_development = False
 
 impt_headers = ["PL", "SO_CLMPool", "CLM_Code", "SoldTo_Name", "SalesName", "AKT_DAY", "Quarter", "MONAT", "OOH_Pcs_WT_CU", "OOH_Euro_WT_CU", "OOH_Pcs_AT_SC", "OOH_Euro_AT_SC", "UM_ST", "UM_EURO", "UM_OOH_WT_CU_pcs", "UM_OOH_AT_SC_pcs"]
 
@@ -36,8 +38,12 @@ def calc_supply_change_percentage(this, last):
     #print this, last, type(this), type(last)
     if (this == np.nan) & (last==np.nan):
         calc = np.nan
-    elif (this==0.0) & (last==0.0):
+    elif ((this == np.nan) & (last==0)) or ((this ==0) & (last==np.nan)) or ((this==0.0) & (last==0.0)):
         calc= baseline
+    elif (this==np.nan):
+        calc = round(baseline+( ((0 - last)/(float(0 + last)))* 100),1)
+    elif (last == np.nan):
+        calc = round(baseline+( ((this - 0)/(float(this + 0)))* 100),1)
     else:
         calc = round(baseline+( ((this - last)/(float(this + last)))* 100),1)
     return calc
@@ -50,9 +56,10 @@ def calc_supply_change_percentage(this, last):
 #   SC account for each W                                  #
 ###############################################################
 
-def calc_supply_change(df):
-    df['UM_WT_Pcs'] =df['UM_ST'].replace('nan', 0)+df['OOH_Pcs_WT_CU'].replace('nan', 0)
-    df['UM_AT_Pcs'] =df['UM_ST'].replace('nan', 0)+df['OOH_Pcs_AT_SC'].replace('nan', 0)
+def calc_supply_change(df, is_algorithm_development):
+    df.fillna(value=0, inplace=True)
+    df['UM_WT_Pcs'] =df['UM_ST'].replace('nan', 0)+df['OOH_Pcs_WT_CU'].fillna(0)
+    df['UM_AT_Pcs'] =df['UM_ST'].replace('nan', 0)+df['OOH_Pcs_AT_SC'].fillna(0)
     df['AKT_DAY'] = pd.to_datetime(df['AKT_DAY'], dayfirst=True)
     recent_akt, last_akt = check_comparison_dates(df['AKT_DAY'])
     recent_month = str(recent_akt)[0:4]+str(recent_akt)[5:7]
@@ -64,13 +71,22 @@ def calc_supply_change(df):
             for salesname in df['SalesName'][(df['CLM_Code']==clm) & (df["SoldTo_Name"]==soldtoname)].fillna("UNKNOWN").unique():
 
                 this_umwtpcs_3WPeriod = df.loc[(df['CLM_Code']==clm) & (df['SoldTo_Name']==soldtoname) & (df["SalesName"]==salesname) & (df["MONAT"].isin([int(m_minus1),int(m),int(m_plus1)])) & (df['AKT_DAY']==recent_akt),"UM_WT_Pcs"].replace('nan',0).sum()
+
                 last_umwtpcs_3WPeriod = df.loc[(df['CLM_Code']==clm) & (df['SoldTo_Name']==soldtoname)& (df["SalesName"]==salesname) & (df["MONAT"].isin([int(m_minus1),int(m),int(m_plus1)])) & (df['AKT_DAY']==last_akt),"UM_WT_Pcs"].replace('nan',0).sum()
+
                 diff_umwtpcs_3WPeriod = round(this_umwtpcs_3WPeriod - last_umwtpcs_3WPeriod,0)
 
-                this_umatpcs_3WPeriod = df.loc[(df['CLM_Code']==clm) & (df['SoldTo_Name']==soldtoname) & (df["SalesName"]==salesname) & (df["MONAT"].isin([int(m_minus1),int(m),int(m_plus1)])) & (df['AKT_DAY']==recent_akt), "UM_AT_Pcs"].replace('nan',0).sum()
-                last_umatpcs_3WPeriod = df.loc[(df['CLM_Code']==clm) & (df['SoldTo_Name']==soldtoname)& (df["SalesName"]==salesname) & (df["MONAT"].isin([int(m_minus1),int(m),int(m_plus1)])) & (df['AKT_DAY']==last_akt), "UM_AT_Pcs"].replace('nan',0).sum()
+                if len(df["UM_AT_Pcs"][(df['CLM_Code']==clm) & (df['SoldTo_Name']==soldtoname) & (df["SalesName"]==salesname) & (df["MONAT"].isin([int(m_minus1),int(m),int(m_plus1)])) & (df['AKT_DAY']==recent_akt)]) == 0:
+                    this_umatpcs_3WPeriod = 0
+                else:
+                    this_umatpcs_3WPeriod = df.loc[(df['CLM_Code']==clm) & (df['SoldTo_Name']==soldtoname) & (df["SalesName"]==salesname) & (df["MONAT"].isin([int(m_minus1),int(m),int(m_plus1)])) & (df['AKT_DAY']==recent_akt), "UM_AT_Pcs"].replace('nan',0).sum()
+
+                if len(df["UM_AT_Pcs"][(df['CLM_Code']==clm) & (df['SoldTo_Name']==soldtoname) & (df["SalesName"]==salesname) & (df["MONAT"].isin([int(m_minus1),int(m),int(m_plus1)])) & (df['AKT_DAY']==last_akt)]) == 0:
+                    last_umatpcs_3WPeriod = 0
+                else:
+                    last_umatpcs_3WPeriod = df.loc[(df['CLM_Code']==clm) & (df['SoldTo_Name']==soldtoname)& (df["SalesName"]==salesname) & (df["MONAT"].isin([int(m_minus1),int(m),int(m_plus1)])) & (df['AKT_DAY']==last_akt), "UM_AT_Pcs"].replace('nan',0).sum()
                 diff_umatpcs_3WPeriod = round(this_umatpcs_3WPeriod - last_umatpcs_3WPeriod,0)
-                diff_umatpcs_3WPeriod_percentage = calc_supply_change_percentage(this_umatpcs_3WPeriod, last_umatpcs_3WPeriod)
+                diff_umatpcs_3WPeriod_percentage = min(calc_supply_change_percentage(this_umatpcs_3WPeriod, last_umatpcs_3WPeriod), 100.0)
 
                 if diff_umatpcs_3WPeriod < 0 and diff_umatpcs_3WPeriod < diff_umwtpcs_3WPeriod:
                     alert_flag = 1
@@ -80,70 +96,50 @@ def calc_supply_change(df):
                     alert_percentage = 0
 
 
-                ### Structural Change Algo ###
-                for monat in [m_minus1, m, m_plus1]:
-                    this_umatpcs_list = df["UM_AT_Pcs"][(df['CLM_Code']==clm) & (df['SoldTo_Name']==soldtoname) & (df["SalesName"]==salesname) & (df["MONAT"]==monat) & (df['AKT_DAY']==recent_akt)].values
-                    if len(this_umatpcs_list) == 0:
-                        this_umatpcs = 0
-                    else:
-                        this_umatpcs = this_umatpcs_list.max()
+                if is_algorithm_development:
+                    alerts_n2.append({"clm_code":clm, "soldtoname": soldtoname, "salesname":salesname, "monat":(m_minus1,m,m_plus1), "akt_day":recent_akt, "this_umatpcs_3WPeriod":this_umatpcs_3WPeriod, "last_umatpcs_3WPeriod":last_umatpcs_3WPeriod, "diff_umatpcs_3WPeriod": diff_umatpcs_3WPeriod, "diff_umwtpcs_3WPeriod": diff_umwtpcs_3WPeriod, "[SC]_diff_umatpcs_3WPeriod_percentage": diff_umatpcs_3WPeriod_percentage, "alert_percentage": alert_percentage, "alert_flag":alert_flag})
 
-                    last_umatpcs_list = df["UM_AT_Pcs"][(df['CLM_Code']==clm) & (df['SoldTo_Name']==soldtoname) & (df["SalesName"]==salesname) & (df["MONAT"]==monat) & (df['AKT_DAY']==last_akt)].values
-                    if len(last_umatpcs_list) == 0:
-                        last_umatpcs = 0
-                    else:
-                        last_umatpcs = last_umatpcs_list.max()
-
-                    diff_umatpcs = round(this_umatpcs - last_umatpcs,0)
-                    diff_umatpcs_percentage = calc_supply_change_percentage(this_umatpcs, last_umatpcs)
-
-                    if np.isnan(diff_umatpcs_percentage):
-                        pass
-                    else:
-                        if alert_flag == 1:
-                            # alerts_n2.append({"clm_code":clm, "soldtoname": soldtoname, "salesname":salesname, "monat":monat, "akt_day":recent_akt, "alert_flag":alert_flag, "alert_percentage": alert_percentage, "last_umatpcs_amt":last_umatpcs, "this_umatpcs_amt": this_umatpcs, "diff_umatpcs":diff_umatpcs, "[SC]_diff_umatpcs_%": diff_umatpcs_percentage, "diff_umwtpcs_3WPeriod": diff_umwtpcs_3WPeriod, "diff_umatpcs_3WPeriod": diff_umatpcs_3WPeriod, "this_umatpcs_3WPeriod":this_umatpcs_3WPeriod, "last_umatpcs_3WPeriod":last_umatpcs_3WPeriod})
-
-                            cursor.execute("INSERT INTO dashboard_supplychangerecord(clm_code, soldtoname, salesname, monat, akt_day, this_umatpcs_3WPeriod, last_umatpcs_3WPeriod, diff_umatpcs_3WPeriod, this_umatpcs_amt, last_umatpcs_amt, diff_umatpcs, sc_diff_umatpcs_percentage, diff_umwtpcs_3WPeriod, alert_percentage, alert_flag) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", (clm, soldtoname, salesname, monat, recent_akt, this_umatpcs_3WPeriod, last_umatpcs_3WPeriod, diff_umatpcs_3WPeriod, this_umatpcs, last_umatpcs, diff_umatpcs, diff_umatpcs_percentage, diff_umwtpcs_3WPeriod, alert_percentage, alert_flag))
-
-                            alert_flag = 0
-                            alert_percentage = 0
-
-                        else:
-                            # alerts_n2.append({"clm_code":clm, "soldtoname": soldtoname, "salesname":salesname, "monat":monat, "akt_day":recent_akt, "alert_flag":alert_flag, "alert_percentage": alert_percentage, "last_umatpcs_amt":last_umatpcs, "this_umatpcs_amt": this_umatpcs, "diff_umatpcs":diff_umatpcs, "[SC]_diff_umatpcs_%": diff_umatpcs_percentage, "diff_umwtpcs_3WPeriod": diff_umwtpcs_3WPeriod, "diff_umatpcs_3WPeriod": diff_umatpcs_3WPeriod, "this_umatpcs_3WPeriod":this_umatpcs_3WPeriod, "last_umatpcs_3WPeriod":last_umatpcs_3WPeriod})
-                            cursor.execute("INSERT INTO dashboard_supplychangerecord(clm_code, soldtoname, salesname, monat, akt_day, this_umatpcs_3WPeriod, last_umatpcs_3WPeriod, diff_umatpcs_3WPeriod, this_umatpcs_amt, last_umatpcs_amt, diff_umatpcs, sc_diff_umatpcs_percentage, diff_umwtpcs_3WPeriod, alert_percentage, alert_flag) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", (clm, soldtoname, salesname, monat, recent_akt, this_umatpcs_3WPeriod, last_umatpcs_3WPeriod, diff_umatpcs_3WPeriod, this_umatpcs, last_umatpcs, diff_umatpcs, diff_umatpcs_percentage, diff_umwtpcs_3WPeriod, alert_percentage, alert_flag))
+                else:
+                    cursor.execute("INSERT INTO dashboard_supplychangerecord(clm_code, soldtoname, salesname, monat, akt_day, this_umatpcs_3WPeriod, last_umatpcs_3WPeriod, diff_umatpcs_3WPeriod, diff_umwtpcs_3WPeriod, sc_diff_umatpcs_percentage, alert_percentage, alert_flag) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", (clm, soldtoname, salesname, str((m_minus1,m,m_plus1)), recent_akt, this_umatpcs_3WPeriod, last_umatpcs_3WPeriod, diff_umatpcs_3WPeriod, diff_umwtpcs_3WPeriod, diff_umatpcs_3WPeriod_percentage, alert_percentage, alert_flag))
 
     return alerts_n2
 
 ##################### End Functions ########################
 
+if is_algorithm_development:
+    start = time.time()
+    df = pd.read_csv('KOR, K03 All PL.csv', parse_dates=True)
+    end = time.time()
+    print("Time taken to read csv: {0:.6f} seconds ".format(end-start))
 
-start = time.time()
-df = pd.read_csv('/srv/website/data/Need1_K03.csv', encoding="ISO-8859-1", parse_dates=True)
-end = time.time()
-print("Time taken to read csv: {0:.6f} seconds ".format(end-start))
+    start = time.time()
+    import csv
+    toCSV = calc_supply_change(df, is_algorithm_development)
+    keys = toCSV[0].keys()
+    with open('output_need2.csv', 'wb') as output_file:
+       dict_writer = csv.DictWriter(output_file, keys)
+       dict_writer.writeheader()
+       dict_writer.writerows(toCSV)
+    end = time.time()
+    print("Time taken to run supply change algorithm: {0:.6f} seconds ".format(end-start))
 
-mydb = MySQLdb.connect(
-    host='localhost',
-    user='user',
-    passwd='password',
-    db='djangodb'
-)
+else:
+    start = time.time()
+    df = pd.read_csv('/srv/website/data/Need1_K03.csv', encoding="ISO-8859-1", parse_dates=True)
+    end = time.time()
+    print("Time taken to read csv: {0:.6f} seconds ".format(end-start))
 
-cursor = mydb.cursor()
-cursor.execute("truncate dashboard_supplychangerecord")
-
-start = time.time()
-# import csv
-# toCSV = calc_supply_change(df)
-# keys = toCSV[0].keys()
-# with open('output_supply_change.csv', 'w') as output_file:
-#    dict_writer = csv.DictWriter(output_file, keys)
-#    dict_writer.writeheader()
-#    dict_writer.writerows(toCSV)
-calc_supply_change(df)
-end = time.time()
-print("Time taken to run supply change algorithm: {0:.6f} seconds ".format(end-start))
-
-
-mydb.commit()
-cursor.close()
+    start = time.time()
+    mydb = MySQLdb.connect(
+        host='localhost',
+        user='user',
+        passwd='password',
+        db='djangodb'
+    )
+    cursor = mydb.cursor()
+    cursor.execute("truncate dashboard_supplychangerecord")
+    calc_supply_change(df, is_algorithm_development)
+    mydb.commit()
+    cursor.close()
+    end = time.time()
+    print("Time taken to run supply change algorithm: {0:.6f} seconds ".format(end-start))
