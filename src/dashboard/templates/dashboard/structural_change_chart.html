@@ -13,7 +13,7 @@
     {% if records_demand %}
     return sc_demand_colormap(value, alert_flag);
     {% elif records_supply %}
-    return sc_supply_colormap(value);
+    return sc_supply_colormap(value, alert_flag);
     {% endif %}
   }
   function sc_demand_colormap(value, alert_flag) {
@@ -43,7 +43,7 @@
     // }
     // return rgbToString(red, 1);
     var color_normal = [255,245,157];
-    var color_alert = [249,168,37];
+    var color_alert = [255,0,0];
 
     if (alert_flag == true) {
       return rgbToString(color_alert, 1);
@@ -77,7 +77,7 @@
     {% elif records_supply %}
     var yaxis_label = 'Structural Change, pcs%'
     var min_ticks = 0
-    var max_ticks = 200
+    var max_ticks = 100
     {% endif %}
 
     // Defination of mean dataset
@@ -165,7 +165,7 @@
             }
             if (tooltip.body) {
               var bodyLines = tooltip.body.map(getBody);
-              bodyLines[0][0] = 'SC % :' + bodyLines[0][0].split(':')[1];
+              bodyLines[0][0] = 'SC:' + bodyLines[0][0].split(':')[1] + '%';
               // console.log(data);
             }
           },
