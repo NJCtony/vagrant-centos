@@ -1,7 +1,7 @@
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.template import loader
-from django.views import generic
+from django.urls import reverse
 from django.views.generic import View
 from django.core import serializers
 import operator, json, time
@@ -47,6 +47,9 @@ class LoginView(View):
         if user is not None:
             auth_login(request, user)
 
+            # TODO: Replace with actual clm_code when scaling up to serve different users
+            request.session['id'] = 'K03'
+
             return redirect('dashboard:overview')
 
         return render(request, self.template_name, {
@@ -54,26 +57,29 @@ class LoginView(View):
             'error_message': 'The username and password provided do not match.'
         })
 
+class DefaultView(View):
+    query_params = []
+    def request_with_params(self, request_get):
+        for k, v in self.query_params:
+            request_get.appendlist(k, v)
+        return request_get
+
 @method_decorator(login_required, name='dispatch')
-class OverviewView(View):
+class OverviewView(DefaultView):
     template_name = 'dashboard/overview.html'
+    query_params = [['id',''], ['limit','3'], ['aggregate','true']]
+
     def get(self, request):
-        print(request)
-        query_id = 'k03'
-        query_limit = '3'
-        query_aggregate = '1'
+        self.query_params[0][1] = request.session.get('id')
 
+        # Load params into get request
         request.GET = request.GET.copy() # Make DjangoDict mutable
+        request.GET = self.request_with_params(request.GET)
 
-        # Params to get summary info
-        request.GET.appendlist('id', query_id.upper())
         # Summary API
-        clm_summary_json = api_clm_summary(request, query_id).content.decode('utf-8')
+        clm_summary_json = api_clm_summary(request, self.query_params[0][1]).content.decode('utf-8')
         clm_summary_model = json.loads(clm_summary_json)
 
-        # Params for to limit and aggregate Alerts
-        request.GET.appendlist('limit', query_limit)
-        request.GET.appendlist('aggregate', query_aggregate)
         # Alerts API
         alerts_demand_json = api_alerts_demand(request).content.decode('utf-8')
         alerts_demand_model = json.loads(alerts_demand_json)
@@ -169,8 +175,7 @@ def need_one(request):
     })
 
 ## JSON API Endpoints
-def api_clm_summary(request, clm_code): # For a specific CLM
-
+def api_clm_summary(request, clm_code=None): # For a specific CLM
     settings = {}
     try:
         profile = Profile.objects.get(clm_code=clm_code)
