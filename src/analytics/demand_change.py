@@ -10,12 +10,12 @@ impt_headers = ["PL", "SO_CLMPool", "CLM_Code", "SoldTo_Name", "SalesName", "AKT
 
 
 def check_demand_period(recent_month):  # month refers to monat
-    if recent_month[-2] != 12:
-        recent_month_plus1 = recent_month[:-1] + str(int(recent_month[-1])+1)
-    else: recent_month_plus1 = recent_month[0:3] + str(int(recent_month[3:4])+1) + str(1).zfill(2)
-    if recent_month_plus1[-2] != 12:
-        recent_month_plus2 = recent_month_plus1[:-1] + str(int(recent_month_plus1[-1])+1)
-    else: recent_month_plus2 = recent_month_plus1[0:3] + str(int(recent_month_plus1[3:4])+1) + str(1).zfill(2)
+    if int(recent_month[-2:]) != 12:
+        recent_month_plus1 = recent_month[:-2] + str(int(recent_month[-2:])+1).zfill(2)
+    else: recent_month_plus1 = str(int(recent_month[0:4])+1) + str(1).zfill(2)
+    if int(recent_month[-2:]) != 11:
+        recent_month_plus2 = recent_month_plus1[:-2] + str(int(recent_month_plus1[-2:])+1).zfill(2)
+    else: recent_month_plus2 = str(int(recent_month_plus1[0:4])+1) + str(1).zfill(2)
     return int(recent_month), int(recent_month_plus1), int(recent_month_plus2)
 
 #function takes in the most recent monat detected in the file, and outputs the monats for m-1, m and m+1. This will be in terms of weekats subsequently
@@ -46,7 +46,7 @@ def change_percentage(this, last):
     elif (this==0.0) & (last==0.0):
         calc= 0
     else:
-        calc = round((( ((this - last)/(float(this + last))) ) * 100),1)
+        calc = round( (this - last)/(float(this + last)) * 100, 1)
     return calc
 
 def calc_demand_change(df):
@@ -57,29 +57,40 @@ def calc_demand_change(df):
     recent_month = str(recent_akt)[0:4]+str(recent_akt)[5:7]
     m, m_plus1, m_plus2 = check_demand_period(recent_month)
     alerts_n1 = []
-    df['SumUMWTEuro'] = df.groupby(['CLM_Code', 'SoldTo_Name','SalesName','MONAT','AKT_DAY'])['UM_WT_Euro'].transform('sum').replace('nan', 0)
-    df['SumUMWTPcs'] = df.groupby(['CLM_Code', 'SoldTo_Name','SalesName','MONAT','AKT_DAY'])['UM_WT_Pcs'].transform('sum').replace('nan', 0)
 
     for clm in sorted(df["CLM_Code"].unique()):
         for soldtoname in sorted(df['SoldTo_Name'][df['CLM_Code']==clm].unique()):
-            for salesname in df['SalesName'][(df['CLM_Code']==clm) & (df["SoldTo_Name"]==soldtoname)].unique():
+            for salesname in df['SalesName'][(df['CLM_Code']==clm) & (df["SoldTo_Name"]==soldtoname)].fillna('Unknowns').unique():
                 for monat in [m, m_plus1, m_plus2]:
-                    this_umwtpcs = df["SumUMWTPcs"][(df['CLM_Code']==clm) & (df['SoldTo_Name']==soldtoname) & (df["SalesName"]==salesname) & (df["MONAT"]==monat) & (df['AKT_DAY']==recent_akt)].replace('nan',0).max()
-                    last_umwtpcs = df["SumUMWTPcs"][(df['CLM_Code']==clm) & (df['SoldTo_Name']==soldtoname)& (df["SalesName"]==salesname) & (df["MONAT"]==monat) & (df['AKT_DAY']==last_akt)].replace('nan',0).max()
+                    if len(df["UM_WT_Pcs"][(df['CLM_Code']==clm) & (df['SoldTo_Name']==soldtoname) & (df["SalesName"]==salesname) & (df["MONAT"]==monat) & (df['AKT_DAY']==recent_akt)]) == 0:
+                        this_umwtpcs = 0
+                    else:
+                        this_umwtpcs = df.loc[(df['CLM_Code']==clm) & (df['SoldTo_Name']==soldtoname) & (df["SalesName"]==salesname) & (df["MONAT"]==monat) & (df['AKT_DAY']==recent_akt), "UM_WT_Pcs"].replace('nan',0).sum()
+                    if len(df["UM_WT_Pcs"][(df['CLM_Code']==clm) & (df['SoldTo_Name']==soldtoname) & (df["SalesName"]==salesname) & (df["MONAT"]==monat) & (df['AKT_DAY']==last_akt)]) == 0:
+                        last_umwtpcs = 0
+                    else:
+                        last_umwtpcs = df.loc[(df['CLM_Code']==clm) & (df['SoldTo_Name']==soldtoname) & (df["SalesName"]==salesname) & (df["MONAT"]==monat) & (df['AKT_DAY']==last_akt), "UM_WT_Pcs"].replace('nan',0).sum()
                     difference_umwtpcs = round(this_umwtpcs - last_umwtpcs,0)
                     difference_umwtpcs_percentage = change_percentage(this_umwtpcs, last_umwtpcs)
 
-                    this_umwteuro = df["SumUMWTEuro"][(df['CLM_Code']==clm) & (df['SoldTo_Name']==soldtoname) & (df["SalesName"]==salesname) & (df["MONAT"]==monat) & (df['AKT_DAY']==recent_akt)].replace('nan',0).max()
-                    last_umwteuro = df["SumUMWTEuro"][(df['CLM_Code']==clm) & (df['SoldTo_Name']==soldtoname)& (df["SalesName"]==salesname) & (df["MONAT"]==monat) & (df['AKT_DAY']==last_akt)].replace('nan',0).max()
+                    # UM_WT_Euro
+                    if len(df["UM_WT_Euro"][(df['CLM_Code']==clm) & (df['SoldTo_Name']==soldtoname) & (df["SalesName"]==salesname) & (df["MONAT"]==monat) & (df['AKT_DAY']==recent_akt)]) == 0:
+                        this_umwteuro = 0
+                    else:
+                        this_umwteuro = df.loc[(df['CLM_Code']==clm) & (df['SoldTo_Name']==soldtoname) & (df["SalesName"]==salesname) & (df["MONAT"]==monat) & (df['AKT_DAY']==recent_akt), "UM_WT_Euro"].replace('nan',0).sum()
+                    if len(df["UM_WT_Euro"][(df['CLM_Code']==clm) & (df['SoldTo_Name']==soldtoname) & (df["SalesName"]==salesname) & (df["MONAT"]==monat) & (df['AKT_DAY']==last_akt)]) == 0:
+                        last_umwteuro = 0
+                    else:
+                        last_umwteuro = df.loc[(df['CLM_Code']==clm) & (df['SoldTo_Name']==soldtoname) & (df["SalesName"]==salesname) & (df["MONAT"]==monat) & (df['AKT_DAY']==last_akt), "UM_WT_Euro"].replace('nan',0).sum()
                     difference_umwteuro = round(this_umwteuro - last_umwteuro,2)
                     difference_umwteuro_percentage = change_percentage(this_umwteuro, last_umwteuro)
 
-                    alert_flag = 1 if (difference_umwteuro < -50000 or difference_umwtpcs_percentage > 10) else 0
+                    alert_flag = 1 if (difference_umwteuro < -50000 or difference_umwteuro_percentage > 10) else 0
 
                     if np.isnan(difference_umwteuro_percentage):
                         pass
                     else:
-                        cursor.execute("INSERT INTO dashboard_demandchangerecord(clm_code, soldtoname, salesname, monat, akt_day, last_umwteuro_amt, this_umwteuro_amt, diff_umwteuro, last_umwtpcs_amt, this_umwtpcs_amt, diff_umwtpcs, diff_umwtpcs_percent, sc_diff_umwteuro_percent, alert_flag) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", (clm, soldtoname, salesname, monat, recent_akt, last_umwteuro, this_umwteuro, difference_umwteuro, last_umwtpcs, this_umwtpcs, difference_umwtpcs, difference_umwtpcs_percentage, difference_umwteuro_percentage, alert_flag))
+                        cursor.execute("INSERT INTO dashboard_demandchangerecord(clm_code, soldtoname, salesname, monat, akt_day, last_umwteuro_amt, this_umwteuro_amt, diff_umwteuro, last_umwtpcs_amt, this_umwtpcs_amt, diff_umwtpcs, diff_umwtpcs_percent, sc_diff_umwteuro_percent, alert_flag) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", (clm, soldtoname, salesname, monat, recent_akt, last_umwteuro, this_umwteuro, difference_umwteuro, last_umwtpcs, this_umwtpcs, difference_umwtpcs, difference_umwtpcs_percentage, difference_umwteuro_percentage+100, alert_flag))
 
 
 #################### Above is Need 1 and Structural Change ####################
@@ -91,9 +102,10 @@ def calculate_bp(df):
     recent_monat = str(recent_akt)[0:4]+str(recent_akt)[5:7]
 
     # Demand
-    df['UM_WT_Euro'] =df['UM_EURO']+df['OOH_Euro_WT_CU']
+    df['UM_WT_Euro'] =df['UM_EURO'].replace("nan",0)+df['OOH_Euro_WT_CU'].replace("nan",0)
     df['UM_WT_Euro'] = df['UM_WT_Euro'].replace("nan",0)
-    df['SumUMWTEuro_CLM_SoldToName'] = df[df["MONAT"].isin(([int(recent_monat),int(recent_monat)+1,int(recent_monat)+2]))].groupby(['CLM_Code', 'SoldTo_Name','AKT_DAY'])['UM_WT_Euro'].transform('sum')
+    m, m_plus1, m_plus2 = check_demand_period(recent_monat)
+    df['SumUMWTEuro_CLM_SoldToName'] = df[df["MONAT"].isin(([int(m),int(m_plus1),int(m_plus2)]))].groupby(['CLM_Code', 'SoldTo_Name','AKT_DAY'])['UM_WT_Euro'].transform('sum')
     df['SumUMWTEuro_CLM_SoldToName'] = df['SumUMWTEuro_CLM_SoldToName'].replace('nan', 0)
 
     # Supply
@@ -106,8 +118,8 @@ def calculate_bp(df):
     for clm in sorted(df["CLM_Code"].unique()):
         for soldtoname in sorted(df['SoldTo_Name'][df['CLM_Code']==clm].unique()):
             # Demand
-            BP_demand_thisakt = df["SumUMWTEuro_CLM_SoldToName"][(df['CLM_Code']==clm) & (df['SoldTo_Name']==soldtoname) & (df["MONAT"].isin([int(recent_monat),int(recent_monat)+1,int(recent_monat)+2])) & (df['AKT_DAY']==recent_akt)].max()
-            BP_demand_compare_akt = df["SumUMWTEuro_CLM_SoldToName"][(df['CLM_Code']==clm) & (df['SoldTo_Name']==soldtoname)& (df["MONAT"].isin([int(recent_monat),int(recent_monat)+1,int(recent_monat)+2])) & (df['AKT_DAY']==last_akt)].max()
+            BP_demand_thisakt = df["SumUMWTEuro_CLM_SoldToName"][(df['CLM_Code']==clm) & (df['SoldTo_Name']==soldtoname) & (df["MONAT"].isin([int(m),int(m_plus1),int(m_plus2)])) & (df['AKT_DAY']==recent_akt)].max()
+            BP_demand_compare_akt = df["SumUMWTEuro_CLM_SoldToName"][(df['CLM_Code']==clm) & (df['SoldTo_Name']==soldtoname)& (df["MONAT"].isin([int(m),int(m_plus1),int(m_plus2)])) & (df['AKT_DAY']==last_akt)].max()
             bp_demand = round((( 1 + ((BP_demand_thisakt - BP_demand_compare_akt)/(float(BP_demand_thisakt + BP_demand_compare_akt)/2)) ) * 100),1)
 
             # Supply
