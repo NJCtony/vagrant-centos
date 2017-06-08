@@ -20,8 +20,8 @@
         <thead>
           <tr>
             <th style="text-align: center; width: 25%;">Company Name</th>
-            <th style="text-align: center;">Demand Changes</th>
-            <th style="text-align: center;">Supply Changes</th>
+            <th style="text-align: center;">Demand Changes<br>BP - SC</th>
+            <th style="text-align: center;">Supply Changes<br>BP - SC</th>
           </tr>
         </thead>
 
@@ -34,9 +34,9 @@
               <div style="text-align:center;">
                 <div title="Business Performance" style="vertical-align:top; display:inline-block;">
                   {% if bp_demand.bp > 100 %}
-                  <div class="overview-bp" style="background: green;">BP</div>
+                  <div class="overview-bp" style="background: green;">{{bp_demand.bp|floatformat:"0"}}</div>
                   {% else %}
-                  <div class="overview-bp" style="background: red;">BP</div>
+                  <div class="overview-bp" style="background: red;">{{bp_demand.bp|floatformat:"0"}}</div>
                   {% endif %}
                 </div>
                 <div title="Structural Performance" style="display:inline-block;">
@@ -51,9 +51,9 @@
               <div style="text-align:center;">
                 <div title="Business Performance" style="vertical-align:top; display:inline-block;">
                   {% if bp_supply.bp >= 93 %}
-                  <div class="overview-bp" style="background: green;">BP</div>
+                  <div class="overview-bp" style="background: green;">{{bp_demand.bp|floatformat:"0"}}</div>
                   {% else %}
-                  <div class="overview-bp" style="background: red;">BP</div>
+                  <div class="overview-bp" style="background: red;">{{bp_demand.bp|floatformat:"0"}}</div>
                   {% endif %}
                 </div>
                 <div title="Structural Performance" style="display:inline-block;">
