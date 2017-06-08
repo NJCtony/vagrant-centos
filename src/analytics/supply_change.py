@@ -69,36 +69,43 @@ def calc_supply_change(df, is_algorithm_development):
     for clm in sorted(df["CLM_Code"].unique()):
         for soldtoname in sorted(df['SoldTo_Name'][df['CLM_Code']==clm].unique()):
             for salesname in df['SalesName'][(df['CLM_Code']==clm) & (df["SoldTo_Name"]==soldtoname)].fillna("UNKNOWN").unique():
-
-                this_umwtpcs_3WPeriod = df.loc[(df['CLM_Code']==clm) & (df['SoldTo_Name']==soldtoname) & (df["SalesName"]==salesname) & (df["MONAT"].isin([int(m_minus1),int(m),int(m_plus1)])) & (df['AKT_DAY']==recent_akt),"UM_WT_Pcs"].replace('nan',0).sum()
-
-                last_umwtpcs_3WPeriod = df.loc[(df['CLM_Code']==clm) & (df['SoldTo_Name']==soldtoname)& (df["SalesName"]==salesname) & (df["MONAT"].isin([int(m_minus1),int(m),int(m_plus1)])) & (df['AKT_DAY']==last_akt),"UM_WT_Pcs"].replace('nan',0).sum()
-
+                # Check UM_WT_Pcs for last snapshot and current snapshot
+                if len(df["UM_WT_Pcs"][(df['CLM_Code']==clm) & (df['SoldTo_Name']==soldtoname) & (df["SalesName"]==salesname) & (df["MONAT"].isin([int(m_minus1),int(m),int(m_plus1)])) & (df['AKT_DAY']==recent_akt)]) == 0:
+                    this_umwtpcs_3WPeriod = 0
+                else:
+                   this_umwtpcs_3WPeriod = df.loc[(df['CLM_Code']==clm) & (df['SoldTo_Name']==soldtoname) & (df["SalesName"]==salesname) & (df["MONAT"].isin([int(m_minus1),int(m),int(m_plus1)])) & (df['AKT_DAY']==recent_akt), "UM_WT_Pcs"].replace('nan',0).sum()
+                if len(df["UM_AT_Pcs"][(df['CLM_Code']==clm) & (df['SoldTo_Name']==soldtoname) & (df["SalesName"]==salesname) & (df["MONAT"].isin([int(m_minus1),int(m),int(m_plus1)])) & (df['AKT_DAY']==last_akt)]) == 0:
+                   last_umwtpcs_3WPeriod = 0
+                else:
+                    last_umwtpcs_3WPeriod = df.loc[(df['CLM_Code']==clm) & (df['SoldTo_Name']==soldtoname)& (df["SalesName"]==salesname) & (df["MONAT"].isin([int(m_minus1),int(m),int(m_plus1)])) & (df['AKT_DAY']==last_akt), "UM_WT_Pcs"].replace('nan',0).sum()
                 diff_umwtpcs_3WPeriod = round(this_umwtpcs_3WPeriod - last_umwtpcs_3WPeriod,0)
 
+                # Check UM_AT_Pcs for last snapshot and current snapshot
                 if len(df["UM_AT_Pcs"][(df['CLM_Code']==clm) & (df['SoldTo_Name']==soldtoname) & (df["SalesName"]==salesname) & (df["MONAT"].isin([int(m_minus1),int(m),int(m_plus1)])) & (df['AKT_DAY']==recent_akt)]) == 0:
                     this_umatpcs_3WPeriod = 0
                 else:
                     this_umatpcs_3WPeriod = df.loc[(df['CLM_Code']==clm) & (df['SoldTo_Name']==soldtoname) & (df["SalesName"]==salesname) & (df["MONAT"].isin([int(m_minus1),int(m),int(m_plus1)])) & (df['AKT_DAY']==recent_akt), "UM_AT_Pcs"].replace('nan',0).sum()
-
                 if len(df["UM_AT_Pcs"][(df['CLM_Code']==clm) & (df['SoldTo_Name']==soldtoname) & (df["SalesName"]==salesname) & (df["MONAT"].isin([int(m_minus1),int(m),int(m_plus1)])) & (df['AKT_DAY']==last_akt)]) == 0:
                     last_umatpcs_3WPeriod = 0
                 else:
                     last_umatpcs_3WPeriod = df.loc[(df['CLM_Code']==clm) & (df['SoldTo_Name']==soldtoname)& (df["SalesName"]==salesname) & (df["MONAT"].isin([int(m_minus1),int(m),int(m_plus1)])) & (df['AKT_DAY']==last_akt), "UM_AT_Pcs"].replace('nan',0).sum()
                 diff_umatpcs_3WPeriod = round(this_umatpcs_3WPeriod - last_umatpcs_3WPeriod,0)
-                diff_umatpcs_3WPeriod_percentage = min(calc_supply_change_percentage(this_umatpcs_3WPeriod, last_umatpcs_3WPeriod), 100.0)
 
-                if diff_umatpcs_3WPeriod < 0 and diff_umatpcs_3WPeriod < diff_umwtpcs_3WPeriod:
-                    alert_flag = 1
-                    alert_percentage = diff_umatpcs_3WPeriod_percentage
+                diff_umatpcs_3WPeriod_percentage = min(calc_supply_change_percentage(this_umatpcs_3WPeriod, last_umatpcs_3WPeriod), 100.0)
+                if diff_umatpcs_3WPeriod < 0:
+                    modified_last_umatpcs_3WPeriod = last_umatpcs_3WPeriod + diff_umwtpcs_3WPeriod
+                    diff_umatpcs_3WPeriod_percentage = min(calc_supply_change_percentage(this_umatpcs_3WPeriod, modified_last_umatpcs_3WPeriod), 100.0)
+                    if diff_umatpcs_3WPeriod_percentage < 100.0:
+                        alert_flag = 1
+                        alert_percentage = diff_umatpcs_3WPeriod_percentage
+                    else:
+                        alert_flag = 0
+                        alert_percentage = 0
                 else:
                     alert_flag = 0
                     alert_percentage = 0
-
-
                 if is_algorithm_development:
                     alerts_n2.append({"clm_code":clm, "soldtoname": soldtoname, "salesname":salesname, "monat":(m_minus1,m,m_plus1), "akt_day":recent_akt, "this_umatpcs_3WPeriod":this_umatpcs_3WPeriod, "last_umatpcs_3WPeriod":last_umatpcs_3WPeriod, "diff_umatpcs_3WPeriod": diff_umatpcs_3WPeriod, "diff_umwtpcs_3WPeriod": diff_umwtpcs_3WPeriod, "[SC]_diff_umatpcs_3WPeriod_percentage": diff_umatpcs_3WPeriod_percentage, "alert_percentage": alert_percentage, "alert_flag":alert_flag})
-
                 else:
                     cursor.execute("INSERT INTO dashboard_supplychangerecord(clm_code, soldtoname, salesname, monat, akt_day, this_umatpcs_3WPeriod, last_umatpcs_3WPeriod, diff_umatpcs_3WPeriod, diff_umwtpcs_3WPeriod, sc_diff_umatpcs_percentage, alert_percentage, alert_flag) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", (clm, soldtoname, salesname, str((m_minus1,m,m_plus1)), recent_akt, this_umatpcs_3WPeriod, last_umatpcs_3WPeriod, diff_umatpcs_3WPeriod, diff_umwtpcs_3WPeriod, diff_umatpcs_3WPeriod_percentage, alert_percentage, alert_flag))
 
