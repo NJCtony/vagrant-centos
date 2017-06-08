@@ -188,11 +188,12 @@ def api_records(request, alert_type):
 
             # Each soldtoname is an entry into data
             soldtoname_data = {}
-            sc_mean = []
-            sc_count = [0, 0, 0]
 
             if alert_type == 'demand':
-                sc_mean = [0.0, 0.0, 0.0]
+                sc_mean_up = [0.0, 0.0, 0.0]
+                sc_mean_down = [0.0, 0.0, 0.0]
+                sc_count_up = [0, 0, 0]
+                sc_count_down = [0, 0, 0]
                 soldtoname_data['soldtoname'] = soldtoname_choice
                 monat_list = [temp_dict['monat'] for temp_dict in DemandChangeRecord.objects.values('monat').distinct()]
                 soldtoname_data['labels'] = monat_list
@@ -217,14 +218,35 @@ def api_records(request, alert_type):
                             # print('(WARNING) api_records_{}>: Filled missing value for {} {}'.format(alert_type, salesname_item, monat_item))
 
                     for i in range(len(salesname_sc)):
-                        if salesname_sc[i] != 0:
-                            sc_mean[i] += salesname_sc[i]
-                            sc_count[i] += 1
+                        if salesname_sc[i] > 100:
+                            sc_mean_up[i] += salesname_sc[i]
+                            sc_count_up[i] += 1
+                        elif salesname_sc[i] < 100:
+                            sc_mean_down[i] += salesname_sc[i]
+                            sc_count_down[i] += 1
 
                     soldtoname_data['salesnames'].append({'salesname': salesname_item, 'sc': salesname_sc, 'alert_flag': salesname_alert})
 
+                for i in range(len(sc_mean_up)):
+                    if sc_count_up[i] == 0 :
+                        sc_mean_up[i] = 100
+                    else :
+                        sc_mean_up[i] /= sc_count_up[i]
+                    sc_mean_up[i] = round(sc_mean_up[i], 1)
+
+                for i in range(len(sc_mean_down)):
+                    if sc_count_down[i] == 0 :
+                        sc_mean_down[i] = 100
+                    else :
+                        sc_mean_down[i] /= sc_count_down[i]
+                    sc_mean_down[i] = round(sc_mean_down[i], 1)
+
+                soldtoname_data['means'] = sc_mean_up
+                soldtoname_data['means2'] = sc_mean_down
+
             elif alert_type == 'supply':
                 sc_mean = [0.0, 0.0, 0.0]
+                sc_count = [0, 0, 0]
                 soldtoname_data['soldtoname'] = soldtoname_choice
                 monat_list = [temp_dict['monat'] for temp_dict in SupplyChangeRecord.objects.values('monat').distinct()]
                 soldtoname_data['labels'] = monat_list
@@ -252,14 +274,14 @@ def api_records(request, alert_type):
 
                     soldtoname_data['salesnames'].append({'salesname': salesname_item, 'sc': salesname_sc, 'alert_flag': salesname_alert})
 
-            for i in range(len(sc_mean)):
-                if sc_count[i] == 0 :
-                    sc_mean[i] = 100
-                else :
-                    sc_mean[i] /= sc_count[i]
-                sc_mean[i] = round(sc_mean[i], 1)
+                for i in range(len(sc_mean)):
+                    if sc_count[i] == 0 :
+                        sc_mean[i] = 100
+                    else :
+                        sc_mean[i] /= sc_count[i]
+                    sc_mean[i] = round(sc_mean[i], 1)
 
-            soldtoname_data['means'] = sc_mean
+                soldtoname_data['means'] = sc_mean
 
             if query_image and oneEntry:
                 soldtoname_data['image'] = True

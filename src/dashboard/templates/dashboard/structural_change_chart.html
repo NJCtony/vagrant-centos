@@ -55,7 +55,6 @@
     // SC: Acquire Data
     var sc_dataset = [];
     var sc_monat = jsonData.data[0].labels;
-    var mean_entry = {};
 
     var show_labels = true;
     var step_size = 25;
@@ -72,13 +71,67 @@
 
     {% if records_demand %}
     var yaxis_label = 'Structural Change, €%'
-    var min_ticks = -100
-    var max_ticks = 100
+    var min_ticks = 0
+    var max_ticks = 200
+
+    //////////////////////// MEAN > 100
+    // Defination of mean dataset
+    var mean_up_entry = {};
+    mean_up_entry.label = '+ Mean';
+    mean_up_entry.data = jsonData.data[0].means;
+    mean_up_entry.fill = false;
+    mean_up_entry.showLine = false;
+    mean_up_entry.pointStyle = 'rectRot';
+    mean_up_entry.pointBorderWidth = 2;
+
+    // Color mapping for mean
+    var border_color = rgbToString([170,170,170], 1);
+    var border_color_list = [border_color,border_color,border_color];
+    var black_color = rgbToString([30,30,30], 1);
+    var black_color_list = [black_color,black_color,black_color];
+    // var meanColor = rgbToString([245,127,23], 1);
+    var meanColor = rgbToString([0,255,0], 1);
+    var color_list = [meanColor,meanColor,meanColor];
+
+    mean_up_entry.pointBackgroundColor = color_list;
+    mean_up_entry.pointBorderColor = black_color;
+    mean_up_entry.pointHoverBackgroundColor = color_list;
+    mean_up_entry.pointHoverBorderColor = black_color;
+    mean_up_entry.pointRadius = 12;
+    mean_up_entry.pointHoverRadius = 12;
+    mean_up_entry.pointHitRadius = 0;
+
+    sc_dataset.push(mean_up_entry);
+
+    //////////////////////// MEAN < 100
+    // Defination of mean dataset
+    var meand_down_entry = {};
+    meand_down_entry.label = '- Mean';
+    meand_down_entry.data = jsonData.data[0].means2;
+    meand_down_entry.fill = false;
+    meand_down_entry.showLine = false;
+    meand_down_entry.pointStyle = 'rectRot';
+    meand_down_entry.pointBorderWidth = 2;
+
+    // Color mapping for mean
+    var meanColor = rgbToString([255,0,0 ], 1);
+    var color_list = [meanColor,meanColor,meanColor];
+
+    meand_down_entry.pointBackgroundColor = color_list;
+    meand_down_entry.pointBorderColor = black_color;
+    meand_down_entry.pointHoverBackgroundColor = color_list;
+    meand_down_entry.pointHoverBorderColor = black_color;
+    meand_down_entry.pointRadius = 12;
+    meand_down_entry.pointHoverRadius = 12;
+    meand_down_entry.pointHitRadius = 0;
+
+    sc_dataset.push(meand_down_entry);
+
     {% elif records_supply %}
+    var mean_entry = {};
     var yaxis_label = 'Structural Change, pcs%'
     var min_ticks = 0
     var max_ticks = 100
-    {% endif %}
 
     // Defination of mean dataset
     mean_entry.label = 'Mean';
@@ -105,6 +158,7 @@
     mean_entry.pointHitRadius = 0;
 
     sc_dataset.push(mean_entry);
+    {% endif %}
 
     for (var i in jsonData.data[0].salesnames) {
       var sc_entry = {};
