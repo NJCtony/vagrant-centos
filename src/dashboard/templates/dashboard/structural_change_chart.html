@@ -171,6 +171,8 @@
       sc_entry.label = salesname_data.salesname;
       sc_entry.data = salesname_data.sc;
       sc_entry.alert_flag = salesname_data.alert_flag;
+      sc_entry.this_umwteuro_amt = salesname_data.this_umwteuro_amt;
+      sc_entry.last_umwteuro_amt = salesname_data.last_umwteuro_amt;
       sc_entry.fill = false;
       sc_entry.showLine = false;
       sc_entry.pointStyle = 'circle';
@@ -215,6 +217,17 @@
             title: function([tooltipItem], data) {
               return data.datasets[tooltipItem.datasetIndex].label;
             },
+            {% if records_demand %}
+            afterBody: function([tooltipItem], data) {
+              if (data.datasets[tooltipItem.datasetIndex].label.toLowerCase().search('mean') < 0) {
+                // console.log("Showing" + data.datasets[tooltipItem.datasetIndex].label.search('mean'));
+                var last_umwteuro_amt = "last_umwteuro_amt: " + data.datasets[tooltipItem.datasetIndex].last_umwteuro_amt[tooltipItem.index] + "€";
+                var this_umwteuro_amt = "this_umwteuro_amt: " + data.datasets[tooltipItem.datasetIndex].this_umwteuro_amt[tooltipItem.index] + "€";
+                var afterBodyStr = [last_umwteuro_amt, this_umwteuro_amt]
+                return afterBodyStr;
+              };
+            },
+            {% endif %}
           },
           custom: function(tooltip) {
             function getBody(bodyItem) {

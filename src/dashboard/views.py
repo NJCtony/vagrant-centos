@@ -203,12 +203,17 @@ def api_records(request, alert_type):
 
                     salesname_sc = [] # set of structural-change-% for each sales-name
                     salesname_alert = []
+                    salesname_this_umwteuro_amt = []
+                    salesname_last_umwteuro_amt = []
+
                     for monat_item in monat_list:
                         if DemandChangeRecord.objects.filter(clm_code=query_id, soldtoname=soldtoname_choice, salesname=salesname_item, monat=monat_item).values('sc_diff_umwteuro_percent', 'alert_flag').exists():
-                            record_query = DemandChangeRecord.objects.filter(clm_code=query_id, soldtoname=soldtoname_choice,salesname=salesname_item, monat=monat_item).values('sc_diff_umwteuro_percent', 'alert_flag')
+                            record_query = DemandChangeRecord.objects.filter(clm_code=query_id, soldtoname=soldtoname_choice,salesname=salesname_item, monat=monat_item).values('sc_diff_umwteuro_percent', 'alert_flag', 'this_umwteuro_amt', 'last_umwteuro_amt')
 
                             salesname_sc.append(record_query[0]['sc_diff_umwteuro_percent'])
                             salesname_alert.append(record_query[0]['alert_flag'])
+                            salesname_this_umwteuro_amt.append(record_query[0]['this_umwteuro_amt'])
+                            salesname_last_umwteuro_amt.append(record_query[0]['last_umwteuro_amt'])
                             # if len(DemandChangeRecord.objects.filter(clm_code=query_id, soldtoname=soldtoname_choice,salesname=salesname_item, monat=monat_item) \
                             # .values('sc_diff_umwteuro_percent')) > 1:
                             #     print("Error(api_records_demand) : Multiple entries for", salesname_item, monat_item)
@@ -225,7 +230,7 @@ def api_records(request, alert_type):
                             sc_mean_down[i] += salesname_sc[i]
                             sc_count_down[i] += 1
 
-                    soldtoname_data['salesnames'].append({'salesname': salesname_item, 'sc': salesname_sc, 'alert_flag': salesname_alert})
+                    soldtoname_data['salesnames'].append({'salesname': salesname_item, 'sc': salesname_sc, 'alert_flag': salesname_alert, 'this_umwteuro_amt': salesname_this_umwteuro_amt, 'last_umwteuro_amt':salesname_last_umwteuro_amt})
 
                 for i in range(len(sc_mean_up)):
                     if sc_count_up[i] == 0 :
