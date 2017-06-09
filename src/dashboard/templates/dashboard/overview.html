@@ -51,9 +51,9 @@
               <div style="text-align:center;">
                 <div title="Business Performance" style="vertical-align:top; display:inline-block;">
                   {% if bp_supply.bp >= 93 %}
-                  <div class="overview-bp" style="background: green;">{{bp_demand.bp|floatformat:"0"}}</div>
+                  <div class="overview-bp" style="background: green;">{{bp_supply.bp|floatformat:"0"}}</div>
                   {% else %}
-                  <div class="overview-bp" style="background: red;">{{bp_demand.bp|floatformat:"0"}}</div>
+                  <div class="overview-bp" style="background: red;">{{bp_supply.bp|floatformat:"0"}}</div>
                   {% endif %}
                 </div>
                 <div title="Structural Performance" style="display:inline-block;">
