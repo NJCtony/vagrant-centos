@@ -125,8 +125,8 @@ def calculate_bp(df):
             # Supply
             BP_supply_thisakt = df["SumUMATPcs_CLM_SoldToName"][(df['CLM_Code']==clm) & (df['SoldTo_Name']==soldtoname) & (df["MONAT"].isin([int(m_minus1), int(m), int(m_plus1)])) & (df['AKT_DAY']==recent_akt)].max()
             BP_supply_compare_akt = df["SumUMATPcs_CLM_SoldToName"][(df['CLM_Code']==clm) & (df['SoldTo_Name']==soldtoname)& (df["MONAT"].isin([int(m_minus1), int(m), int(m_plus1)])) & (df['AKT_DAY']==last_akt)].max()
-            bp_supply = min(round((( 1 + ((BP_supply_thisakt - BP_supply_compare_akt)/(float(BP_supply_thisakt + BP_supply_compare_akt))) ) * 100),1), 100.0)
-
+            bp_supply = min(round((( 1 + ((BP_supply_thisakt - BP_supply_compare_akt)/(float(BP_supply_thisakt + BP_supply_compare_akt))) ) * 100),1), 100)
+            
             # bp_supply = round((( 1 + ((BP_supply_thisakt - BP_supply_compare_akt - diff_UMATpcs_3wperiod)/(float(BP_supply_thisakt + BP_supply_compare_akt + diff_UMATpcs_3wperiod))) ) * 100),1)
 
             cursor.execute("INSERT INTO dashboard_businessperformance(clm_code, soldtoname, bp_demand, bp_supply) VALUES (%s, %s, %s, %s)", (clm, soldtoname, bp_demand, bp_supply))

@@ -10,6 +10,15 @@ is_algorithm_development = False
 impt_headers = ["PL", "SO_CLMPool", "CLM_Code", "SoldTo_Name", "SalesName", "AKT_DAY", "Quarter", "MONAT", "OOH_Pcs_WT_CU", "OOH_Euro_WT_CU", "OOH_Pcs_AT_SC", "OOH_Euro_AT_SC", "UM_ST", "UM_EURO", "UM_OOH_WT_CU_pcs", "UM_OOH_AT_SC_pcs"]
 
 
+def check_demand_period(recent_month):  # month refers to monat
+    if int(recent_month[-2:]) != 12:
+        recent_month_plus1 = recent_month[:-2] + str(int(recent_month[-2:])+1).zfill(2)
+    else: recent_month_plus1 = str(int(recent_month[0:4])+1) + str(1).zfill(2)
+    if int(recent_month[-2:]) != 11:
+        recent_month_plus2 = recent_month_plus1[:-2] + str(int(recent_month_plus1[-2:])+1).zfill(2)
+    else: recent_month_plus2 = str(int(recent_month_plus1[0:4])+1) + str(1).zfill(2)
+    return int(recent_month), int(recent_month_plus1), int(recent_month_plus2)
+
 #function takes in the most recent monat detected in the file, and outputs the monats for m-1, m and m+1. This will be in terms of weekats subsequently
 #to be changed to weekats
 def check_supply_period(recent_month):  # month refers to monat
@@ -111,6 +120,43 @@ def calc_supply_change(df, is_algorithm_development):
 
     return alerts_n2
 
+#################### Below is Business Performance ####################
+def calculate_bp(df):
+    df['AKT_DAY'] = pd.to_datetime(df['AKT_DAY'], dayfirst=True)
+    recent_akt, last_akt = check_comparison_dates(df['AKT_DAY'])
+    recent_monat = str(recent_akt)[0:4]+str(recent_akt)[5:7]
+
+    # Demand
+    df['UM_WT_Euro'] =df['UM_EURO'].replace("nan",0)+df['OOH_Euro_WT_CU'].replace("nan",0)
+    df['UM_WT_Euro'] = df['UM_WT_Euro'].replace("nan",0)
+    m, m_plus1, m_plus2 = check_demand_period(recent_monat)
+    df['SumUMWTEuro_CLM_SoldToName'] = df[df["MONAT"].isin(([int(m),int(m_plus1),int(m_plus2)]))].groupby(['CLM_Code', 'SoldTo_Name','AKT_DAY'])['UM_WT_Euro'].transform('sum')
+    df['SumUMWTEuro_CLM_SoldToName'] = df['SumUMWTEuro_CLM_SoldToName'].replace('nan', 0)
+
+    # Supply
+    df['UM_AT_Pcs'] =df['UM_ST'].replace("nan",0)+df['OOH_Pcs_AT_SC'].replace("nan",0)
+    df['UM_AT_Pcs'] = df['UM_AT_Pcs'].replace("nan",0)
+    m_minus1, m, m_plus1 = check_supply_period(recent_monat)
+    df['SumUMATPcs_CLM_SoldToName'] = df[df["MONAT"].isin([int(m_minus1), int(m), int(m_plus1)])].groupby(['CLM_Code', 'SoldTo_Name','AKT_DAY'])['UM_AT_Pcs'].transform('sum')
+    df['SumUMATPcs_CLM_SoldToName'] = df['SumUMATPcs_CLM_SoldToName'].replace('nan', 0)
+
+    for clm in sorted(df["CLM_Code"].unique()):
+        for soldtoname in sorted(df['SoldTo_Name'][df['CLM_Code']==clm].unique()):
+            # Demand
+            BP_demand_thisakt = df["SumUMWTEuro_CLM_SoldToName"][(df['CLM_Code']==clm) & (df['SoldTo_Name']==soldtoname) & (df["MONAT"].isin([int(m),int(m_plus1),int(m_plus2)])) & (df['AKT_DAY']==recent_akt)].max()
+            BP_demand_compare_akt = df["SumUMWTEuro_CLM_SoldToName"][(df['CLM_Code']==clm) & (df['SoldTo_Name']==soldtoname)& (df["MONAT"].isin([int(m),int(m_plus1),int(m_plus2)])) & (df['AKT_DAY']==last_akt)].max()
+            bp_demand = round((( 1 + ((BP_demand_thisakt - BP_demand_compare_akt)/(float(BP_demand_thisakt + BP_demand_compare_akt)/2)) ) * 100),1)
+
+            # Supply
+            BP_supply_thisakt = df["SumUMATPcs_CLM_SoldToName"][(df['CLM_Code']==clm) & (df['SoldTo_Name']==soldtoname) & (df["MONAT"].isin([int(m_minus1), int(m), int(m_plus1)])) & (df['AKT_DAY']==recent_akt)].max()
+            BP_supply_compare_akt = df["SumUMATPcs_CLM_SoldToName"][(df['CLM_Code']==clm) & (df['SoldTo_Name']==soldtoname)& (df["MONAT"].isin([int(m_minus1), int(m), int(m_plus1)])) & (df['AKT_DAY']==last_akt)].max()
+            bp_supply = min(round((( 1 + ((BP_supply_thisakt - BP_supply_compare_akt)/(float(BP_supply_thisakt + BP_supply_compare_akt))) ) * 100),1), 100.0)
+
+            # bp_supply = round((( 1 + ((BP_supply_thisakt - BP_supply_compare_akt - diff_UMATpcs_3wperiod)/(float(BP_supply_thisakt + BP_supply_compare_akt + diff_UMATpcs_3wperiod))) ) * 100),1)
+
+            cursor.execute("INSERT INTO dashboard_businessperformance(clm_code, soldtoname, bp_demand, bp_supply) VALUES (%s, %s, %s, %s)", (clm, soldtoname, bp_demand, bp_supply))
+
+
 ##################### End Functions ########################
 
 if is_algorithm_development:
@@ -144,9 +190,19 @@ else:
         db='djangodb'
     )
     cursor = mydb.cursor()
+
     cursor.execute("truncate dashboard_supplychangerecord")
+
     calc_supply_change(df, is_algorithm_development)
-    mydb.commit()
-    cursor.close()
     end = time.time()
     print("Time taken to run supply change algorithm: {0:.6f} seconds ".format(end-start))
+
+    cursor.execute("truncate dashboard_businessperformance")
+
+    start = time.time()
+    calculate_bp(df)
+    end = time.time()
+    print("Time taken to run bp algorithm: {0:.6f} seconds ".format(end-start))
+
+    mydb.commit()
+    cursor.close()
