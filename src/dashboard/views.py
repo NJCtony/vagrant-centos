@@ -361,8 +361,8 @@ def api_alerts(request, alert_type):
                 else:
                     alerts_query = DemandChangeRecord.objects.filter(soldtoname = soldtoname_choice, alert_flag=1).values(*demand_values)
 
-                alerts_increase = alerts_query.filter(sc_diff_umwteuro_percent__gt = 0, sc_diff_umwteuro_percent__lt = 100).order_by('sc_diff_umwteuro_percent').reverse()
-                alerts_decrease = alerts_query.filter(diff_umwteuro__lt = 0).order_by('diff_umwteuro')
+                alerts_increase = alerts_query.filter(sc_diff_umwteuro_percent__gt = 110, sc_diff_umwteuro_percent__lt = 200).order_by('sc_diff_umwteuro_percent').reverse()
+                alerts_decrease = alerts_query.filter(diff_umwteuro__lt = -50000).order_by('diff_umwteuro')
                 if query_limit:
                     alerts_increase = alerts_increase[:query_limit]
                     alerts_decrease = alerts_decrease[:query_limit]
