@@ -213,7 +213,7 @@ def api_records(request, alert_type):
                             # .values('sc_diff_umwteuro_percent')) > 1:
                             #     print("Error(api_records_demand) : Multiple entries for", salesname_item, monat_item)
                         else:
-                            salesname_sc.append(0.0) # fix: fill up missing values
+                            salesname_sc.append(100.0) # fix: fill up missing values
                             salesname_alert.append(False)
                             # print('(WARNING) api_records_{}>: Filled missing value for {} {}'.format(alert_type, salesname_item, monat_item))
 
