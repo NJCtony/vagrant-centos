@@ -134,11 +134,15 @@ def calculate_bp(df):
     df['SumUMWTEuro_CLM_SoldToName'] = df['SumUMWTEuro_CLM_SoldToName'].replace('nan', 0)
 
     # Supply
-    df['UM_AT_Pcs'] =df['UM_ST'].replace("nan",0)+df['OOH_Pcs_AT_SC'].replace("nan",0)
+    df['UM_AT_Pcs'] = df['UM_ST'].replace("nan",0)+df['OOH_Pcs_AT_SC'].replace("nan",0)
     df['UM_AT_Pcs'] = df['UM_AT_Pcs'].replace("nan",0)
+    df['UM_WT_Pcs'] = df['UM_ST'].replace("nan",0)+df['OOH_Pcs_WT_CU'].replace("nan",0)
+    df['UM_WT_Pcs'] = df['UM_WT_Pcs'].replace("nan",0)
     m_minus1, m, m_plus1 = check_supply_period(recent_monat)
     df['SumUMATPcs_CLM_SoldToName'] = df[df["MONAT"].isin([int(m_minus1), int(m), int(m_plus1)])].groupby(['CLM_Code', 'SoldTo_Name','AKT_DAY'])['UM_AT_Pcs'].transform('sum')
     df['SumUMATPcs_CLM_SoldToName'] = df['SumUMATPcs_CLM_SoldToName'].replace('nan', 0)
+    df['SumUMWTPcs_CLM_SoldToName'] = df[df["MONAT"].isin([int(m_minus1), int(m), int(m_plus1)])].groupby(['CLM_Code', 'SoldTo_Name','AKT_DAY'])['UM_WT_Pcs'].transform('sum')
+    df['SumUMWTPcs_CLM_SoldToName'] = df['SumUMWTPcs_CLM_SoldToName'].replace('nan', 0)
 
     for clm in sorted(df["CLM_Code"].unique()):
         for soldtoname in sorted(df['SoldTo_Name'][df['CLM_Code']==clm].unique()):
@@ -148,11 +152,16 @@ def calculate_bp(df):
             bp_demand = round((( 1 + ((BP_demand_thisakt - BP_demand_compare_akt)/(float(BP_demand_thisakt + BP_demand_compare_akt)/2)) ) * 100),1)
 
             # Supply
-            BP_supply_thisakt = df["SumUMATPcs_CLM_SoldToName"][(df['CLM_Code']==clm) & (df['SoldTo_Name']==soldtoname) & (df["MONAT"].isin([int(m_minus1), int(m), int(m_plus1)])) & (df['AKT_DAY']==recent_akt)].max()
-            BP_supply_compare_akt = df["SumUMATPcs_CLM_SoldToName"][(df['CLM_Code']==clm) & (df['SoldTo_Name']==soldtoname)& (df["MONAT"].isin([int(m_minus1), int(m), int(m_plus1)])) & (df['AKT_DAY']==last_akt)].max()
-            bp_supply = min(round((( 1 + ((BP_supply_thisakt - BP_supply_compare_akt)/(float(BP_supply_thisakt + BP_supply_compare_akt))) ) * 100),1), 100.0)
+            UMATPcs_thisakt = df["SumUMATPcs_CLM_SoldToName"][(df['CLM_Code']==clm) & (df['SoldTo_Name']==soldtoname) & (df["MONAT"].isin([int(m_minus1), int(m), int(m_plus1)])) & (df['AKT_DAY']==recent_akt)].max()
+            UMATPcs_compare_akt = df["SumUMATPcs_CLM_SoldToName"][(df['CLM_Code']==clm) & (df['SoldTo_Name']==soldtoname)& (df["MONAT"].isin([int(m_minus1), int(m), int(m_plus1)])) & (df['AKT_DAY']==last_akt)].max()
 
-            # bp_supply = round((( 1 + ((BP_supply_thisakt - BP_supply_compare_akt - diff_UMATpcs_3wperiod)/(float(BP_supply_thisakt + BP_supply_compare_akt + diff_UMATpcs_3wperiod))) ) * 100),1)
+            UMWTPcs_thisakt = df["SumUMWTPcs_CLM_SoldToName"][(df['CLM_Code']==clm) & (df['SoldTo_Name']==soldtoname) & (df["MONAT"].isin([int(m_minus1), int(m), int(m_plus1)])) & (df['AKT_DAY']==recent_akt)].max()
+            UMWTPcs_compare_akt = df["SumUMWTPcs_CLM_SoldToName"][(df['CLM_Code']==clm) & (df['SoldTo_Name']==soldtoname)& (df["MONAT"].isin([int(m_minus1), int(m), int(m_plus1)])) & (df['AKT_DAY']==last_akt)].max()
+
+            BP_supply_thisakt = UMATPcs_thisakt
+            BP_supply_compare_akt = UMATPcs_compare_akt + UMWTPcs_thisakt - UMWTPcs_compare_akt
+
+            bp_supply = min(round((( 1 + ((BP_supply_thisakt - BP_supply_compare_akt)/(float(BP_supply_thisakt + BP_supply_compare_akt))) ) * 100),1), 100.0)
 
             cursor.execute("INSERT INTO dashboard_businessperformance(clm_code, soldtoname, bp_demand, bp_supply) VALUES (%s, %s, %s, %s)", (clm, soldtoname, bp_demand, bp_supply))
 

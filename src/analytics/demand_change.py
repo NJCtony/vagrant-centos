@@ -95,43 +95,6 @@ def calc_demand_change(df):
 
 #################### Above is Need 1 and Structural Change ####################
 
-#################### Below is Business Performance ####################
-def calculate_bp(df):
-    df['AKT_DAY'] = pd.to_datetime(df['AKT_DAY'], dayfirst=True)
-    recent_akt, last_akt = check_comparison_dates(df['AKT_DAY'])
-    recent_monat = str(recent_akt)[0:4]+str(recent_akt)[5:7]
-
-    # Demand
-    df['UM_WT_Euro'] =df['UM_EURO'].replace("nan",0)+df['OOH_Euro_WT_CU'].replace("nan",0)
-    df['UM_WT_Euro'] = df['UM_WT_Euro'].replace("nan",0)
-    m, m_plus1, m_plus2 = check_demand_period(recent_monat)
-    df['SumUMWTEuro_CLM_SoldToName'] = df[df["MONAT"].isin(([int(m),int(m_plus1),int(m_plus2)]))].groupby(['CLM_Code', 'SoldTo_Name','AKT_DAY'])['UM_WT_Euro'].transform('sum')
-    df['SumUMWTEuro_CLM_SoldToName'] = df['SumUMWTEuro_CLM_SoldToName'].replace('nan', 0)
-
-    # Supply
-    df['UM_AT_Pcs'] =df['UM_ST'].replace("nan",0)+df['OOH_Pcs_AT_SC'].replace("nan",0)
-    df['UM_AT_Pcs'] = df['UM_AT_Pcs'].replace("nan",0)
-    m_minus1, m, m_plus1 = check_supply_period(recent_monat)
-    df['SumUMATPcs_CLM_SoldToName'] = df[df["MONAT"].isin([int(m_minus1), int(m), int(m_plus1)])].groupby(['CLM_Code', 'SoldTo_Name','AKT_DAY'])['UM_AT_Pcs'].transform('sum')
-    df['SumUMATPcs_CLM_SoldToName'] = df['SumUMATPcs_CLM_SoldToName'].replace('nan', 0)
-
-    for clm in sorted(df["CLM_Code"].unique()):
-        for soldtoname in sorted(df['SoldTo_Name'][df['CLM_Code']==clm].unique()):
-            # Demand
-            BP_demand_thisakt = df["SumUMWTEuro_CLM_SoldToName"][(df['CLM_Code']==clm) & (df['SoldTo_Name']==soldtoname) & (df["MONAT"].isin([int(m),int(m_plus1),int(m_plus2)])) & (df['AKT_DAY']==recent_akt)].max()
-            BP_demand_compare_akt = df["SumUMWTEuro_CLM_SoldToName"][(df['CLM_Code']==clm) & (df['SoldTo_Name']==soldtoname)& (df["MONAT"].isin([int(m),int(m_plus1),int(m_plus2)])) & (df['AKT_DAY']==last_akt)].max()
-            bp_demand = round((( 1 + ((BP_demand_thisakt - BP_demand_compare_akt)/(float(BP_demand_thisakt + BP_demand_compare_akt)/2)) ) * 100),1)
-
-            # Supply
-            BP_supply_thisakt = df["SumUMATPcs_CLM_SoldToName"][(df['CLM_Code']==clm) & (df['SoldTo_Name']==soldtoname) & (df["MONAT"].isin([int(m_minus1), int(m), int(m_plus1)])) & (df['AKT_DAY']==recent_akt)].max()
-            BP_supply_compare_akt = df["SumUMATPcs_CLM_SoldToName"][(df['CLM_Code']==clm) & (df['SoldTo_Name']==soldtoname)& (df["MONAT"].isin([int(m_minus1), int(m), int(m_plus1)])) & (df['AKT_DAY']==last_akt)].max()
-            bp_supply = min(round((( 1 + ((BP_supply_thisakt - BP_supply_compare_akt)/(float(BP_supply_thisakt + BP_supply_compare_akt))) ) * 100),1), 100)
-            
-            # bp_supply = round((( 1 + ((BP_supply_thisakt - BP_supply_compare_akt - diff_UMATpcs_3wperiod)/(float(BP_supply_thisakt + BP_supply_compare_akt + diff_UMATpcs_3wperiod))) ) * 100),1)
-
-            cursor.execute("INSERT INTO dashboard_businessperformance(clm_code, soldtoname, bp_demand, bp_supply) VALUES (%s, %s, %s, %s)", (clm, soldtoname, bp_demand, bp_supply))
-
-
 ##################### End Functions ########################
 
 
@@ -154,13 +117,6 @@ start = time.time()
 calc_demand_change(df)
 end = time.time()
 print("Time taken to run demand change algorithm: {0:.6f} seconds ".format(end-start))
-
-cursor.execute("truncate dashboard_businessperformance")
-
-start = time.time()
-calculate_bp(df)
-end = time.time()
-print("Time taken to run bp algorithm: {0:.6f} seconds ".format(end-start))
 
 
 mydb.commit()
