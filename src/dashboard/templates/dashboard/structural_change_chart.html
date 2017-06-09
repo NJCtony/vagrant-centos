@@ -1,6 +1,9 @@
 {% load static %}
 <!-- ChartJS -->
 <script src="{% static 'dashboard/js/Chart.bundle.min.js' %}"></script>
+<!-- ChartJS Zoom -->
+<!-- <script src="{% static 'dashboard/js/chartjs-plugin-zoom.min.js' %}"></script> -->
+
 <div class="chart-container" style="position: relative; height:100%;">
     <canvas id="sc_chart"></canvas>
 </div>
@@ -267,7 +270,7 @@
               // drawOnChartArea: true,
             }
           }]
-        }
+        },
       }
     });
 
