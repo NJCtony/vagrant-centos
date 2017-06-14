@@ -59,3 +59,7 @@ pip-delete-this-directory.txt
 
 # Data Analytics
 *.csv
+
+# Uploads
+src/uploads/*
+!src/uploads/.gitkeep 
