@@ -8,6 +8,7 @@ urlpatterns = [
     url(r'^login/', views.LoginView.as_view(), name='login'),
     url(r'^demand-change/', views.DemandView.as_view(), name='demand_change'),
     url(r'^supply-change/', views.SupplyView.as_view(), name='supply_change'),
+    url(r'^upload/', views.upload_file, name='upload'),
 
     # API Endpoints
     url(r'^api/clm/(?P<clm_code>[A-Z0-9]+)', views.api_clm_summary, name='api_clm_summary'),

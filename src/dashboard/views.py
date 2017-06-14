@@ -19,7 +19,7 @@ from .models import DemandChangeRecord, SupplyChangeRecord, OrderDiscrepancyReco
 
 
 # Forms
-from .forms import LoginForm
+from .forms import LoginForm, UploadFileForm
 
 ## Endpoints
 class LoginView(View):
@@ -462,6 +462,21 @@ def api_bp(request, alert_type):
         time_end = time.time() - time_now
         print('Time taken <api_bp_{}>: {}'.format(alert_type ,time_end))
     return JsonResponse({'data' : data})
+
+def upload_file(request):
+    if request.method == 'POST':
+        form = UploadFileForm(request.POST, request.FILES)
+        if form.is_valid():
+            handle_uploaded_file(request.POST['title'], request.FILES['file'])
+            return redirect('dashboard:overview')
+    else:
+        form = UploadFileForm()
+    return render(request, 'dashboard/upload.html', {'form': form})
+
+def handle_uploaded_file(title, f):
+    with open('uploads/{}'.format(title), 'ab') as destination:
+        for chunk in f.chunks():
+            destination.write(chunk)
 
 ## Helper Functions
 def isInt(value):

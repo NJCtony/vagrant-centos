@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+{% load static %}
+<html>
+  <head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="{% static 'dashboard/css/login_style.css' %}">
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="{% static 'dashboard/css/bootstrap.min.css' %}" crossorigin="anonymous">
+    <title>File upload</title>
+  </head>
+  <body background="{% static 'dashboard/img/loginBackground.png' %}">
+    <div class="container">
+
+      <div class="row vertical-align">
+        <div class="col-lg-4 col-lg-offset-4 col-md-6 col-md-offset-3 col-sm-8 col-sm-offset-2 col-xs-12">
+          <div class="panel panel-default login-panel">
+            <div class="panel-body">
+
+              <div class="row">
+                <div class="col-xs-12">
+                  <h4>File Upload Interface</h4>
+                  <p>Input title in the following format : [date]_[type].csv </p>
+                  <p>Examples,</p>
+                  <p> - 010617_demand.csv</p>
+                  <p> - 310617_supply.csv</p>
+                  <p> - 101217_order.csv</p>
+                  {% if error_message %}
+                  <h5 class="text-danger">{{ error_message }}</h5>
+                  {% endif %}
+                  <form class="form-horizontal" role="form" action="" method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    {% include 'dashboard/_form-template.html' %}
+                    <div class="form-group">
+                      <div class="col-xs-4 col-xs-offset-8">
+                        <button type="submit" class="btn btn-primary col-xs-12">Submit</button>
+                      </div>
+                    </div>
+                  </form>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </body>
+</html>
