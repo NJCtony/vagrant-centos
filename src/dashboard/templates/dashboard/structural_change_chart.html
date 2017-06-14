@@ -8,6 +8,15 @@
     <canvas id="sc_chart"></canvas>
 </div>
 <script type="text/javascript">
+
+  function isApiUrl() {
+    var url = window.location.toString();
+    if (url.search('api') >= 0) {
+      return true;
+    }
+    return false;
+  }
+
   function rgbToString(value_list, opacity) {
     return 'rgba(' + value_list[0].toString() + ',' + value_list[1].toString() + ',' + value_list[2].toString() + ',' + opacity.toString() + ')';
   }
@@ -214,19 +223,20 @@
         tooltips: {
           displayColors : false,
           callbacks: {
-            title: function([tooltipItem], data) {
-              return data.datasets[tooltipItem.datasetIndex].label;
+            title: function(tooltipItem, data) {
+              console.log(tooltipItem)
+              return data.datasets[tooltipItem[0].datasetIndex].label;
             },
             {% if records_demand %}
-            afterBody: function([tooltipItem], data) {
-              if (data.datasets[tooltipItem.datasetIndex].label.toLowerCase().search('mean') < 0) {
-                // console.log("Showing" + data.datasets[tooltipItem.datasetIndex].label.search('mean'));
-                var last_umwteuro_amt = "last_umwteuro_amt: " + data.datasets[tooltipItem.datasetIndex].last_umwteuro_amt[tooltipItem.index] + "€";
-                var this_umwteuro_amt = "this_umwteuro_amt: " + data.datasets[tooltipItem.datasetIndex].this_umwteuro_amt[tooltipItem.index] + "€";
-                var afterBodyStr = [last_umwteuro_amt, this_umwteuro_amt]
-                return afterBodyStr;
-              };
-            },
+            // afterBody: function([tooltipItem], data) {
+            //   if (data.datasets[tooltipItem.datasetIndex].label.toLowerCase().search('mean') < 0) {
+            //     // console.log("Showing" + data.datasets[tooltipItem.datasetIndex].label.search('mean'));
+            //     var last_umwteuro_amt = "last_umwteuro_amt: " + data.datasets[tooltipItem.datasetIndex].last_umwteuro_amt[tooltipItem.index] + "€";
+            //     var this_umwteuro_amt = "this_umwteuro_amt: " + data.datasets[tooltipItem.datasetIndex].this_umwteuro_amt[tooltipItem.index] + "€";
+            //     var afterBodyStr = [last_umwteuro_amt, this_umwteuro_amt]
+            //     return afterBodyStr;
+            //   };
+            // },
             {% endif %}
           },
           custom: function(tooltip) {
@@ -284,6 +294,11 @@
             }
           }]
         },
+        onClick: function() {
+          if (isApiUrl()) {
+            window.top.location = "{{ redirect }}";
+          }
+        },
       }
     });
 
@@ -296,6 +311,9 @@
   var sc_records = JSON.parse('{{ records_supply|safe }}');
   {% endif %}
   var records_chart = drawRecords(sc_records);
+  if (isApiUrl()) {
+    document.getElementById('sc_chart').style.cursor = 'pointer';
+  }
 
   // if (sc_records.data[0].image) {
   //   var chart_image = records_chart.toBase64Image();

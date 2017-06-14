@@ -104,6 +104,7 @@ class DemandView(View):
     def get(self, request):
         # Params to get summary info
         query_id = request.GET['id'].upper()
+        query_soldtoindex = request.GET['soldtoindex']
 
         # Summary API
         clm_summary_json = api_clm_summary(request, query_id).content.decode('utf-8')
@@ -306,12 +307,23 @@ def api_records(request, alert_type):
 
 def api_records_demand_chart(request):
     records_demand_json = api_records_demand(request).content.decode('utf-8')
-    context = {'records_demand': records_demand_json}
+
+    query_id = request.GET.get('id')
+    query_soldtoindex = request.GET.get('soldtoindex')
+    base_url = reverse('dashboard:demand_change')
+    redirect_link = "{}?id={}&soldtoindex={}".format(base_url, query_id, query_soldtoindex)
+
+    context = {'records_demand': records_demand_json, 'redirect':redirect_link}
     return render(request, 'dashboard/structural_change_chart.html', context)
 
 def api_records_supply_chart(request):
     records_supply_json = api_records_supply(request).content.decode('utf-8')
-    context = {'records_supply': records_supply_json}
+
+    query_id = request.GET.get('id')
+    query_soldtoindex = request.GET.get('soldtoindex')
+    base_url = reverse('dashboard:supply_change')
+    redirect_link = "{}?id={}&soldtoindex={}".format(base_url, query_id, query_soldtoindex)
+    context = {'records_supply': records_supply_json,  'redirect':redirect_link}
     return render(request, 'dashboard/structural_change_chart.html', context)
 
 def api_alerts_demand(request):
