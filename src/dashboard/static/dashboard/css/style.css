@@ -4,7 +4,7 @@ html, body {
     height: 100%;
     margin: 0px;
     padding: 0px;
-    background-color: #04040404;
+    background-color: #f7f7f7;
 }
 
 .content {
@@ -29,9 +29,11 @@ html, body {
     margin-bottom: 0;
 }
 
-.clickable-block:hover {
+.clickable-block {
     border-radius: 10px;
-    background-color: #0f0f0f0f;
+}
+.clickable-block:hover {
+    background: #efefef;
     cursor: pointer;
     /*border-bottom: 5px solid red;*/
 }

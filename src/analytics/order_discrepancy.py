@@ -3,7 +3,6 @@ import numpy as np
 from datetime import date
 import MySQLdb
 import time
-# import matplotlib.pyplot as plt
 
 is_algorithm_development = False
 
