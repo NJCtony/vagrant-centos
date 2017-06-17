@@ -1,59 +1,18 @@
 {% load static %}
 <!-- ChartJS -->
 <script src="{% static 'dashboard/js/Chart.bundle.min.js' %}"></script>
+<script src="{% static 'dashboard/js/common.js' %}"></script>
+
+{% if zoom_chart %}
 <!-- ChartJS Zoom -->
-<!-- <script src="{% static 'dashboard/js/chartjs-plugin-zoom.min.js' %}"></script> -->
+<script src="{% static 'dashboard/js/chartjs-plugin-zoom.min.js' %}"></script>
+{% endif %}
 
 <div class="chart-container" style="position: relative; height:100%;">
     <canvas id="sc_chart"></canvas>
 </div>
 <script type="text/javascript">
-
-  function isApiUrl() {
-    var url = window.location.toString();
-    if (url.search('api') >= 0) {
-      return true;
-    }
-    return false;
-  }
-
-  function rgbToString(value_list, opacity) {
-    return 'rgba(' + value_list[0].toString() + ',' + value_list[1].toString() + ',' + value_list[2].toString() + ',' + opacity.toString() + ')';
-  }
-
   function sc_rgb_colormap(value, alert_flag) {
-    {% if records_demand %}
-    return sc_demand_colormap(value, alert_flag);
-    {% elif records_supply %}
-    return sc_supply_colormap(value, alert_flag);
-    {% endif %}
-  }
-  function sc_demand_colormap(value, alert_flag) {
-    // var base1 = [0, 162, 189];
-    // var base2 = [255, 162, 189];
-    // var diff = [base2[0]-base1[0], base2[1]-base1[1], base2[2]-base1[2]];
-    // var result = [];
-    //
-    // for(var v in diff) {
-    //   result.push(Math.round(base1[v] + Math.abs(value)/100.0*diff[v]));
-    // }
-    // return rgbToString(result, 1);
-
-    var color_normal = [255,245,157];
-    var color_alert = [249,168,37];
-
-    if (alert_flag == true) {
-      return rgbToString(color_alert, 1);
-    }
-    return rgbToString(color_normal, 1);
-  }
-  function sc_supply_colormap(value, alert_flag) {
-    // var blue = [0, 0, 128];
-    // var red = [255, 0, 0];
-    // if (value >= 93) {
-    //   return rgbToString(blue, 1);
-    // }
-    // return rgbToString(red, 1);
     var color_normal = [255,245,157];
     var color_alert = [255,0,0];
 
@@ -81,65 +40,6 @@
       font_size = 10;
     }
 
-    {% if records_demand %}
-    var yaxis_label = 'Structural Change, €%'
-    var min_ticks = 0
-    var max_ticks = 200
-
-    //////////////////////// MEAN > 100
-    // Defination of mean dataset
-    var mean_up_entry = {};
-    mean_up_entry.label = '+ Mean';
-    mean_up_entry.data = jsonData.data[0].means;
-    mean_up_entry.fill = false;
-    mean_up_entry.showLine = false;
-    mean_up_entry.pointStyle = 'rectRot';
-    mean_up_entry.pointBorderWidth = 2;
-
-    // Color mapping for mean
-    var border_color = rgbToString([170,170,170], 1);
-    var border_color_list = [border_color,border_color,border_color];
-    var black_color = rgbToString([30,30,30], 1);
-    var black_color_list = [black_color,black_color,black_color];
-    // var meanColor = rgbToString([245,127,23], 1);
-    var meanColor = rgbToString([0,255,0], 1);
-    var color_list = [meanColor,meanColor,meanColor];
-
-    mean_up_entry.pointBackgroundColor = color_list;
-    mean_up_entry.pointBorderColor = black_color;
-    mean_up_entry.pointHoverBackgroundColor = color_list;
-    mean_up_entry.pointHoverBorderColor = black_color;
-    mean_up_entry.pointRadius = 12;
-    mean_up_entry.pointHoverRadius = 12;
-    mean_up_entry.pointHitRadius = 0;
-
-    sc_dataset.push(mean_up_entry);
-
-    //////////////////////// MEAN < 100
-    // Defination of mean dataset
-    var meand_down_entry = {};
-    meand_down_entry.label = '- Mean';
-    meand_down_entry.data = jsonData.data[0].means2;
-    meand_down_entry.fill = false;
-    meand_down_entry.showLine = false;
-    meand_down_entry.pointStyle = 'rectRot';
-    meand_down_entry.pointBorderWidth = 2;
-
-    // Color mapping for mean
-    var meanColor = rgbToString([255,0,0 ], 1);
-    var color_list = [meanColor,meanColor,meanColor];
-
-    meand_down_entry.pointBackgroundColor = color_list;
-    meand_down_entry.pointBorderColor = black_color;
-    meand_down_entry.pointHoverBackgroundColor = color_list;
-    meand_down_entry.pointHoverBorderColor = black_color;
-    meand_down_entry.pointRadius = 12;
-    meand_down_entry.pointHoverRadius = 12;
-    meand_down_entry.pointHitRadius = 0;
-
-    sc_dataset.push(meand_down_entry);
-
-    {% elif records_supply %}
     var mean_entry = {};
     var yaxis_label = 'Structural Change, pcs%'
     var min_ticks = 0
@@ -170,7 +70,6 @@
     mean_entry.pointHitRadius = 0;
 
     sc_dataset.push(mean_entry);
-    {% endif %}
 
     for (var i in jsonData.data[0].salesnames) {
       var sc_entry = {};
@@ -212,6 +111,30 @@
         labels: sc_monat,
       },
       options: {
+        zoom: {
+          enabled: true,
+          mode: 'y',
+          rangeMin: {
+      			// Format of min zoom range depends on scale type
+      			y: 75
+      		},
+      		rangeMax: {
+      			// Format of max zoom range depends on scale type
+      			y: 100.9
+      		}
+        },
+        pan: {
+          enabled: true,
+          mode: 'y',
+          rangeMin: {
+      			// Format of min zoom range depends on scale type
+      			y: 75
+      		},
+      		rangeMax: {
+      			// Format of max zoom range depends on scale type
+      			y: 100.9
+      		}
+        },
         layout: {
           padding: {
             top: 10,
@@ -227,17 +150,6 @@
               console.log(tooltipItem)
               return data.datasets[tooltipItem[0].datasetIndex].label;
             },
-            {% if records_demand %}
-            // afterBody: function([tooltipItem], data) {
-            //   if (data.datasets[tooltipItem.datasetIndex].label.toLowerCase().search('mean') < 0) {
-            //     // console.log("Showing" + data.datasets[tooltipItem.datasetIndex].label.search('mean'));
-            //     var last_umwteuro_amt = "last_umwteuro_amt: " + data.datasets[tooltipItem.datasetIndex].last_umwteuro_amt[tooltipItem.index] + "€";
-            //     var this_umwteuro_amt = "this_umwteuro_amt: " + data.datasets[tooltipItem.datasetIndex].this_umwteuro_amt[tooltipItem.index] + "€";
-            //     var afterBodyStr = [last_umwteuro_amt, this_umwteuro_amt]
-            //     return afterBodyStr;
-            //   };
-            // },
-            {% endif %}
           },
           custom: function(tooltip) {
             function getBody(bodyItem) {
@@ -272,9 +184,7 @@
               fontSize: font_size
             },
             gridLines : {
-              // display: false,
               drawBorder: false,
-              // drawOnChartArea: true,
             }
           }],
           xAxes: [{
@@ -289,8 +199,6 @@
             gridLines : {
               display: false,
               drawBorder: false,
-              // lineWidth: [0,1,0],
-              // drawOnChartArea: true,
             }
           }]
         },
@@ -305,11 +213,7 @@
     return sc_LineChart;
   };
 
-  {% if records_demand %}
-  var sc_records = JSON.parse('{{ records_demand|safe }}');
-  {% elif records_supply %}
   var sc_records = JSON.parse('{{ records_supply|safe }}');
-  {% endif %}
   var records_chart = drawRecords(sc_records);
   if (isApiUrl()) {
     document.getElementById('sc_chart').style.cursor = 'pointer';
