@@ -1,0 +1,237 @@
+{% load static %}
+<!-- ChartJS -->
+<script src="{% static 'dashboard/js/Chart.bundle.min.js' %}"></script>
+<script src="{% static 'dashboard/js/common.js' %}"></script>
+
+{% if zoom_chart %}
+<!-- ChartJS Zoom -->
+<script src="{% static 'dashboard/js/chartjs-plugin-zoom.min.js' %}"></script>
+{% endif %}
+
+<div class="chart-container" style="position: relative; height:100%;">
+    <canvas id="sc_chart"></canvas>
+</div>
+<script type="text/javascript">
+  function sc_rgb_colormap(value, alert_flag) {
+    var color_normal = [255,245,157];
+    var color_alert = [249,168,37];
+
+    if (alert_flag == true) {
+      return rgbToString(color_alert, 1);
+    }
+    return rgbToString(color_normal, 1);
+  }
+
+  function drawRecords(jsonData) {
+    // SC: Acquire Data
+    var sc_dataset = [];
+    var sc_monat = jsonData.data[0].labels;
+
+    var show_labels = true;
+    var step_size = 25;
+    var font_size = 15;
+
+    if (jsonData.data[0].image) {
+      var chart = document.getElementById('sc_chart');
+      chart.parentNode.style.height = '150px';
+      chart.parentNode.style.width = '170px';
+      show_labels = false;
+      step_size = 100;
+      font_size = 10;
+    }
+
+    var yaxis_label = 'Structural Change, €%'
+    var min_ticks = 0
+    var max_ticks = 200
+
+    //////////////////////// MEAN > 100
+    // Defination of mean dataset
+    var mean_up_entry = {};
+    mean_up_entry.label = '+ Mean';
+    mean_up_entry.data = jsonData.data[0].means;
+    mean_up_entry.fill = false;
+    mean_up_entry.showLine = false;
+    mean_up_entry.pointStyle = 'rectRot';
+    mean_up_entry.pointBorderWidth = 2;
+
+    // Color mapping for mean
+    var border_color = rgbToString([170,170,170], 1);
+    var border_color_list = [border_color,border_color,border_color];
+    var black_color = rgbToString([30,30,30], 1);
+    var black_color_list = [black_color,black_color,black_color];
+    // var meanColor = rgbToString([245,127,23], 1);
+    var meanColor = rgbToString([0,255,0], 1);
+    var color_list = [meanColor,meanColor,meanColor];
+
+    mean_up_entry.pointBackgroundColor = color_list;
+    mean_up_entry.pointBorderColor = black_color;
+    mean_up_entry.pointHoverBackgroundColor = color_list;
+    mean_up_entry.pointHoverBorderColor = black_color;
+    mean_up_entry.pointRadius = 12;
+    mean_up_entry.pointHoverRadius = 12;
+    mean_up_entry.pointHitRadius = 0;
+
+    sc_dataset.push(mean_up_entry);
+
+    //////////////////////// MEAN < 100
+    // Defination of mean dataset
+    var meand_down_entry = {};
+    meand_down_entry.label = '- Mean';
+    meand_down_entry.data = jsonData.data[0].means2;
+    meand_down_entry.fill = false;
+    meand_down_entry.showLine = false;
+    meand_down_entry.pointStyle = 'rectRot';
+    meand_down_entry.pointBorderWidth = 2;
+
+    // Color mapping for mean
+    var meanColor = rgbToString([255,0,0 ], 1);
+    var color_list = [meanColor,meanColor,meanColor];
+
+    meand_down_entry.pointBackgroundColor = color_list;
+    meand_down_entry.pointBorderColor = black_color;
+    meand_down_entry.pointHoverBackgroundColor = color_list;
+    meand_down_entry.pointHoverBorderColor = black_color;
+    meand_down_entry.pointRadius = 12;
+    meand_down_entry.pointHoverRadius = 12;
+    meand_down_entry.pointHitRadius = 0;
+
+    sc_dataset.push(meand_down_entry);
+
+    for (var i in jsonData.data[0].salesnames) {
+      var sc_entry = {};
+      var salesname_data = jsonData.data[0].salesnames[i];
+
+      // Defination of each dataset
+      sc_entry.label = salesname_data.salesname;
+      sc_entry.data = salesname_data.sc;
+      sc_entry.alert_flag = salesname_data.alert_flag;
+      sc_entry.this_umwteuro_amt = salesname_data.this_umwteuro_amt;
+      sc_entry.last_umwteuro_amt = salesname_data.last_umwteuro_amt;
+      sc_entry.fill = false;
+      sc_entry.showLine = false;
+      sc_entry.pointStyle = 'circle';
+      sc_entry.pointRadius = 8;
+      sc_entry.pointHoverRadius = 8;
+      sc_entry.pointHitRadius = 0;
+
+      // Color mapping
+      var rgb0 = sc_rgb_colormap(sc_entry.data[0], sc_entry.alert_flag[0]);
+      var rgb1 = sc_rgb_colormap(sc_entry.data[1], sc_entry.alert_flag[1]);
+      var rgb2 = sc_rgb_colormap(sc_entry.data[2], sc_entry.alert_flag[2]);
+      sc_entry.pointBackgroundColor = [rgb0, rgb1, rgb2];
+      sc_entry.pointBorderColor = border_color_list;
+      sc_entry.pointHoverBackgroundColor = [rgb0, rgb1, rgb2];
+      sc_entry.pointHoverBorderColor = border_color_list;
+
+      sc_dataset.push(sc_entry);
+    }
+
+    // SC: Render
+    // Chart.defaults.global.tooltips.displayColors = false; // turn off color box within tooltips
+    var sc_LineChart = new Chart('sc_chart', {
+      type: 'line',
+      data: {
+        // Each entry
+        datasets: sc_dataset,
+        labels: sc_monat,
+      },
+      options: {
+        layout: {
+          padding: {
+            top: 10,
+          }
+        },
+        legend: {
+          display: false,
+        },
+        tooltips: {
+          displayColors : false,
+          callbacks: {
+            title: function(tooltipItem, data) {
+              console.log(tooltipItem)
+              return data.datasets[tooltipItem[0].datasetIndex].label;
+            },
+            {% if records_demand %}
+            // afterBody: function([tooltipItem], data) {
+            //   if (data.datasets[tooltipItem.datasetIndex].label.toLowerCase().search('mean') < 0) {
+            //     // console.log("Showing" + data.datasets[tooltipItem.datasetIndex].label.search('mean'));
+            //     var last_umwteuro_amt = "last_umwteuro_amt: " + data.datasets[tooltipItem.datasetIndex].last_umwteuro_amt[tooltipItem.index] + "€";
+            //     var this_umwteuro_amt = "this_umwteuro_amt: " + data.datasets[tooltipItem.datasetIndex].this_umwteuro_amt[tooltipItem.index] + "€";
+            //     var afterBodyStr = [last_umwteuro_amt, this_umwteuro_amt]
+            //     return afterBodyStr;
+            //   };
+            // },
+            {% endif %}
+          },
+          custom: function(tooltip) {
+            function getBody(bodyItem) {
+              return bodyItem.lines;
+            }
+            if (tooltip.body) {
+              var bodyLines = tooltip.body.map(getBody);
+              bodyLines[0][0] = 'SC:' + bodyLines[0][0].split(':')[1] + '%';
+              // console.log(data);
+            }
+          },
+        },
+        maintainAspectRatio: false,   // To allow specifed size : http://www.chartjs.org/docs/latest/general/responsive.html
+        animation: {
+          duration: 0, // general animation time,
+        },
+        hover: {
+          animationDuration: 0, // duration of animations when hovering an item
+        },
+        responsiveAnimationDuration: 0, // animation duration after a resize
+        scales: {
+          yAxes: [{
+            ticks: {
+              min: min_ticks,
+              max: max_ticks,
+              stepSize: step_size,
+              fontSize: font_size
+            },
+            scaleLabel : {
+              display: show_labels,
+              labelString: yaxis_label,
+              fontSize: font_size
+            },
+            gridLines : {
+              // display: false,
+              drawBorder: false,
+              // drawOnChartArea: true,
+            }
+          }],
+          xAxes: [{
+            ticks: {
+              fontSize: font_size
+            },
+            scaleLabel : {
+              display: show_labels,
+              labelString: "MONAT",
+              fontSize: font_size
+            },
+            gridLines : {
+              display: false,
+              drawBorder: false,
+              // lineWidth: [0,1,0],
+              // drawOnChartArea: true,
+            }
+          }]
+        },
+        onClick: function() {
+          if (isApiUrl()) {
+            window.top.location = "{{ redirect }}";
+          }
+        },
+      }
+    });
+
+    return sc_LineChart;
+  };
+
+  var sc_records = JSON.parse('{{ records_demand|safe }}');
+  var records_chart = drawRecords(sc_records);
+  if (isApiUrl()) {
+    document.getElementById('sc_chart').style.cursor = 'pointer';
+  }
+</script>

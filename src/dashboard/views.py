@@ -118,7 +118,7 @@ class DemandView(View):
         alerts_length_model = {'demand_increase': len(alerts_demand_models['data'][0]['alerts']['increase']), \
         'demand_decrease': len(alerts_demand_models['data'][0]['alerts']['decrease'])}
 
-        context = {'clm_summary': clm_summary_model, 'records_demand': records_demand_json, 'alerts_demand': alerts_demand_models, 'bp_demand': bp_demand_json, 'alert_length': alerts_length_model}
+        context = {'clm_summary': clm_summary_model, 'records_demand': records_demand_json, 'alerts_demand': alerts_demand_models, 'bp_demand': bp_demand_json, 'alert_length': alerts_length_model, 'zoom_chart': False}
         return render(request, self.template_name, context)
 
 @method_decorator(login_required, name='dispatch')
@@ -138,7 +138,7 @@ class SupplyView(View):
         alerts_supply_models = json.loads(alerts_supply_json)
         bp_supply_json = api_bp_supply(request).content.decode('utf-8')
 
-        context = {'clm_summary': clm_summary_model, 'records_supply': records_supply_json, 'alerts_supply': alerts_supply_models, 'bp_supply': bp_supply_json}
+        context = {'clm_summary': clm_summary_model, 'records_supply': records_supply_json, 'alerts_supply': alerts_supply_models, 'bp_supply': bp_supply_json, 'zoom_chart': True}
         return render(request, self.template_name, context)
 
 
@@ -310,21 +310,26 @@ def api_records_demand_chart(request):
 
     query_id = request.GET.get('id')
     query_soldtoindex = request.GET.get('soldtoindex')
+
+    # Redirect link from Overview page to Detailed page
     base_url = reverse('dashboard:demand_change')
     redirect_link = "{}?id={}&soldtoindex={}".format(base_url, query_id, query_soldtoindex)
 
     context = {'records_demand': records_demand_json, 'redirect':redirect_link}
-    return render(request, 'dashboard/structural_change_chart.html', context)
+    return render(request, 'dashboard/chart_demand.html', context)
 
 def api_records_supply_chart(request):
     records_supply_json = api_records_supply(request).content.decode('utf-8')
 
     query_id = request.GET.get('id')
     query_soldtoindex = request.GET.get('soldtoindex')
+
+    # Redirect link from Overview page to Detailed page
     base_url = reverse('dashboard:supply_change')
     redirect_link = "{}?id={}&soldtoindex={}".format(base_url, query_id, query_soldtoindex)
+
     context = {'records_supply': records_supply_json,  'redirect':redirect_link}
-    return render(request, 'dashboard/structural_change_chart.html', context)
+    return render(request, 'dashboard/chart_supply.html', context)
 
 def api_alerts_demand(request):
     return api_alerts(request, 'demand')
