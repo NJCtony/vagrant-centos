@@ -13,10 +13,6 @@ class DemandChangeRecord(models.Model):
     last_umwteuro_amt = models.FloatField(default=0)
     this_umwteuro_amt = models.FloatField(default=0)
     diff_umwteuro = models.FloatField(default=0)
-    last_umwtpcs_amt = models.IntegerField(default=0)
-    this_umwtpcs_amt = models.IntegerField(default=0)
-    diff_umwtpcs = models.IntegerField(default=0)
-    diff_umwtpcs_percent = models.FloatField(default=0)
     sc_diff_umwteuro_percent = models.FloatField(default=0)
     alert_flag = models.NullBooleanField()
 
@@ -32,8 +28,7 @@ class SupplyChangeRecord(models.Model):
     this_umatpcs_3WPeriod = models.IntegerField(default=0)
     last_umatpcs_3WPeriod = models.IntegerField(default=0)
     diff_umatpcs_3WPeriod = models.IntegerField(default=0)
-    sc_diff_umatpcs_percentage = models.FloatField(default=0)
-    alert_percentage = models.FloatField(default=0)
+    diff_umatpcs_3WPeriod_percent = models.FloatField(default=0)
     alert_flag = models.NullBooleanField()
 
 class OrderDiscrepancyAlerts(models.Model):
@@ -62,8 +57,12 @@ class OrderDiscrepancyGraphData(models.Model):
 class BusinessPerformance(models.Model):
     clm_code = models.CharField(max_length=16, default=None)
     soldtoname = models.CharField(max_length=64, default=None)
-    bp_demand = models.FloatField(default=0)
+    bp_demand_this_quarter = models.CharField(max_length=16, default=None)
+    bp_demand_next_quarter = models.CharField(max_length=16, default=None)
+    current_quarter = models.CharField(max_length=16, default=None)
+    next_quarter = models.CharField(max_length=16, default=None)
     bp_supply = models.FloatField(default=0)
+    bp_order = models.FloatField(default=0)
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)

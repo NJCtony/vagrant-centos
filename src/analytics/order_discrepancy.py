@@ -4,6 +4,7 @@ from datetime import date
 import MySQLdb
 import time
 
+# Put this as 'True' if you're working on the algorithm and validating the results through the output csv
 is_algorithm_development = False
 
 ### Function to identify 3 main periods: ####################################################################
@@ -99,7 +100,7 @@ def fillinthemonths(list1,list2):
 # applying the threshold of MEAN+3*STANDARD DEVIATION to any orders in the current, or future 2 MONATs, where applicable.
 #############################################################################################################
 
-def check_order_discrepancies(filename):
+def check_order_discrepancies(filename, is_algorithm_development):
     df = pd.read_csv(filename, encoding="ISO-8859-1", parse_dates=True, header=1)
     if "bills" not in list(df):
         ##############################################################################################
@@ -188,8 +189,12 @@ def check_order_discrepancies(filename):
                                 #alert_flag = 0
                                 #alerts_ordersdiscrepancies.append({"[graph]_monatlist":, "[graph]_umwtpcslist":graph_umwtpcslist,"clm":clm, "% deviation": percentage_deviation,"soldtoname": soldtoname, "salesname":salesname, "monat":month, "alert_flag": alert_flag,  "wtpcs_amt":m_wtpcs, "average": average, "num_sd_diff": num_sd_diff})
                             bp+=abs_num_sd_diff
-            bp_averaged = bp/(numberofsalesname*3) #3 for 3 monats
-            bp_ordersdiscrepancies.append({"clm":clm, "soldtoname": soldtoname, "bp":bp_averaged})
+            bp_order = bp/(numberofsalesname*3) #3 for 3 monats
+            if is_algorithm_development:
+                bp_ordersdiscrepancies.append({"clm":clm, "soldtoname": soldtoname, "bp":bp_order})
+            else:
+                cursor.execute("UPDATE dashboard_businessperformance SET bp_order=%s WHERE clm_code=%s and soldtoname=%s", (bp_order, clm, soldtoname))
+
     # return bp_ordersdiscrepancies
     return alerts_ordersdiscrepancies
 
@@ -203,7 +208,7 @@ filename = '/srv/website/data/order_discrep_SEU_12Jun_Z02_Z04.csv'
 
 if is_algorithm_development:
     import csv
-    toCSV = check_order_discrepancies(filename)
+    toCSV = check_order_discrepancies(filename, is_algorithm_development)
     keys = toCSV[0].keys()
     with open('output_need3.csv', 'w') as output_file:
         dict_writer = csv.DictWriter(output_file, keys)
@@ -224,7 +229,7 @@ else:
     cursor.execute("truncate dashboard_orderdiscrepancygraphdata")
     cursor.execute("SET FOREIGN_KEY_CHECKS = 1")
     start = time.time()
-    check_order_discrepancies(filename)
+    check_order_discrepancies(filename, is_algorithm_development)
     end = time.time()
     print("Time taken to run order discrepancy algorithm: {0:.6f} seconds ".format(end-start))
 

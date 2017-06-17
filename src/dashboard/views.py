@@ -263,11 +263,11 @@ def api_records(request, alert_type):
                     salesname_sc = [] # set of structural-change-% for each sales-name
                     salesname_alert = []
                     for monat_item in monat_list:
-                        if SupplyChangeRecord.objects.filter(clm_code=query_id, soldtoname=soldtoname_choice, salesname=salesname_item, monat=monat_item).values('sc_diff_umatpcs_percentage', 'alert_flag').exists():
+                        if SupplyChangeRecord.objects.filter(clm_code=query_id, soldtoname=soldtoname_choice, salesname=salesname_item, monat=monat_item).values('diff_umatpcs_3WPeriod_percent', 'alert_flag').exists():
                             record_query = SupplyChangeRecord.objects.filter(clm_code=query_id, soldtoname=soldtoname_choice,salesname=salesname_item, monat=monat_item) \
-                            .values('sc_diff_umatpcs_percentage', 'alert_flag')
+                            .values('diff_umatpcs_3WPeriod_percent', 'alert_flag')
 
-                            salesname_sc.append(record_query[0]['sc_diff_umatpcs_percentage'])
+                            salesname_sc.append(record_query[0]['diff_umatpcs_3WPeriod_percent'])
                             salesname_alert.append(record_query[0]['alert_flag'])
                         else:
                             salesname_sc.append(100) # fix: fill up missing values
@@ -399,11 +399,12 @@ def api_alerts(request, alert_type):
                 demand_values = ('soldtoname', 'salesname', 'monat', 'diff_umwteuro', 'sc_diff_umwteuro_percent', 'diff_umwteuro') # Define field to be be shown
 
                 if query_aggregate and not oneSoldtoname:
-                    alerts_query = DemandChangeRecord.objects.filter(alert_flag=1).values(*demand_values)
+                    alerts_query = DemandChangeRecord.objects.filter(clm_code=query_id, alert_flag=1).values(*demand_values)
                 else:
-                    alerts_query = DemandChangeRecord.objects.filter(soldtoname = soldtoname_choice, alert_flag=1).values(*demand_values)
+                    alerts_query = DemandChangeRecord.objects.filter(clm_code=query_id, soldtoname=soldtoname_choice, alert_flag=1).values(*demand_values)
 
-                alerts_increase = alerts_query.filter(sc_diff_umwteuro_percent__gt = 110, sc_diff_umwteuro_percent__lt = 200).order_by('sc_diff_umwteuro_percent').reverse()
+                # TODO: rewrite magic numbers as global variables
+                alerts_increase = alerts_query.filter(sc_diff_umwteuro_percent__gt = 10, sc_diff_umwteuro_percent__lt = 100).order_by('sc_diff_umwteuro_percent').reverse()
                 alerts_decrease = alerts_query.filter(diff_umwteuro__lt = -50000).order_by('diff_umwteuro')
                 if query_limit:
                     alerts_increase = alerts_increase[:query_limit]
@@ -411,14 +412,14 @@ def api_alerts(request, alert_type):
                 soldtoname_data['alerts'] = {'increase': list(alerts_increase), 'decrease': list(alerts_decrease)}
 
             elif alert_type == 'supply':
-                supply_values = ('soldtoname', 'salesname', 'alert_percentage', 'this_umatpcs_3WPeriod', 'last_umatpcs_3WPeriod') # Define field to be be shown
+                supply_values = ('soldtoname', 'salesname', 'diff_umatpcs_3WPeriod_percent', 'this_umatpcs_3WPeriod', 'last_umatpcs_3WPeriod') # Define field to be be shown
 
                 if query_aggregate and not oneSoldtoname:
-                    alerts_query = SupplyChangeRecord.objects.filter(alert_flag=1).values(*supply_values)
+                    alerts_query = SupplyChangeRecord.objects.filter(clm_code=query_id, alert_flag=1).values(*supply_values)
                 else:
-                    alerts_query = SupplyChangeRecord.objects.filter(soldtoname = soldtoname_choice, alert_flag=1).values(*supply_values)
+                    alerts_query = SupplyChangeRecord.objects.filter(clm_code=query_id, soldtoname=soldtoname_choice, alert_flag=1).values(*supply_values)
 
-                alerts = alerts_query.order_by('alert_percentage')
+                alerts = alerts_query.order_by('diff_umatpcs_3WPeriod_percent')
                 if query_limit:
                     alerts = alerts[:query_limit]
                 soldtoname_data['alerts'] = list(alerts)
@@ -427,9 +428,9 @@ def api_alerts(request, alert_type):
                 order_values = ('soldtoname', 'salesname', 'monat', 'wtpcs_amt', 'num_sd_diff') # Define field to be be shown
 
                 if query_aggregate and not oneSoldtoname:
-                    alerts_query = OrderDiscrepancyAlerts.objects.filter(alert_flag=1).values(*order_values)
+                    alerts_query = OrderDiscrepancyAlerts.objects.filter(clm_code=query_id, alert_flag=1).values(*order_values)
                 else:
-                    alerts_query = OrderDiscrepancyAlerts.objects.filter(soldtoname = soldtoname_choice, alert_flag=1).values(*order_values)
+                    alerts_query = OrderDiscrepancyAlerts.objects.filter(clm_code=query_id, soldtoname=soldtoname_choice, alert_flag=1).values(*order_values)
 
                 alerts = alerts_query.order_by('abs_num_sd_diff').reverse()
                 if query_limit:
@@ -488,10 +489,16 @@ def api_bp(request, alert_type):
             soldtoname_data['redirect_link'] = get_redirect_link(query_id, soldtoindex_choice, alert_type)
             soldtoname_data['chart_link'] = get_chart_link(query_id, soldtoindex_choice, alert_type)
 
-            bp_query = BusinessPerformance.objects.filter(clm_code=query_id, soldtoname=soldtoname_choice).values('bp_{}'.format(alert_type))
 
-            if len(bp_query) == 1:
-                soldtoname_data['bp'] = bp_query.get()['bp_{}'.format(alert_type)]
+            if alert_type == "demand":
+                #TODO: change this to reflect the quarterly BP
+                bp_query = BusinessPerformance.objects.filter(clm_code=query_id, soldtoname=soldtoname_choice).values('bp_demand_this_quarter')
+                if len(bp_query) == 1:
+                    soldtoname_data['bp'] = bp_query.get()['bp_demand_this_quarter']
+            elif alert_type =="supply":
+                bp_query = BusinessPerformance.objects.filter(clm_code=query_id, soldtoname=soldtoname_choice).values('bp_{}'.format(alert_type))
+                if len(bp_query) == 1:
+                    soldtoname_data['bp'] = bp_query.get()['bp_{}'.format(alert_type)]
             else:
                 print("api_bp: Missing BP")
 
