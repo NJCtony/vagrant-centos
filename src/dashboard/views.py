@@ -172,7 +172,7 @@ def api_records(request, alert_type):
     data = []
     if query_id:
         time_now = time.time()
-        #TODO: Check validity of query_id
+
         clm_summary_json = api_clm_summary(request, query_id).content.decode('utf-8')
         clm_summary_dict = json.loads(clm_summary_json)
         soldtoname_list = clm_summary_dict['data']['soldtonames']
@@ -252,6 +252,7 @@ def api_records(request, alert_type):
             elif alert_type == 'supply':
                 sc_mean = [0.0, 0.0, 0.0]
                 sc_count = [0, 0, 0]
+                sc_min = 100
                 soldtoname_data['soldtoname'] = soldtoname_choice
                 monat_list = [temp_dict['monat'] for temp_dict in SupplyChangeRecord.objects.values('monat').distinct()]
                 soldtoname_data['labels'] = monat_list
@@ -276,6 +277,9 @@ def api_records(request, alert_type):
                         sc_mean[i] += salesname_sc[i]
                         sc_count[i] += 1
 
+                        if salesname_sc[i] < sc_min:
+                            sc_min = salesname_sc[i]
+
                     soldtoname_data['salesnames'].append({'salesname': salesname_item, 'sc': salesname_sc, 'alert_flag': salesname_alert})
 
                 for i in range(len(sc_mean)):
@@ -286,6 +290,7 @@ def api_records(request, alert_type):
                     sc_mean[i] = round(sc_mean[i], 1)
 
                 soldtoname_data['means'] = sc_mean
+                soldtoname_data['min'] = sc_min
 
             if query_image and oneEntry:
                 soldtoname_data['image'] = True
@@ -306,28 +311,45 @@ def api_records(request, alert_type):
 def api_records_demand_chart(request):
     records_demand_json = api_records_demand(request).content.decode('utf-8')
 
+    # Redirect link from Overview page to Detailed page
     query_id = request.GET.get('id')
     query_soldtoindex = request.GET.get('soldtoindex')
+    redirect_link = get_redirect_link(query_id, query_soldtoindex, 'demand')
 
-    # Redirect link from Overview page to Detailed page
-    base_url = reverse('dashboard:demand_change')
-    redirect_link = "{}?id={}&soldtoindex={}".format(base_url, query_id, query_soldtoindex)
-
-    context = {'records_demand': records_demand_json, 'redirect':redirect_link}
+    context = {'records_demand': records_demand_json, 'redirect_link':redirect_link}
     return render(request, 'dashboard/chart_demand.html', context)
 
 def api_records_supply_chart(request):
     records_supply_json = api_records_supply(request).content.decode('utf-8')
 
+    # Redirect link from Overview page to Detailed page
     query_id = request.GET.get('id')
     query_soldtoindex = request.GET.get('soldtoindex')
+    redirect_link = get_redirect_link(query_id, query_soldtoindex, 'supply')
 
-    # Redirect link from Overview page to Detailed page
-    base_url = reverse('dashboard:supply_change')
-    redirect_link = "{}?id={}&soldtoindex={}".format(base_url, query_id, query_soldtoindex)
-
-    context = {'records_supply': records_supply_json,  'redirect':redirect_link}
+    context = {'records_supply': records_supply_json,  'redirect_link':redirect_link}
     return render(request, 'dashboard/chart_supply.html', context)
+
+def get_redirect_link(query_id, query_soldtoindex, alert_type):
+    # Redirect link from Overview page to Detailed page
+    if alert_type == 'demand':
+        base_url = reverse('dashboard:demand_change')
+    elif alert_type == 'supply':
+        base_url = reverse('dashboard:supply_change')
+    else:
+        return ""
+    redirect_link = "{}?id={}&soldtoindex={}".format(base_url, query_id, query_soldtoindex)
+    return redirect_link
+def get_chart_link(query_id, query_soldtoindex, alert_type):
+    # Link to chart to embed into iframe
+    if alert_type == 'demand':
+        base_url = reverse('dashboard:api_records_demand_chart')
+    elif alert_type == 'supply':
+        base_url = reverse('dashboard:api_records_supply_chart')
+    else:
+        return ""
+    chart_link = "{}?id={}&soldtoindex={}&image=1".format(base_url, query_id, query_soldtoindex)
+    return chart_link
 
 def api_alerts_demand(request):
     return api_alerts(request, 'demand')
@@ -450,18 +472,21 @@ def api_bp(request, alert_type):
         clm_summary_dict = json.loads(clm_summary_json)
         soldtoname_list = clm_summary_dict['data']['soldtonames']
 
-        for soldtoname_choice in soldtoname_list: # iterate ea soldtoname
+        for soldtoindex_choice in range(len(soldtoname_list)): # iterate ea soldtoname
+            soldtoname_choice = soldtoname_list[soldtoindex_choice]
             oneSoldtoname = False
             # Validate and verify soldtoindex
             if isInt(query_soldtoindex):
                 query_soldtoindex = int(query_soldtoindex)
-                print(query_soldtoindex)
+                print('SOLDTOINDEX', query_soldtoindex)
                 if query_soldtoindex < len(soldtoname_list):
                     soldtoname_choice = soldtoname_list[query_soldtoindex]
                     oneSoldtoname = True
 
             soldtoname_data = {} # Each soldtoname is an entry into data
             soldtoname_data['soldtoname'] = soldtoname_choice
+            soldtoname_data['redirect_link'] = get_redirect_link(query_id, soldtoindex_choice, alert_type)
+            soldtoname_data['chart_link'] = get_chart_link(query_id, soldtoindex_choice, alert_type)
 
             bp_query = BusinessPerformance.objects.filter(clm_code=query_id, soldtoname=soldtoname_choice).values('bp_{}'.format(alert_type))
 

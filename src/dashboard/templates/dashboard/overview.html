@@ -24,7 +24,7 @@
           {% with soldtoname=bp_demand.soldtoname clm_code=clm_summary.data.clm_code %}
           <tr>
             <td>{{ soldtoname }}</td>
-            <td class="clickable-block" data-href="{% url 'dashboard:demand_change' %}?id={{ clm_code }}&soldtoindex={{ forloop.counter0 }}">
+            <td class="clickable-block" data-href="{{ bp_demand.redirect_link }}">
               <div style="text-align:center;">
                 <div title="Business Performance" style="vertical-align:top; display:inline-block;">
                   {% if bp_demand.bp > 100 %}
@@ -35,13 +35,13 @@
                 </div>
                 <div title="Structural Performance" style="display:inline-block;">
                   <div class="overview-records-chart">
-                    <iframe src="{% url 'dashboard:api_records_demand_chart' %}?id={{ clm_code }}&soldtoindex={{ forloop.counter0 }}&image=1" style="border:none; width:100%; height:100%;"></iframe>
+                    <iframe src="{{ bp_demand.chart_link}}" style="border:none; width:100%; height:100%;"></iframe>
                   </div>
                 </div>
               </div>
             </td>
 
-            <td class="clickable-block" data-href="{% url 'dashboard:supply_change' %}?id={{ clm_code }}&soldtoindex={{ forloop.counter0 }}">
+            <td class="clickable-block" data-href="{{ bp_supply.redirect_link }}">
               <div style="text-align:center;">
                 <div title="Business Performance" style="vertical-align:top; display:inline-block;">
                   {% if bp_supply.bp >= 93 %}
