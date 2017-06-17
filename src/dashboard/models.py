@@ -36,7 +36,9 @@ class SupplyChangeRecord(models.Model):
     alert_percentage = models.FloatField(default=0)
     alert_flag = models.NullBooleanField()
 
-class OrderDiscrepancyRecord(models.Model):
+class OrderDiscrepancyAlerts(models.Model):
+    alert_id = models.IntegerField(default=0)
+    clm_code = models.CharField(max_length=16, default=None)
     soldtoname = models.CharField(max_length=64, default=None)
     salesname = models.CharField(max_length=32, default=None)
     monat = models.CharField(max_length=16, default=None)
@@ -44,7 +46,18 @@ class OrderDiscrepancyRecord(models.Model):
     average = models.FloatField(default=0)
     num_sd_diff = models.FloatField(default=0)
     abs_num_sd_diff = models.FloatField(default=0)
+    percentage_deviation = models.FloatField(default=0)
+    upper_control_limit = models.FloatField(default=0)
+    lower_control_limit = models.FloatField(default=0)
     alert_flag = models.NullBooleanField()
+
+class OrderDiscrepancyGraphData(models.Model):
+    alert_id = models.IntegerField(default=0)
+    clm_code = models.CharField(max_length=16, default=None)
+    soldtoname = models.CharField(max_length=64, default=None)
+    salesname = models.CharField(max_length=32, default=None)
+    monat = models.CharField(max_length=16, default=None)
+    wtpcs_amt = models.IntegerField(default=0)
 
 class BusinessPerformance(models.Model):
     clm_code = models.CharField(max_length=16, default=None)

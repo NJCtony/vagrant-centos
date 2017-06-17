@@ -3,7 +3,9 @@ import numpy as np
 from datetime import date
 import MySQLdb
 import time
+# import matplotlib.pyplot as plt
 
+is_algorithm_development = False
 
 ### Function to identify 3 main periods: ####################################################################
 #  (1) 12 MONATs back, (2) 3 MONATs back, (3) Current + 2 MONATs ######
@@ -69,7 +71,27 @@ def check_period_need(df):
 
     return {"pastyr":monat_checkback_yr, "past6m": monat_checkback_6m, "past3m": monat_checkback_3m, "nowplus2": monat_checkfwd_2m}
 
+def fillinthemonths(list1,list2):
+    list1 = list(map(int, list1))
+    checkmonatcounter = 0
+    exitcounter = 0
+    while checkmonatcounter < len(list1)-1:
+        if exitcounter >= 12:
+            return list1, list2
+        if str(int(list1[checkmonatcounter]))[-2:] == "12":
+            if str(int(list1[checkmonatcounter+1]))[-2:]!="01":
+                list1.insert(checkmonatcounter+1,int(str(int(list1[checkmonatcounter])+100)[:-2]+"01"))
+                list2.insert(checkmonatcounter+1,0.0)
+            else: pass
+        else:
+            if (list1[checkmonatcounter+1] - list1[checkmonatcounter]) > 1:
+                list1.insert(checkmonatcounter+1,int(list1[checkmonatcounter])+1)
+                list2.insert(checkmonatcounter+1,0.0)
+            else: pass
 
+        checkmonatcounter+=1
+        exitcounter+=1
+    return list1, list2
 
 ################################## Main Function ##############################################
 # It firstly checks if there are any recent orders in the last 3 MONATs,   [At least 1 order in the past 3 MONATs]
@@ -106,24 +128,28 @@ def check_order_discrepancies(filename):
 
 
     alerts_ordersdiscrepancies = []
+    bp_ordersdiscrepancies = []
 
-    for soldtoname in sorted(df["SoldTo_Name"].fillna("Unknowns").unique()):
+    alert_id = 1;
+    for clm in sorted(df["CLM_Code"].fillna("Unknowns").unique()):
+        for soldtoname in sorted(df['SoldTo_Name'][df['CLM_Code']==clm].fillna("Unknowns").unique()):
+            bp = 0
+            numberofsalesname = len(sorted(df['SalesName'][(df['CLM_Code']==clm)&(df['SoldTo_Name']==soldtoname)].fillna("Unknowns").unique()))
+            for salesname in sorted(df['SalesName'][(df['CLM_Code']==clm)&(df['SoldTo_Name']==soldtoname)].fillna("Unknowns").unique()):
 
-        for salesname in sorted(df['SalesName'][df['SoldTo_Name']==soldtoname].fillna("Unknowns").unique()):
-            monatlist = sorted(df['MONAT'][(df['SoldTo_Name']==soldtoname) & (df["SalesName"]==salesname)].unique())
-            nowtoMplus2 = set(monatlist).intersection(nowplus2)
+                monatlist = sorted(df['MONAT'][(df['SoldTo_Name']==soldtoname) & (df["SalesName"]==salesname)].unique())
+                #nowtoMplus2 = set(monatlist).intersection(nowplus2)
 
 
-            past3monat = set(monatlist).intersection(past3m)
-            if len(past3monat) >= 1:     #1st Condition: Recency -- if there is at least an order in the last 3 MONATs
-                pastyrmonat = set(monatlist).intersection(pastyr)
+                past3monat = set(monatlist).intersection(past3m)
+                if len(past3monat) >= 1:     #1st Condition: Recency -- if there is at least an order in the last 3 MONATs
+                    pastyrmonat = set(monatlist).intersection(pastyr)
 
-                if len(pastyrmonat) >= 6:    #2nd Condition: Consistency -- if there are at least 6 orders in the last 1 year
+                    if len(pastyrmonat) >= 6:    #2nd Condition: Consistency -- if there are at least 6 orders in the last 1 year
 
-                    average = df["bills_today_WTCU"][(df['SoldTo_Name']==soldtoname) & (df['SalesName']==salesname) & (df["MONAT"].isin(pastyr))].replace(0,np.nan).mean()
-                    stddev = df["bills_today_WTCU"][(df['SoldTo_Name']==soldtoname) & (df['SalesName']==salesname) & (df["MONAT"].isin(pastyr))].replace(0,np.nan).std()
+                        average = df["bills_today_WTCU"][(df['SoldTo_Name']==soldtoname) & (df['SalesName']==salesname) & (df["MONAT"].isin(pastyr))].replace(0,np.nan).mean()
+                        stddev = df["bills_today_WTCU"][(df['SoldTo_Name']==soldtoname) & (df['SalesName']==salesname) & (df["MONAT"].isin(pastyr))].replace(0,np.nan).std()
 
-                    if len(set(monatlist).intersection(past6m))==6:  #3rd Condition: Uniformity -- Orders are placed regularly (Each month) for the last 6 consecutive MONATs
                         for month in nowplus2:  #for every monat in M, M+1, M+2
                             if len(df["bills_today_WTCU"][(df['SoldTo_Name']==soldtoname) & (df["SalesName"]==salesname) & (df["MONAT"]==month)]) == 0:
                                 m_wtpcs = 0.0
@@ -132,57 +158,76 @@ def check_order_discrepancies(filename):
                             percentage_deviation = round((m_wtpcs - average) / (m_wtpcs + average)*100,2)
                             diff_rate = m_wtpcs - average
                             num_sd_diff = 0 if (abs(diff_rate) < 0.0001 or stddev < 0.0001) else round((diff_rate/stddev), 2)   #identifies how many std dev the order size is from the mean
+                            abs_num_sd_diff = abs(num_sd_diff)
 
-                            if (m_wtpcs > (average+3.0*stddev)) or (m_wtpcs < (average-3*stddev)):
+                            ucl = average+3.0*stddev
+                            lcl = average-3.0*stddev
+                            if (m_wtpcs > ucl) or (m_wtpcs < lcl):
+
+                                ### This part generates the points for the plotting of the graph ###
+                                graph_monatlist = df["MONAT"][(df['CLM_Code']==clm)&(df["SoldTo_Name"]==soldtoname)&(df["SalesName"]==salesname)].unique().tolist()
+                                graph_umwtpcslist = df["bills_today_WTCU"][(df['CLM_Code']==clm)&(df["SoldTo_Name"]==soldtoname)&(df["SalesName"]==salesname)].tolist()
+                                if np.isnan(graph_monatlist[-1]):
+                                    graph_monatlist = graph_monatlist[:-1]
+                                    graph_umwtpcslist = graph_umwtpcslist[:-1]
+                                #print graph_monatlist, graph_umwtpcslist
+                                graph_monatlist_processed, graph_umwtpcslist_processed = fillinthemonths(graph_monatlist, graph_umwtpcslist)
+                                ####################
+
                                 alert_flag = 1
-                                alerts_ordersdiscrepancies.append({"% deviation": percentage_deviation, "soldtoname": soldtoname, "salesname":salesname, "monat":month, "alert_flag": alert_flag,  "wtpcs_amt":m_wtpcs, "average": average, "num_sd_diff": num_sd_diff})
-                            else:
-                                alert_flag = 0
-                                alerts_ordersdiscrepancies.append({"% deviation": percentage_deviation,"soldtoname": soldtoname, "salesname":salesname, "monat":month, "alert_flag": alert_flag,  "wtpcs_amt":m_wtpcs, "average": average, "num_sd_diff": num_sd_diff})
-
-                    else:
-                        if len(nowtoMplus2) >= 1:
-                            for month in nowtoMplus2:  #for every monat there is in the dataset, does not include missing orders
-                                if len(df["bills_today_WTCU"][(df['SoldTo_Name']==soldtoname) & (df["SalesName"]==salesname) & (df["MONAT"]==month)]) == 0:
-                                    m_wtpcs = 0.0
+                                if is_algorithm_development:
+                                    alerts_ordersdiscrepancies.append({"[graph]_monatlist":graph_monatlist_processed, "[graph]_umwtpcslist":graph_umwtpcslist_processed, "clm":clm, "% deviation": percentage_deviation, "soldtoname": soldtoname, "salesname":salesname, "[graph]_monat":month, "alert_flag": alert_flag,  "wtpcs_amt":m_wtpcs, "average": average, "num_sd_diff": num_sd_diff,"abs_num_sd":abs_num_sd_diff,"[graph]_ucl":ucl,"[graph]_lcl":lcl})
                                 else:
-                                    m_wtpcs = df["bills_today_WTCU"][(df['SoldTo_Name']==soldtoname) & (df["SalesName"]==salesname) & (df["MONAT"]==month)].max()
-                                percentage_deviation = round((m_wtpcs - average) / (m_wtpcs + average)*100,2)
-                                diff_rate = m_wtpcs - average
-                                num_sd_diff = 0 if (abs(diff_rate) < 0.0001 or stddev < 0.0001) else round((diff_rate/stddev), 2)   #identifies how many std dev the order size is from the mean
+                                    cursor.execute("INSERT INTO dashboard_orderdiscrepancyalerts(alert_id, clm_code, soldtoname, salesname, monat, wtpcs_amt, average, num_sd_diff, abs_num_sd_diff, percentage_deviation, upper_control_limit, lower_control_limit, alert_flag) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", (alert_id, clm, soldtoname, salesname, month, m_wtpcs, average, num_sd_diff, abs_num_sd_diff, percentage_deviation, ucl, lcl, alert_flag))
 
-                                if (m_wtpcs > (average+3.0*stddev)) or (m_wtpcs < (average-3*stddev)):
-                                    alert_flag = 1
-                                    # alerts_ordersdiscrepancies.append({"% deviation": percentage_deviation,"soldtoname": soldtoname, "salesname":salesname, "monat":month, "alert_flag": alert_flag,  "wtpcs_amt":m_wtpcs, "average": average, "num_sd_diff": num_sd_diff})
-                                else:
-                                    alert_flag = 0
-                                    # alerts_ordersdiscrepancies.append({"% deviation": percentage_deviation,"soldtoname": soldtoname, "salesname":salesname, "monat":month, "alert_flag": alert_flag,  "wtpcs_amt":m_wtpcs, "average": average, "num_sd_diff": num_sd_diff})
-                                cursor.execute("INSERT INTO dashboard_orderdiscrepancyrecord(soldtoname, salesname, monat, wtpcs_amt, average, num_sd_diff, abs_num_sd_diff, alert_flag) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)", (soldtoname, salesname, month, m_wtpcs, average, num_sd_diff, abs(num_sd_diff), alert_flag))
+                                    for i in range(len(graph_monatlist_processed)):
+                                        cursor.execute("INSERT INTO dashboard_orderdiscrepancygraphdata(alert_id, clm_code, soldtoname, salesname, monat, wtpcs_amt) VALUES (%s, %s, %s, %s, %s, %s)", (alert_id, clm, soldtoname, salesname, graph_monatlist_processed[i], graph_umwtpcslist_processed[i]))
 
+                                    alert_id += 1
 
-        
+                            #else:
+                                #alert_flag = 0
+                                #alerts_ordersdiscrepancies.append({"[graph]_monatlist":, "[graph]_umwtpcslist":graph_umwtpcslist,"clm":clm, "% deviation": percentage_deviation,"soldtoname": soldtoname, "salesname":salesname, "monat":month, "alert_flag": alert_flag,  "wtpcs_amt":m_wtpcs, "average": average, "num_sd_diff": num_sd_diff})
+                            bp+=abs_num_sd_diff
+            bp_averaged = bp/(numberofsalesname*3) #3 for 3 monats
+            bp_ordersdiscrepancies.append({"clm":clm, "soldtoname": soldtoname, "bp":bp_averaged})
+    # return bp_ordersdiscrepancies
     return alerts_ordersdiscrepancies
+
 
 
 
 ##################### End Functions ########################
 
 #filename = 'Need 3_K03.csv'
-filename = '/srv/website/data/Need3_K03.csv'
+filename = '/srv/website/data/order_discrep_SEU_12Jun_Z02_Z04.csv'
 
-mydb = MySQLdb.connect(
-    host='localhost',
-    user='user',
-    passwd='password',
-    db='djangodb'
-)
+if is_algorithm_development:
+    import csv
+    toCSV = check_order_discrepancies(filename)
+    keys = toCSV[0].keys()
+    with open('output_need3.csv', 'w') as output_file:
+        dict_writer = csv.DictWriter(output_file, keys)
+        dict_writer.writeheader()
+        dict_writer.writerows(toCSV)
 
-cursor = mydb.cursor()
-cursor.execute("truncate dashboard_orderdiscrepancyrecord")
-start = time.time()
-check_order_discrepancies(filename)
-end = time.time()
-print("Time taken to run order discrepancy algorithm: {0:.6f} seconds ".format(end-start))
+else:
+    mydb = MySQLdb.connect(
+        host='localhost',
+        user='user',
+        passwd='password',
+        db='djangodb'
+    )
 
-mydb.commit()
-cursor.close()
+    cursor = mydb.cursor()
+    cursor.execute("SET FOREIGN_KEY_CHECKS = 0")
+    cursor.execute("truncate dashboard_orderdiscrepancyalerts")
+    cursor.execute("truncate dashboard_orderdiscrepancygraphdata")
+    cursor.execute("SET FOREIGN_KEY_CHECKS = 1")
+    start = time.time()
+    check_order_discrepancies(filename)
+    end = time.time()
+    print("Time taken to run order discrepancy algorithm: {0:.6f} seconds ".format(end-start))
+
+    mydb.commit()
+    cursor.close()

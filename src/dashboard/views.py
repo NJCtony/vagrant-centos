@@ -15,7 +15,7 @@ from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 
 # Models
-from .models import DemandChangeRecord, SupplyChangeRecord, OrderDiscrepancyRecord, BusinessPerformance, Profile
+from .models import DemandChangeRecord, SupplyChangeRecord, OrderDiscrepancyAlerts, BusinessPerformance, Profile
 
 
 # Forms
@@ -405,9 +405,9 @@ def api_alerts(request, alert_type):
                 order_values = ('soldtoname', 'salesname', 'monat', 'wtpcs_amt', 'num_sd_diff') # Define field to be be shown
 
                 if query_aggregate and not oneSoldtoname:
-                    alerts_query = OrderDiscrepancyRecord.objects.filter(alert_flag=1).values(*order_values)
+                    alerts_query = OrderDiscrepancyAlerts.objects.filter(alert_flag=1).values(*order_values)
                 else:
-                    alerts_query = OrderDiscrepancyRecord.objects.filter(soldtoname = soldtoname_choice, alert_flag=1).values(*order_values)
+                    alerts_query = OrderDiscrepancyAlerts.objects.filter(soldtoname = soldtoname_choice, alert_flag=1).values(*order_values)
 
                 alerts = alerts_query.order_by('abs_num_sd_diff').reverse()
                 if query_limit:
