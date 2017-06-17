@@ -46,9 +46,8 @@ class LoginView(View):
 
         if user is not None:
             auth_login(request, user)
-
-            # TODO: Replace with actual clm_code when scaling up to serve different users
-            request.session['id'] = 'K03'
+            profile = Profile.objects.get(id=user.id)
+            request.session['id'] = profile.clm_code
 
             return redirect('dashboard:overview')
 
@@ -275,9 +274,8 @@ def api_records(request, alert_type):
                             print('(WARNING) api_records_{}>: Filled missing value for {} {}'.format(alert_type, salesname_item, monat_item))
 
                     for i in range(len(salesname_sc)):
-                        if salesname_sc[i] != 100:
-                            sc_mean[i] += salesname_sc[i]
-                            sc_count[i] += 1
+                        sc_mean[i] += salesname_sc[i]
+                        sc_count[i] += 1
 
                         if salesname_sc[i] < sc_min:
                             sc_min = salesname_sc[i]

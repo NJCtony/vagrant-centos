@@ -26,10 +26,12 @@ class SupplyChangeRecord(models.Model):
     salesname = models.CharField(max_length=32, default=None)
     monat = models.CharField(max_length=32, default=None)
     akt_day = models.DateField()
+    this_umwtpcs_3WPeriod = models.IntegerField(default=0)
+    last_umwtpcs_3WPeriod = models.IntegerField(default=0)
+    diff_umwtpcs_3WPeriod = models.IntegerField(default=0)
     this_umatpcs_3WPeriod = models.IntegerField(default=0)
     last_umatpcs_3WPeriod = models.IntegerField(default=0)
     diff_umatpcs_3WPeriod = models.IntegerField(default=0)
-    diff_umwtpcs_3WPeriod = models.IntegerField(default=0)
     sc_diff_umatpcs_percentage = models.FloatField(default=0)
     alert_percentage = models.FloatField(default=0)
     alert_flag = models.NullBooleanField()
@@ -52,7 +54,7 @@ class BusinessPerformance(models.Model):
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    clm_code = models.CharField(max_length=16, default='', unique=True)
+    clm_code = models.CharField(max_length=16, default='')
     demand_up_threshold = models.FloatField(default=10)
     demand_down_threshold = models.FloatField(default=50000)
     supply_down_threshold = models.FloatField(default=93)
