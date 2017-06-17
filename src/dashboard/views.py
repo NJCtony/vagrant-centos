@@ -173,7 +173,7 @@ def api_records(request, alert_type):
     data = []
     if query_id:
         time_now = time.time()
-        #TODO: Check validity of query_id
+
         clm_summary_json = api_clm_summary(request, query_id).content.decode('utf-8')
         clm_summary_dict = json.loads(clm_summary_json)
         soldtoname_list = clm_summary_dict['data']['soldtonames']
@@ -253,6 +253,7 @@ def api_records(request, alert_type):
             elif alert_type == 'supply':
                 sc_mean = [0.0, 0.0, 0.0]
                 sc_count = [0, 0, 0]
+                sc_min = 100
                 soldtoname_data['soldtoname'] = soldtoname_choice
                 monat_list = [temp_dict['monat'] for temp_dict in SupplyChangeRecord.objects.values('monat').distinct()]
                 soldtoname_data['labels'] = monat_list
@@ -278,6 +279,9 @@ def api_records(request, alert_type):
                             sc_mean[i] += salesname_sc[i]
                             sc_count[i] += 1
 
+                        if salesname_sc[i] < sc_min:
+                            sc_min = salesname_sc[i]
+
                     soldtoname_data['salesnames'].append({'salesname': salesname_item, 'sc': salesname_sc, 'alert_flag': salesname_alert})
 
                 for i in range(len(sc_mean)):
@@ -288,6 +292,7 @@ def api_records(request, alert_type):
                     sc_mean[i] = round(sc_mean[i], 1)
 
                 soldtoname_data['means'] = sc_mean
+                soldtoname_data['min'] = sc_min
 
             if query_image and oneEntry:
                 soldtoname_data['image'] = True
@@ -318,7 +323,6 @@ def api_records_demand_chart(request):
 
 def api_records_supply_chart(request):
     records_supply_json = api_records_supply(request).content.decode('utf-8')
-
 
     # Redirect link from Overview page to Detailed page
     query_id = request.GET.get('id')
